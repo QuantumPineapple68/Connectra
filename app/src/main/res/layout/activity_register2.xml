@@ -9,7 +9,7 @@
     android:fadeScrollbars="true"
     android:focusableInTouchMode="false"
     android:forceHasOverlappingRendering="false"
-    tools:context=".MainActivity">
+    tools:context=".LoginActivity">
 
 
     <ImageView
@@ -22,46 +22,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/button3"
-        android:layout_width="336dp"
-        android:layout_height="63dp"
-        android:layout_marginTop="67dp"
-        android:backgroundTint="@color/theme"
-        android:text="Continue with Facebook ( Dev Stage )"
-        android:textColor="#000000"
-        android:textColorLink="#fbbc05"
-        app:cornerRadius="10dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/button4" />
-
-    <Button
-        android:id="@+id/button4"
-        android:layout_width="336dp"
-        android:layout_height="63dp"
-        android:layout_marginTop="35dp"
-        android:backgroundTint="@color/theme"
-        android:text="Continue with Gmail ( Dev Stage )"
-        android:textColor="#000000"
-        android:textColorLink="#fbbc05"
-        app:cornerRadius="10dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button2" />
 
     <Button
         android:id="@+id/button2"
+        android:layout_marginTop="40dp"
         android:layout_width="336dp"
         android:layout_height="63dp"
-        android:layout_marginTop="2dp"
         android:backgroundTint="@color/theme"
         android:text="Create your Account"
         android:textColor="#000000"
         app:cornerRadius="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button" />
+        app:layout_constraintTop_toBottomOf="@+id/editTextTextPassword" />
 
     <EditText
         android:id="@+id/editTextTextEmailAddress"
@@ -88,42 +61,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextTextEmailAddress" />
 
-    <Button
-        android:id="@+id/button"
-        android:layout_width="336dp"
-        android:layout_height="63dp"
-        android:layout_marginTop="40dp"
-        android:backgroundTint="@color/theme"
-        android:text="Login"
-        android:textColor="#000000"
-        app:cornerRadius="10dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextTextPassword" />
 
     <TextView
         android:id="@+id/textView2"
-        android:layout_width="127dp"
+        android:layout_width="wrap_content"
         android:layout_height="17dp"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:text="Forgot Password?"
-        app:layout_constraintBottom_toTopOf="@+id/button"
+        android:text="Need Help ?"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.936"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextTextPassword"
-        app:layout_constraintVertical_bias="0.611" />
+        app:layout_constraintTop_toBottomOf="@+id/editTextTextPassword" />
 
-    <TextView
-        android:id="@+id/textView4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:text="or"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button2" />
 
     <TextView
         android:id="@+id/LOGIN"
@@ -131,7 +80,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="142dp"
         android:layout_marginTop="250dp"
-        android:text="LOG IN"
+        android:text="Sign UP"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@id/imageView"
