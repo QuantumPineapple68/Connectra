@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "404492716071",
+    "project_id": "my-own-connectra",
+    "storage_bucket": "my-own-connectra.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:404492716071:android:b39cd54688519c34e0a602",
+        "android_client_info": {
+          "package_name": "com.example.connectra"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDafM4xwNR2GwhybcyvZ9rriR23YpDLHnA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
