@@ -41,6 +41,7 @@
         android:layout_width="350dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="25dp"
+        android:autofillHints="emailAddress"
         android:ems="10"
         android:hint="EMAIL"
         android:inputType="textEmailAddress"
@@ -51,6 +52,7 @@
 
     <EditText
         android:id="@+id/editTextTextPassword"
+        android:autofillHints="password"
         android:layout_width="350dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
