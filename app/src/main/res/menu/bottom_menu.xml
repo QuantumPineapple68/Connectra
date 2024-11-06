@@ -9,12 +9,12 @@
         android:icon="@drawable/ic_search"
         android:title=""/>
 
-    <item android:id="@+id/nav_add"
-        android:icon="@drawable/ic_add"
+    <item android:id="@+id/nav_calender"
+        android:icon="@drawable/ic_calender"
         android:title=""/>
 
-    <item android:id="@+id/nav_heart"
-        android:icon="@drawable/ic_heart"
+    <item android:id="@+id/nav_mind"
+        android:icon="@drawable/ic_mind"
         android:title=""/>
 
     <item android:id="@+id/nav_person"

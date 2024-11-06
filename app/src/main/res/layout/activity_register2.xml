@@ -14,27 +14,29 @@
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="507dp"
-        android:layout_height="260dp"
+        android:layout_width="match_parent"
+        android:layout_height="130dp"
         android:padding="10dp"
         android:src="@drawable/logoandname"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-
     <Button
         android:id="@+id/button2"
-        android:layout_marginTop="155dp"
         android:layout_width="336dp"
         android:layout_height="63dp"
+        android:layout_marginTop="155dp"
         android:backgroundTint="@color/theme"
         android:text="Create your Account"
         android:textColor="#000000"
         app:cornerRadius="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextTextPassword" />
+        android:layout_marginBottom="15dp"
+         />
 
     <EditText
         android:id="@+id/editTextTextEmailAddress"
@@ -43,7 +45,7 @@
         android:layout_marginTop="25dp"
         android:autofillHints="emailAddress"
         android:ems="10"
-        android:hint="EMAIL"
+        android:hint="Email"
         android:inputType="textEmailAddress"
         android:shadowColor="#000000"
         app:layout_constraintEnd_toEndOf="parent"
@@ -57,7 +59,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
         android:ems="10"
-        android:hint="PASSWORD"
+        android:hint="Password"
         android:inputType="textPassword"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -70,7 +72,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
         android:ems="10"
-        android:hint="NAME"
+        android:hint="Name"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextTextPassword" />
@@ -82,16 +84,64 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
         android:ems="10"
-        android:hint="USERNAME"
+        android:hint="Username"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/name" />
+
+    <EditText
+        android:id="@+id/myskill"
+        android:autofillHints="password"
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:ems="10"
+        android:hint="Skill you good at"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/username" />
+
+    <EditText
+        android:id="@+id/age"
+        android:autofillHints="password"
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:ems="10"
+        android:hint="Age "
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/goalskill" />
+
+    <EditText
+        android:id="@+id/gender"
+        android:autofillHints="password"
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:ems="10"
+        android:hint="Gender"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/age" />
+
+    <EditText
+        android:id="@+id/goalskill"
+        android:autofillHints="password"
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:ems="10"
+        android:hint="Skill you want to learn "
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/myskill" />
 
     <TextView
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="17dp"
-        android:layout_marginTop="125dp"
+        android:layout_marginTop="365dp"
         android:text="Need Help ?"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.936"
@@ -103,17 +153,12 @@
         android:id="@+id/LOGIN"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="142dp"
-        android:layout_marginTop="250dp"
         android:text="Sign UP"
         android:textSize="20sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@id/imageView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/editTextTextEmailAddress"
-        app:layout_constraintTop_toTopOf="@+id/imageView"
-        app:layout_constraintVertical_bias="0.432" />
+
+        tools:layout_editor_absoluteX="169dp"
+        tools:layout_editor_absoluteY="115dp" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

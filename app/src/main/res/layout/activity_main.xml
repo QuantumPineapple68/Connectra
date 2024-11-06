@@ -19,6 +19,8 @@
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:outlineAmbientShadowColor="@color/theme"
+            android:outlineSpotShadowColor="@color/theme"
             android:id="@+id/bottom_navigation"
             app:itemIconTint="@color/selector"
             app:labelVisibilityMode="unlabeled"

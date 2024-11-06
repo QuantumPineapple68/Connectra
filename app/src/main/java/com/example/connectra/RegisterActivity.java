@@ -38,6 +38,10 @@ public class  RegisterActivity extends AppCompatActivity {
         Button register;
         EditText name;
         EditText username;
+        EditText myskill;
+        EditText goalskill;
+        EditText age;
+        EditText gender;
 
         FirebaseAuth auth;
         FirebaseFirestore mRootRef;
@@ -60,6 +64,11 @@ public class  RegisterActivity extends AppCompatActivity {
         register=findViewById(R.id.button2);
         name=findViewById(R.id.name);
         username=findViewById(R.id.username);
+        myskill=findViewById(R.id.myskill);
+        goalskill=findViewById(R.id.goalskill);
+        age=findViewById(R.id.age);
+        gender=findViewById(R.id.gender);
+
 
         auth = FirebaseAuth.getInstance();
         mRootRef= FirebaseFirestore.getInstance();
@@ -74,6 +83,10 @@ public class  RegisterActivity extends AppCompatActivity {
                 String txt_password = password.getText().toString();
                 String txt_name = name.getText().toString();
                 String txt_username = username.getText().toString();
+                String txt_myskill = myskill.getText().toString();
+                String txt_goalskill=goalskill.getText().toString();
+                String txt_age=age.getText().toString();
+                String txt_gender = gender.getText().toString();
 
                 if (TextUtils.isEmpty(txt_email) || TextUtils.isEmpty(txt_password) || TextUtils.isEmpty(txt_name) || TextUtils.isEmpty(txt_username)){
                     Toast.makeText(RegisterActivity.this, "Fields can't be Empty", Toast.LENGTH_SHORT).show();
@@ -82,13 +95,13 @@ public class  RegisterActivity extends AppCompatActivity {
                     Toast.makeText(RegisterActivity.this, "Password must be atleast 6 Digits", Toast.LENGTH_SHORT).show();
                 }
                 else{
-                    registerUser(txt_email ,txt_password, txt_name, txt_username);
+                    registerUser(txt_email ,txt_password, txt_name, txt_username, txt_myskill, txt_goalskill, txt_age, txt_gender);
                 }
             }
         });
     }
 
-    private void registerUser(String Email, String Password, String name, String username) {
+    private void registerUser(String Email, String Password, String name, String username, String myskill, String goalskill, String age, String gender) {
         pd.setMessage("Please Wait ...");
         pd.show();
         auth.createUserWithEmailAndPassword(Email,Password).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
@@ -101,6 +114,10 @@ public class  RegisterActivity extends AppCompatActivity {
                         map.put("username", username);
                         map.put("email", Email);
                         map.put("id", auth.getCurrentUser().getUid());
+                        map.put("myskill", myskill);
+                        map.put("goalskill", goalskill);
+                        map.put("age", age);
+                        map.put("gender", gender);
 
                         mRootRef.collection("Users").document(auth.getCurrentUser().getUid()).set(map).addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
