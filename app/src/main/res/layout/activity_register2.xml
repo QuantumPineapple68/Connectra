@@ -25,7 +25,7 @@
 
     <Button
         android:id="@+id/button2"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="155dp"
         android:layout_width="336dp"
         android:layout_height="63dp"
         android:backgroundTint="@color/theme"
@@ -63,12 +63,35 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextTextEmailAddress" />
 
+    <EditText
+        android:id="@+id/name"
+        android:autofillHints="password"
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:ems="10"
+        android:hint="NAME"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextTextPassword" />
+
+    <EditText
+        android:id="@+id/username"
+        android:autofillHints="password"
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:ems="10"
+        android:hint="USERNAME"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/name" />
 
     <TextView
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="17dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="125dp"
         android:text="Need Help ?"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.936"

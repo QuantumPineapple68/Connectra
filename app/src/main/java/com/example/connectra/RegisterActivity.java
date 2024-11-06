@@ -1,5 +1,6 @@
 package com.example.connectra;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -14,20 +15,34 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Firebase;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.FirebaseFirestore;
 
-public class RegisterActivity extends AppCompatActivity {
+import java.util.HashMap;
+import java.util.Objects;
+
+public class  RegisterActivity extends AppCompatActivity {
 
         EditText email;
         EditText password;
         Button register;
+        EditText name;
+        EditText username;
 
         FirebaseAuth auth;
+        FirebaseFirestore mRootRef;
+
+        ProgressDialog pd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,38 +58,69 @@ public class RegisterActivity extends AppCompatActivity {
         email=findViewById(R.id.editTextTextEmailAddress);
         password=findViewById(R.id.editTextTextPassword);
         register=findViewById(R.id.button2);
+        name=findViewById(R.id.name);
+        username=findViewById(R.id.username);
 
         auth = FirebaseAuth.getInstance();
+        mRootRef= FirebaseFirestore.getInstance();
+
+        pd=new ProgressDialog(this);
+
 
         register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String txt_email = email.getText().toString();
                 String txt_password = password.getText().toString();
+                String txt_name = name.getText().toString();
+                String txt_username = username.getText().toString();
 
-                if (TextUtils.isEmpty(txt_email) || TextUtils.isEmpty(txt_password)){
-                    Toast.makeText(RegisterActivity.this, "E-mail and Password can't be Empty", Toast.LENGTH_SHORT).show();
+                if (TextUtils.isEmpty(txt_email) || TextUtils.isEmpty(txt_password) || TextUtils.isEmpty(txt_name) || TextUtils.isEmpty(txt_username)){
+                    Toast.makeText(RegisterActivity.this, "Fields can't be Empty", Toast.LENGTH_SHORT).show();
                 }
                 else if (txt_password.length() < 6){
                     Toast.makeText(RegisterActivity.this, "Password must be atleast 6 Digits", Toast.LENGTH_SHORT).show();
                 }
                 else{
-                    registerUser(txt_email ,txt_password);
+                    registerUser(txt_email ,txt_password, txt_name, txt_username);
                 }
             }
         });
     }
 
-    private void registerUser(String Email, String Password) {
-        auth.createUserWithEmailAndPassword(Email,Password).addOnCompleteListener(RegisterActivity.this, new OnCompleteListener<AuthResult>() {
+    private void registerUser(String Email, String Password, String name, String username) {
+        pd.setMessage("Please Wait ...");
+        pd.show();
+        auth.createUserWithEmailAndPassword(Email,Password).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+
             @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()){
-                    Toast.makeText(RegisterActivity.this, "Registration Successful", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(RegisterActivity.this,MainActivity.class));
-                }else{
-                    Toast.makeText(RegisterActivity.this, "Registration Failed", Toast.LENGTH_SHORT).show();
-                }
+            public void onSuccess(AuthResult authResult) {
+
+                        HashMap<String, Object> map = new HashMap<>();
+                        map.put("name", name);
+                        map.put("username", username);
+                        map.put("email", Email);
+                        map.put("id", auth.getCurrentUser().getUid());
+
+                        mRootRef.collection("Users").document(auth.getCurrentUser().getUid()).set(map).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()){
+                                    pd.dismiss();
+                                    Toast.makeText(RegisterActivity.this, "Registration Successful", Toast.LENGTH_SHORT).show();
+                                    Intent intent = new Intent(RegisterActivity.this , MainActivity.class);
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                    startActivity(intent);
+                                    finish();
+                                }
+                            }
+                        });
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                pd.dismiss();
+                Toast.makeText(RegisterActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
