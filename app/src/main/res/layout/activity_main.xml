@@ -2,32 +2,30 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:layout_centerHorizontal="true"
-        android:scaleType="centerCrop"
-        android:src="@drawable/ic_launcher_foreground" />
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/bottom_bar"/>
 
-    <Button
-        android:id="@+id/selectImageBtn"
-        android:layout_width="wrap_content"
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/imageView"
-        android:layout_marginTop="16dp"
-        android:layout_centerHorizontal="true"
-        android:text="Select Image" />
+        android:id="@+id/bottom_bar"
+        android:layout_alignParentBottom="true">
 
-    <Button
-        android:id="@+id/uploadImageBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/selectImageBtn"
-        android:layout_marginTop="16dp"
-        android:layout_centerHorizontal="true"
-        android:text="Upload Image" />
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/bottom_navigation"
+            app:itemIconTint="@color/selector"
+            app:labelVisibilityMode="unlabeled"
+            android:background="?android:attr/windowBackground"
+            app:menu="@menu/bottom_menu"/>
+
+
+    </com.google.android.material.appbar.AppBarLayout>
 
 </RelativeLayout>
