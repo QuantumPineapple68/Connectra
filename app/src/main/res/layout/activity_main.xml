@@ -23,7 +23,7 @@
             android:outlineSpotShadowColor="@color/theme"
             android:id="@+id/bottom_navigation"
             app:itemIconTint="@color/selector"
-            app:labelVisibilityMode="unlabeled"
+            app:labelVisibilityMode="labeled"
             android:background="?android:attr/windowBackground"
             app:menu="@menu/bottom_menu"/>
 

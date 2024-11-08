@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -30,6 +31,7 @@ public class LoginActivity extends AppCompatActivity {
     EditText password;
     Button signgmail;
     Button signfb;
+    TextView forgotPass;
 
     FirebaseAuth auth;
 
@@ -49,8 +51,16 @@ public class LoginActivity extends AppCompatActivity {
         password=findViewById(R.id.editTextTextPassword);
         signgmail=findViewById(R.id.button4);
         signfb=findViewById(R.id.button3);
+        forgotPass=findViewById(R.id.textView2);
 
         auth=FirebaseAuth.getInstance();
+
+        forgotPass.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(LoginActivity.this, ForgotPassword.class));
+            }
+        });
 
         signgmail.setOnClickListener(new View.OnClickListener() {
             @Override

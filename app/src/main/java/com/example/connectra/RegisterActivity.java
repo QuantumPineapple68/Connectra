@@ -7,6 +7,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -68,7 +69,6 @@ public class  RegisterActivity extends AppCompatActivity {
         goalskill=findViewById(R.id.goalskill);
         age=findViewById(R.id.age);
         gender=findViewById(R.id.gender);
-
 
         auth = FirebaseAuth.getInstance();
         mRootRef= FirebaseFirestore.getInstance();
