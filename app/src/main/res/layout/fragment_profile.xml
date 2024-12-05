@@ -10,7 +10,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         tools:context=".UserProfileActivity"
-        android:background="@color/white">
+       >
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -20,8 +20,7 @@
             <RelativeLayout
                 android:id="@+id/layout_head"
                 android:layout_width="match_parent"
-                android:layout_height="300dp"
-                android:background="@color/white">
+                android:layout_height="300dp">
 
                 <RelativeLayout
                     android:layout_width="match_parent"
@@ -35,11 +34,13 @@
                         android:layout_marginTop="40dp"
                         android:elevation="5dp">
 
-                        <ImageView
+                        <de.hdodenhof.circleimageview.CircleImageView
                             android:id="@+id/imageView_profile_dp"
+                            android:src="@drawable/no_profile_pic"
                             android:layout_width="160dp"
                             android:layout_height="160dp"
-                            android:background="@drawable/no_profile_pic"
+                            android:layout_gravity="center"
+                            android:foregroundGravity="center"
                             android:contentDescription="user_display_picture"
                             android:scaleType="centerCrop" />
                     </androidx.cardview.widget.CardView>
@@ -65,8 +66,7 @@
                     android:layout_marginBottom="30dp"
                     android:text="User Name"
                     android:textAlignment="center"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Headline"
-                    android:textColor="@android:color/black" />
+                    android:textAppearance="@style/TextAppearance.AppCompat.Headline" />
             </RelativeLayout>
 
             <RelativeLayout
