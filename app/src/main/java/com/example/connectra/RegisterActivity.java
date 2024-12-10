@@ -47,6 +47,7 @@ public class  RegisterActivity extends AppCompatActivity {
         EditText age;
         EditText gender;
         FirebaseDatabase firebaseDatabase;
+        EditText lulu;
 
         FirebaseAuth auth;
         FirebaseFirestore mRootRef;
