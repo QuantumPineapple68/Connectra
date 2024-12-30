@@ -42,6 +42,7 @@
                             android:layout_gravity="center"
                             android:foregroundGravity="center"
                             android:contentDescription="user_display_picture"
+                            android:backgroundTint="@color/white"
                             android:scaleType="centerCrop" />
                     </androidx.cardview.widget.CardView>
                     <ProgressBar

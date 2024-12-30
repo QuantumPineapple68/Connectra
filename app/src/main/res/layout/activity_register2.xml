@@ -156,9 +156,11 @@
         android:text="Sign UP"
         android:textSize="20sp"
         android:textStyle="bold"
+        android:layout_marginTop="115dp"
 
-        tools:layout_editor_absoluteX="169dp"
-        tools:layout_editor_absoluteY="115dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
