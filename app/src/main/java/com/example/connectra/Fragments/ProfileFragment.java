@@ -44,6 +44,8 @@ public class ProfileFragment extends Fragment {
     private TextView fullNameTextView, emailTextView, genderTextView;
     private ImageView profileImageView;
     private Button logoutButton;
+    private TextView welcome;
+
     private FirebaseAuth auth;
     private DatabaseReference databaseReference;
     private FirebaseStorage secondaryStorage;
@@ -58,6 +60,7 @@ public class ProfileFragment extends Fragment {
         fullNameTextView = view.findViewById(R.id.full_name);
         emailTextView = view.findViewById(R.id.show_email);
         genderTextView = view.findViewById(R.id.show_gender);
+        welcome=view.findViewById(R.id.show_welcome);
         profileImageView = view.findViewById(R.id.imageView_profile_dp);
         logoutButton = view.findViewById(R.id.logout);
 
@@ -101,20 +104,27 @@ public class ProfileFragment extends Fragment {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.exists()) {
-                        String fullName = snapshot.child("name").getValue(String.class);
+                        String userName = snapshot.child("username").getValue(String.class);
                         String email = snapshot.child("email").getValue(String.class);
                         String gender = snapshot.child("gender").getValue(String.class);
+                        String fullName = snapshot.child("name").getValue(String.class);
 
                         // Update UI
-                        if (fullName != null) {
-                            fullNameTextView.setText("Welcome, " + fullName);
-                        }
-                        if (email != null) {
-                            emailTextView.setText("Email: " + email);
-                        }
-                        if (gender != null) {
-                            genderTextView.setText("Gender: " + gender);
-                        }
+                        requireActivity().runOnUiThread(() -> {
+                            if (fullName != null) {
+                                welcome.setText("Welcome, " + fullName);
+                            }
+                            if (userName != null) {
+                                fullNameTextView.setText(userName);
+                            }
+                            if (email != null) {
+                                emailTextView.setText(email);
+                            }
+                            if (gender != null) {
+                                genderTextView.setText(gender);
+                            }
+                        });
+
                     } else {
                         Toast.makeText(getContext(), "User data not found", Toast.LENGTH_SHORT).show();
                     }
