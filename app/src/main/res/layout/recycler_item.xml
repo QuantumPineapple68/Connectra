@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:padding="8dp">
 
-        <ImageSwitcher
+        <ImageView
             android:id="@+id/gender_icon"
             android:layout_width="24dp"
             android:layout_height="24dp"
@@ -22,6 +22,7 @@
             android:layout_alignParentEnd="true"
             android:layout_margin="4dp"
             android:src="@drawable/icon_default" />
+
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/profile_image"
@@ -38,9 +39,9 @@
             android:layout_toEndOf="@id/profile_image"
             android:layout_alignTop="@id/profile_image"
             android:text="John Doe"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:textStyle="bold"
-            android:textColor="@android:color/black" />
+            android:textColor="@android:color/darker_gray" />
 
         <TextView
             android:id="@+id/offered_skill"
@@ -49,8 +50,9 @@
             android:layout_toEndOf="@id/profile_image"
             android:layout_below="@id/profile_name"
             android:text="Offered: Cooking"
-            android:textSize="14sp"
-            android:textColor="@android:color/darker_gray" />
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            android:textStyle="bold"/>
 
         <TextView
             android:id="@+id/wish_skill"

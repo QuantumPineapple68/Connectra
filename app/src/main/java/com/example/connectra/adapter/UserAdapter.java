@@ -4,6 +4,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageSwitcher;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -35,20 +36,21 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         holder.name.setText(user.getName());
         holder.offeredSkill.setText("Offered: " + user.getMyskill());
         holder.wishSkill.setText("Wants to learn: " + user.getGoalskill());
-//        if (holder.genderImageView != null) {
-//            if (user.getGender() != null) {
-//                String gender = user.getGender().toLowerCase();
-//                if (gender.equals("male")) {
-//                    holder.genderImageView.setImageResource(R.drawable.icon_male);
-//                } else if (gender.equals("female")) {
-//                    holder.genderImageView.setImageResource(R.drawable.icon_female);
-//                } else {
-//                    holder.genderImageView.setImageResource(R.drawable.icon_default); // No image for other genders
-//                }
-//            } else {
-//                holder.genderImageView.setImageResource(R.drawable.icon_default); // Remove image if gender is null
-//            }
-//        }
+        if (holder.genderImageView != null) {
+            String gender = user.getGender() == null ? "" : user.getGender().toLowerCase();
+            switch (gender) {
+                case "male":
+                    holder.genderImageView.setImageResource(R.drawable.icon_male);
+                    break;
+                case "female":
+                    holder.genderImageView.setImageResource(R.drawable.icon_female);
+                    break;
+                default:
+                    holder.genderImageView.setImageResource(R.drawable.icon_default);
+                    break;
+            }
+        }
+
 
     }
 
@@ -59,7 +61,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public ImageSwitcher genderImageView;
+        public ImageView genderImageView; // Changed to ImageView
         TextView name, offeredSkill, wishSkill;
 
         public ViewHolder(@NonNull View itemView) {
@@ -67,7 +69,8 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             name = itemView.findViewById(R.id.profile_name);
             offeredSkill = itemView.findViewById(R.id.offered_skill);
             wishSkill = itemView.findViewById(R.id.wish_skill);
-            genderImageView = itemView.findViewById(R.id.gender_icon);
+            genderImageView = itemView.findViewById(R.id.gender_icon); // No need for ImageSwitcher
         }
     }
+
 }

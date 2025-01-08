@@ -24,7 +24,7 @@ import java.util.List;
 public class SearchFragment extends Fragment {
 
     private RecyclerView recyclerView;
-    private UserAdapter userAdapter; // Replace with your RecyclerView Adapter class name
+    private UserAdapter userAdapter; // Always replace with your RecyclerView Adapter class name
     private List<NewUser> usersList;
     private FirebaseFirestore firestore;
 
@@ -33,16 +33,16 @@ public class SearchFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_search, container, false);
 
         // Initialize RecyclerView and other components
-        recyclerView = view.findViewById(R.id.recycler_view); // Ensure you have a RecyclerView with this ID in your layout
+        recyclerView = view.findViewById(R.id.recycler_view); // Always ensure you have a RecyclerView with this ID in your layout
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         usersList = new ArrayList<>();
-        userAdapter = new UserAdapter(usersList); // Replace with your adapter constructor
+        userAdapter = new UserAdapter(usersList); // Always replace with your adapter constructor
         recyclerView.setAdapter(userAdapter);
 
         firestore = FirebaseFirestore.getInstance();
 
-        // Fetch data from Firestore
+        // Fetching data from Firestore
         fetchUsers();
 
         return view;

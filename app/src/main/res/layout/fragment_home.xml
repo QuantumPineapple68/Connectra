@@ -5,10 +5,26 @@
     android:layout_height="match_parent"
     tools:context=".Fragments.HomeFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="home frag" />
+        android:layout_height="match_parent">
 
+        <TextView
+            android:id="@+id/welcome_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Hi user full name"
+            android:textColor="@color/black"
+            android:fontFamily="@font/roboto_bold"
+            android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+            android:layout_margin="@dimen/medium_margin" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/recycler_view_home"
+            android:layout_below="@id/welcome_name"
+            android:padding="8dp" />
+
+    </RelativeLayout>
 </FrameLayout>
