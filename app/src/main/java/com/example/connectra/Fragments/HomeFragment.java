@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectra.R;
 import com.example.connectra.adapter.TileAdapter;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -49,20 +50,24 @@ public class HomeFragment extends Fragment {
 
     private void fetchUsersFromFirestore() {
         CollectionReference usersRef = firestore.collection("Users");
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         usersRef.get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         userList.clear(); // Clear the list before adding new data
                         for (QueryDocumentSnapshot document : task.getResult()) {
-                            String name = document.getString("name");
-                            String myskill = document.getString("myskill");
-                            String goalskill = document.getString("goalskill");
-                            String gender = document.getString("gender");
-                            String age = document.getString("age");
+                            String userId = document.getId(); // Firestore document ID (UID)
+                            if (!userId.equals(currentUserId)) { // Exclude current user's profile
+                                String name = document.getString("name");
+                                String myskill = document.getString("myskill");
+                                String goalskill = document.getString("goalskill");
+                                String gender = document.getString("gender");
+                                String age = document.getString("age");
 
-                            // Add user to the list
-                            userList.add(new NewUser(name, myskill, goalskill, gender, age));
+                                // Add user to the list
+                                userList.add(new NewUser(name, myskill, goalskill, gender, age, userId));
+                            }
                         }
                         // Notify adapter of data changes
                         tileAdapter.notifyDataSetChanged();

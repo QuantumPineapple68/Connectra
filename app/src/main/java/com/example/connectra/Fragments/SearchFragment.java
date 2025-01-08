@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectra.R;
 import com.example.connectra.adapter.UserAdapter;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -24,8 +25,8 @@ import java.util.List;
 public class SearchFragment extends Fragment {
 
     private RecyclerView recyclerView;
-    private UserAdapter userAdapter; // Always replace with your RecyclerView Adapter class name
-    private List<NewUser> usersList;
+    private UserAdapter userAdapter; // Your adapter
+    private List<NewUser> usersList; // List of users
     private FirebaseFirestore firestore;
 
     @Override
@@ -33,11 +34,11 @@ public class SearchFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_search, container, false);
 
         // Initialize RecyclerView and other components
-        recyclerView = view.findViewById(R.id.recycler_view); // Always ensure you have a RecyclerView with this ID in your layout
+        recyclerView = view.findViewById(R.id.recycler_view); // Ensure RecyclerView exists in your layout
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         usersList = new ArrayList<>();
-        userAdapter = new UserAdapter(usersList); // Always replace with your adapter constructor
+        userAdapter = new UserAdapter(usersList); // Initialize the adapter with usersList
         recyclerView.setAdapter(userAdapter);
 
         firestore = FirebaseFirestore.getInstance();
@@ -50,6 +51,7 @@ public class SearchFragment extends Fragment {
 
     private void fetchUsers() {
         CollectionReference usersRef = firestore.collection("Users");
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         usersRef.addSnapshotListener((value, error) -> {
             if (error != null) {
@@ -63,7 +65,9 @@ public class SearchFragment extends Fragment {
             if (value != null) {
                 for (com.google.firebase.firestore.DocumentSnapshot doc : value.getDocuments()) {
                     NewUser user = doc.toObject(NewUser.class);
-                    usersList.add(user);
+                    if (!user.getId().equals(currentUserId)) { // Exclude current user
+                        usersList.add(user);
+                    }
                 }
 
                 // Notify the adapter about the data change

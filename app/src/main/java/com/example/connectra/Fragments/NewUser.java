@@ -6,17 +6,19 @@ public class NewUser {
     private String goalskill;
     private String gender;
     private String age;
+    private String id;
 
     // Default constructor for Firebase
     public NewUser() {
     }
 
-    public NewUser(String name, String myskill, String goalskill, String gender, String age) {
+    public NewUser(String name, String myskill, String goalskill, String gender, String age, String id) {
         this.name = name;
         this.myskill = myskill;
         this.goalskill = goalskill;
         this.gender = gender;
         this.age = age;
+        this.id = id;
     }
 
     // Getters and setters
@@ -34,4 +36,7 @@ public class NewUser {
 
     public String getAge() { return age; }
     public void setAge(String age) { this.age = age; }
+
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 }

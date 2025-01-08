@@ -3,15 +3,14 @@ package com.example.connectra.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.connectra.Fragments.NewUser;
 import com.example.connectra.R;
+import com.example.connectra.Fragments.NewUser;
 
 import java.util.List;
 
@@ -36,6 +35,8 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         holder.name.setText(user.getName());
         holder.offeredSkill.setText("Offered: " + user.getMyskill());
         holder.wishSkill.setText("Wants to learn: " + user.getGoalskill());
+
+        // Gender logic
         if (holder.genderImageView != null) {
             String gender = user.getGender() == null ? "" : user.getGender().toLowerCase();
             switch (gender) {
@@ -50,18 +51,15 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
                     break;
             }
         }
-
-
     }
 
     @Override
     public int getItemCount() {
-
         return users.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public ImageView genderImageView; // Changed to ImageView
+        ImageView genderImageView; // Changed to ImageView
         TextView name, offeredSkill, wishSkill;
 
         public ViewHolder(@NonNull View itemView) {
@@ -72,5 +70,4 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             genderImageView = itemView.findViewById(R.id.gender_icon); // No need for ImageSwitcher
         }
     }
-
 }
