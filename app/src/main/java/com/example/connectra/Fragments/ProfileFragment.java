@@ -23,6 +23,8 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.example.connectra.LoginActivity;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -47,7 +49,7 @@ public class ProfileFragment extends Fragment {
     private TextView welcome;
 
     private FirebaseAuth auth;
-    private DatabaseReference databaseReference;
+    private FirebaseFirestore firestore;
     private FirebaseStorage secondaryStorage;
     private Uri imageUri;
     private ActivityResultLauncher<Intent> imagePickerLauncher;
@@ -66,7 +68,7 @@ public class ProfileFragment extends Fragment {
 
         // Firebase initialization
         auth = FirebaseAuth.getInstance();
-        databaseReference = FirebaseDatabase.getInstance().getReference("Users");
+        firestore = FirebaseFirestore.getInstance();
         secondaryStorage = FirebaseStorage.getInstance(FirebaseApp.getInstance("secondary"));
 
         // Fetch and display user data
@@ -97,48 +99,40 @@ public class ProfileFragment extends Fragment {
     }
 
     private void fetchUserData() {
-        String userEmail = Objects.requireNonNull(auth.getCurrentUser()).getEmail();
-        if (userEmail != null) {
-            String sanitizedEmail = userEmail.replace(".", ","); // Firebase-friendly key
-            databaseReference.child(sanitizedEmail).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.exists()) {
-                        String userName = snapshot.child("username").getValue(String.class);
-                        String email = snapshot.child("email").getValue(String.class);
-                        String gender = snapshot.child("gender").getValue(String.class);
-                        String fullName = snapshot.child("name").getValue(String.class);
+        if (auth.getCurrentUser() != null) {
+            String userId = auth.getCurrentUser().getUid();
+            firestore.collection("Users").document(userId)
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot snapshot = task.getResult();
+                            if (snapshot != null && snapshot.exists()) {
+                                String userName = snapshot.getString("username");
+                                String email = snapshot.getString("email");
+                                String gender = snapshot.getString("gender");
+                                String fullName = snapshot.getString("name");
 
-                        // Update UI
-                        requireActivity().runOnUiThread(() -> {
-                            if (fullName != null) {
-                                welcome.setText("Welcome, " + fullName);
+                                // Update UI
+                                if (getActivity() != null) {
+                                    getActivity().runOnUiThread(() -> {
+                                        if (fullName != null) welcome.setText("Welcome, " + fullName);
+                                        if (userName != null) fullNameTextView.setText(userName);
+                                        if (email != null) emailTextView.setText(email);
+                                        if (gender != null) genderTextView.setText(gender);
+                                    });
+                                }
+                            } else {
+                                Toast.makeText(getContext(), "User data not found", Toast.LENGTH_SHORT).show();
                             }
-                            if (userName != null) {
-                                fullNameTextView.setText(userName);
-                            }
-                            if (email != null) {
-                                emailTextView.setText(email);
-                            }
-                            if (gender != null) {
-                                genderTextView.setText(gender);
-                            }
-                        });
-
-                    } else {
-                        Toast.makeText(getContext(), "User data not found", Toast.LENGTH_SHORT).show();
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    Toast.makeText(getContext(), "Failed to fetch data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
+                        } else {
+                            Toast.makeText(getContext(), "Failed to fetch data: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
         } else {
             Toast.makeText(getContext(), "User not logged in", Toast.LENGTH_SHORT).show();
         }
     }
+
 
     private void openImage() {
         Intent intent = new Intent();

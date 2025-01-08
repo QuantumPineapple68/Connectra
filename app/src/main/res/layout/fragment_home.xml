@@ -17,13 +17,23 @@
             android:textColor="@color/black"
             android:fontFamily="@font/roboto_bold"
             android:textAppearance="@style/TextAppearance.AppCompat.Headline"
-            android:layout_margin="@dimen/medium_margin" />
+            android:layout_marginTop="@dimen/medium_margin"
+            android:layout_marginStart="@dimen/medium_margin"/>
+
+        <TextView
+            android:id="@+id/suggetions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Following are some Profiles You may like ..."
+            android:textColor="@android:color/darker_gray"
+            android:layout_below="@id/welcome_name"
+            android:layout_marginStart="@dimen/medium_margin" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/recycler_view_home"
-            android:layout_below="@id/welcome_name"
+            android:layout_below="@id/suggetions"
             android:padding="8dp" />
 
     </RelativeLayout>
