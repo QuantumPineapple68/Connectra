@@ -5,6 +5,8 @@ import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
+
+import com.example.connectra.ChangeSkillActivity;
 import com.example.connectra.R;
 import android.os.Bundle;
 import android.util.Log;
@@ -47,6 +49,8 @@ public class ProfileFragment extends Fragment {
     private ImageView profileImageView;
     private Button logoutButton;
     private TextView welcome;
+    private Button changeSkill;
+    private TextView mySkillTextView, goalSkillTextView;
 
     private FirebaseAuth auth;
     private FirebaseFirestore firestore;
@@ -62,9 +66,12 @@ public class ProfileFragment extends Fragment {
         fullNameTextView = view.findViewById(R.id.full_name);
         emailTextView = view.findViewById(R.id.show_email);
         genderTextView = view.findViewById(R.id.show_gender);
+        mySkillTextView = view.findViewById(R.id.myskill_change);
+        goalSkillTextView = view.findViewById(R.id.goalskill_change);
         welcome=view.findViewById(R.id.show_welcome);
         profileImageView = view.findViewById(R.id.imageView_profile_dp);
         logoutButton = view.findViewById(R.id.logout);
+        changeSkill = view.findViewById(R.id.skillChange);
 
         // Firebase initialization
         auth = FirebaseAuth.getInstance();
@@ -81,6 +88,11 @@ public class ProfileFragment extends Fragment {
             Intent intent = new Intent(getActivity(), LoginActivity.class);
             startActivity(intent);
             requireActivity().finish();
+        });
+
+        changeSkill.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), ChangeSkillActivity.class);
+            startActivity(intent);
         });
 
         // Image upload functionality
@@ -111,6 +123,8 @@ public class ProfileFragment extends Fragment {
                                 String email = snapshot.getString("email");
                                 String gender = snapshot.getString("gender");
                                 String fullName = snapshot.getString("name");
+                                String mySkill = snapshot.getString("myskill");
+                                String goalSkill = snapshot.getString("goalskill");
 
                                 // Update UI
                                 if (getActivity() != null) {
@@ -119,6 +133,8 @@ public class ProfileFragment extends Fragment {
                                         if (userName != null) fullNameTextView.setText(userName);
                                         if (email != null) emailTextView.setText(email);
                                         if (gender != null) genderTextView.setText(gender);
+                                        if (mySkill != null) mySkillTextView.setText(mySkill);
+                                        if (goalSkill != null) goalSkillTextView.setText(goalSkill);
                                     });
                                 }
                             } else {
