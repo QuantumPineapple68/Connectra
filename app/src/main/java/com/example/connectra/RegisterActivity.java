@@ -40,7 +40,6 @@ public class RegisterActivity extends AppCompatActivity {
     EditText goalskill;
     EditText age;
     EditText gender;
-    FirebaseDatabase firebaseDatabase;
 
     FirebaseAuth auth;
     FirebaseFirestore mRootRef;
@@ -105,9 +104,6 @@ public class RegisterActivity extends AppCompatActivity {
             @Override
             public void onSuccess(AuthResult authResult) {
 
-                DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Users");
-                String sanitizedEmail = Email.replace(".", ",");
-
                 HashMap<String, Object> map = new HashMap<>();
                 map.put("name", name);
                 map.put("username", username);
@@ -117,8 +113,6 @@ public class RegisterActivity extends AppCompatActivity {
                 map.put("goalskill", goalskill);
                 map.put("age", age);
                 map.put("gender", gender);
-
-                ref.child(sanitizedEmail).setValue(map);
 
                 mRootRef.collection("Users").document(auth.getCurrentUser().getUid()).set(map).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override

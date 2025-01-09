@@ -34,7 +34,7 @@ android {
 }
 
 dependencies {
-    implementation("de.hdodenhof:circleimageview:3.1.0")
+    implementation(libs.circleimageview)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

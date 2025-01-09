@@ -7,10 +7,17 @@
 
 
     <CalendarView
+        android:id="@+id/calendarView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        
-    </CalendarView>
+        android:layout_height="wrap_content"
+        android:showWeekNumber="false"
+        android:firstDayOfWeek="2"
+        android:minDate="2023-01-01"
+        android:maxDate="2025-12-31"
+        android:weekSeparatorLineColor="@color/theme"
+        android:focusedMonthDateColor="@color/theme"
+        android:unfocusedMonthDateColor="@color/theme" />
+
 
 
 

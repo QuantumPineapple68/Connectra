@@ -17,6 +17,7 @@
             android:textColor="@color/black"
             android:fontFamily="@font/roboto_bold"
             android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+            android:textSize="35dp"
             android:layout_marginTop="@dimen/medium_margin"
             android:layout_marginStart="@dimen/medium_margin"/>
 
@@ -26,6 +27,7 @@
             android:layout_height="wrap_content"
             android:text="Following are some Profiles You may like ..."
             android:textColor="@android:color/darker_gray"
+            android:textSize="18dp"
             android:layout_below="@id/welcome_name"
             android:layout_marginStart="@dimen/medium_margin" />
 
