@@ -6,6 +6,7 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
 
+import com.bumptech.glide.Glide;
 import com.example.connectra.ChangeSkillActivity;
 import com.example.connectra.R;
 import android.os.Bundle;
@@ -45,7 +46,7 @@ import java.util.Objects;
 
 public class ProfileFragment extends Fragment {
 
-    private TextView fullNameTextView, emailTextView, genderTextView;
+    private TextView fullNameTextView, emailTextView, genderTextView, bioTextView;
     private ImageView profileImageView;
     private Button logoutButton;
     private TextView welcome;
@@ -68,6 +69,7 @@ public class ProfileFragment extends Fragment {
         genderTextView = view.findViewById(R.id.show_gender);
         mySkillTextView = view.findViewById(R.id.myskill_change);
         goalSkillTextView = view.findViewById(R.id.goalskill_change);
+        bioTextView = view.findViewById(R.id.show_bio);
         welcome=view.findViewById(R.id.show_welcome);
         profileImageView = view.findViewById(R.id.imageView_profile_dp);
         logoutButton = view.findViewById(R.id.logout);
@@ -125,6 +127,8 @@ public class ProfileFragment extends Fragment {
                                 String fullName = snapshot.getString("name");
                                 String mySkill = snapshot.getString("myskill");
                                 String goalSkill = snapshot.getString("goalskill");
+                                String bio = snapshot.getString("bio");
+                                String profileImage = snapshot.getString("profileImage"); // Fetch profile image URL
 
                                 // Update UI
                                 if (getActivity() != null) {
@@ -133,8 +137,21 @@ public class ProfileFragment extends Fragment {
                                         if (userName != null) fullNameTextView.setText(userName);
                                         if (email != null) emailTextView.setText(email);
                                         if (gender != null) genderTextView.setText(gender);
-                                        if (mySkill != null) mySkillTextView.setText(mySkill);
-                                        if (goalSkill != null) goalSkillTextView.setText(goalSkill);
+                                        if (mySkill != null) mySkillTextView.setText("I know " + mySkill);
+                                        if (goalSkill != null) goalSkillTextView.setText("I want to learn " + goalSkill);
+                                        if (bio != null) bioTextView.setText(bio);
+
+                                        // Load profile image or display placeholder
+                                        if (profileImage != null && !profileImage.isEmpty()) {
+                                            Glide.with(requireContext())
+                                                    .load(profileImage)
+                                                    .placeholder(R.drawable.no_profile_pic)
+                                                    .error(R.drawable.no_profile_pic)
+                                                    .into(profileImageView);
+                                        } else {
+                                            // Show placeholder if no image is uploaded
+                                            profileImageView.setImageResource(R.drawable.no_profile_pic);
+                                        }
                                     });
                                 }
                             } else {
@@ -148,6 +165,7 @@ public class ProfileFragment extends Fragment {
             Toast.makeText(getContext(), "User not logged in", Toast.LENGTH_SHORT).show();
         }
     }
+
 
 
     private void openImage() {

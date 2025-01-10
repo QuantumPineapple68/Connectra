@@ -34,6 +34,7 @@ android {
 }
 
 dependencies {
+    implementation (libs.glide)
     implementation(libs.circleimageview)
     implementation(libs.appcompat)
     implementation(libs.material)
@@ -45,6 +46,7 @@ dependencies {
     implementation(libs.firebase.database)
     implementation(libs.firebase.storage)
     implementation(libs.firebase.firestore)
+    annotationProcessor (libs.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

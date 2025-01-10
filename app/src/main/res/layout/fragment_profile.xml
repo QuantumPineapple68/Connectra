@@ -5,6 +5,13 @@
     android:layout_height="match_parent"
     tools:context=".Fragments.ProfileFragment">
 
+    <ImageView
+        android:layout_width="500dp"
+        android:layout_height="wrap_content"
+        android:src="@drawable/top_decor"
+        android:layout_marginTop="-24dp"
+        />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -17,22 +24,15 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp">
 
-            <androidx.cardview.widget.CardView
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/imageView_profile_dp"
                 android:layout_width="160dp"
                 android:layout_height="160dp"
-                android:layout_centerHorizontal="true"
                 android:layout_marginTop="40dp"
-                android:elevation="5dp"
-                android:radius="80dp">
-
-                <de.hdodenhof.circleimageview.CircleImageView
-                    android:id="@+id/imageView_profile_dp"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:src="@drawable/no_profile_pic"
-                    android:contentDescription="User Profile Picture"
-                    android:scaleType="centerCrop" />
-            </androidx.cardview.widget.CardView>
+                android:src="@drawable/no_profile_pic"
+                android:layout_centerHorizontal="true"
+                android:contentDescription="User Profile Picture"
+                android:scaleType="centerCrop" />
         </RelativeLayout>
 
         <!-- Welcome Message -->
@@ -46,6 +46,17 @@
             android:layout_marginBottom="24dp"
             android:text="Loading .."
             android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+            android:textAlignment="center" />
+        <TextView
+            android:id="@+id/show_bio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="-15dp"
+            android:textSize="15dp"
+            android:maxHeight="200dp"
+            android:layout_marginBottom="24dp"
+            android:hint="Write a bio, let the world know you're more than just a profile pic"
             android:textAlignment="center" />
 
         <!-- Details Section -->
@@ -136,7 +147,7 @@
                     android:layout_width="25dp"
                     android:layout_height="25dp"
                     android:layout_alignParentStart="true"
-                    android:background="@drawable/humanskill"
+                    android:background="@drawable/hat"
                     android:contentDescription="Gender Icon" />
 
                 <TextView
@@ -158,7 +169,7 @@
                     android:layout_width="25dp"
                     android:layout_height="25dp"
                     android:layout_alignParentStart="true"
-                    android:background="@drawable/hat"
+                    android:background="@drawable/humanskill"
                     android:contentDescription="Gender Icon" />
 
                 <TextView
@@ -179,8 +190,8 @@
             android:layout_height="48dp"
             android:layout_marginTop="24dp"
             android:backgroundTint="@color/theme"
-            android:text="Change Skills"
             android:fontFamily="@font/inter_bold"
+            android:text="Edit Profile"
             android:textColor="@android:color/black" />
 
         <Button
@@ -198,7 +209,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Terms and Conditions"
+            android:text="Credits"
             android:textAlignment="center"
             android:textColor="@android:color/darker_gray"
             android:textSize="14sp" />
