@@ -13,7 +13,7 @@
             android:id="@+id/welcome_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Hi user full name"
+            android:hint="Loading ..."
             android:textColor="@color/black"
             android:fontFamily="@font/roboto_bold"
             android:textAppearance="@style/TextAppearance.AppCompat.Headline"

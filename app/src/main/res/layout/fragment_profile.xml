@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".Fragments.ProfileFragment">
 
     <ImageView
@@ -32,7 +33,9 @@
                 android:src="@drawable/no_profile_pic"
                 android:layout_centerHorizontal="true"
                 android:contentDescription="User Profile Picture"
-                android:scaleType="centerCrop" />
+                android:scaleType="centerCrop"
+                app:civ_border_color="#696969"
+                app:civ_border_width="3dp"/>
         </RelativeLayout>
 
         <!-- Welcome Message -->
@@ -206,10 +209,12 @@
 
         <!-- Terms and Conditions -->
         <TextView
+            android:id="@+id/credits"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Credits"
+            android:text="Made by Nachiket Jadhav (Click for Github)"
+            android:fontFamily="@font/inter_bold"
             android:textAlignment="center"
             android:textColor="@android:color/darker_gray"
             android:textSize="14sp" />

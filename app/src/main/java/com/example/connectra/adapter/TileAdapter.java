@@ -1,6 +1,7 @@
 package com.example.connectra.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectra.Fragments.NewUser;
 import com.example.connectra.R;
+import com.example.connectra.RecyclerProfileMainActivity;
 
 import java.util.List;
 
@@ -55,6 +57,22 @@ public class TileAdapter extends RecyclerView.Adapter<TileAdapter.TileViewHolder
 
         // Set profile image (optional logic can be added here if you fetch images)
         holder.profileImage.setImageResource(R.drawable.no_profile_pic); // Replace with user's image if available
+
+        // Set item click listener
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, RecyclerProfileMainActivity.class);
+
+            // Pass user data to the new activity
+            intent.putExtra("name", user.getName());
+            intent.putExtra("userAge", user.getAge());
+            intent.putExtra("userMySkill", user.getMyskill());
+            intent.putExtra("userGoalSkill", user.getGoalskill());
+            intent.putExtra("userGender", user.getGender());
+            intent.putExtra("userName", user.getUsername());
+            intent.putExtra("bio", user.getBio());
+
+            context.startActivity(intent);
+        });
     }
 
     @Override
@@ -63,7 +81,7 @@ public class TileAdapter extends RecyclerView.Adapter<TileAdapter.TileViewHolder
     }
 
     public static class TileViewHolder extends RecyclerView.ViewHolder {
-        TextView profileName, profileAge, offeredSkill, wishSkill;
+        TextView profileName, profileAge, offeredSkill, wishSkill, username, bio;
         ImageView genderIcon;
         CircleImageView profileImage;
 
@@ -76,6 +94,8 @@ public class TileAdapter extends RecyclerView.Adapter<TileAdapter.TileViewHolder
             wishSkill = itemView.findViewById(R.id.wish_skill);
             genderIcon = itemView.findViewById(R.id.gender_icon);
             profileImage = itemView.findViewById(R.id.profile_image);
+            username = itemView.findViewById(R.id.toolbar_username);
+            bio = itemView.findViewById(R.id.text_bio);
         }
     }
 }

@@ -26,6 +26,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.example.connectra.LoginActivity;
+import com.example.connectra.RecyclerProfileMainActivity;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -51,7 +52,7 @@ public class ProfileFragment extends Fragment {
     private Button logoutButton;
     private TextView welcome;
     private Button changeSkill;
-    private TextView mySkillTextView, goalSkillTextView;
+    private TextView mySkillTextView, goalSkillTextView, credit;
 
     private FirebaseAuth auth;
     private FirebaseFirestore firestore;
@@ -74,6 +75,7 @@ public class ProfileFragment extends Fragment {
         profileImageView = view.findViewById(R.id.imageView_profile_dp);
         logoutButton = view.findViewById(R.id.logout);
         changeSkill = view.findViewById(R.id.skillChange);
+        credit = view.findViewById(R.id.credits);
 
         // Firebase initialization
         auth = FirebaseAuth.getInstance();
@@ -109,6 +111,14 @@ public class ProfileFragment extends Fragment {
                     }
                 }
         );
+
+        credit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/QuantumPineapple68"));
+                startActivity(browserIntent);
+            }
+        });
         return view;
     }
 

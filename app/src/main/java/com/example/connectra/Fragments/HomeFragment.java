@@ -94,9 +94,11 @@ public class HomeFragment extends Fragment {
                                 String goalskill = document.getString("goalskill");
                                 String gender = document.getString("gender");
                                 String age = document.getString("age");
+                                String bio = document.getString("bio");
+                                String userName = document.getString("username");
 
                                 // Add user to the list
-                                userList.add(new NewUser(name, myskill, goalskill, gender, age, userId));
+                                userList.add(new NewUser(name, myskill, goalskill, gender, age, userId, userName, bio));
                             }
                         }
                         // Notify adapter of data changes
