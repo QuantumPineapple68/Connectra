@@ -156,6 +156,12 @@ public class ProfileFragment extends Fragment {
                     Toast.makeText(getContext(), "User data not found", Toast.LENGTH_SHORT).show();
                 }
             }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e("DatabaseError", databaseError.getMessage());
+                Toast.makeText(getContext(), "Failed to load user data", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
