@@ -1,3 +1,4 @@
+// Updated SearchFragment.java using Firebase Realtime Database
 package com.example.connectra.Fragments;
 
 import android.os.Bundle;
@@ -17,8 +18,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.connectra.R;
 import com.example.connectra.adapter.UserAdapter;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +32,7 @@ public class SearchFragment extends Fragment {
     private RecyclerView recyclerView;
     private UserAdapter userAdapter;
     private List<NewUser> usersList, filteredList;
-    private FirebaseFirestore firestore;
+    private DatabaseReference databaseRef;
     private AutoCompleteTextView searchBar;
 
     @Override
@@ -45,9 +49,9 @@ public class SearchFragment extends Fragment {
         userAdapter = new UserAdapter(filteredList);
         recyclerView.setAdapter(userAdapter);
 
-        firestore = FirebaseFirestore.getInstance();
+        databaseRef = FirebaseDatabase.getInstance().getReference("Users");
 
-        // Fetching data from Firestore
+        // Fetching data from Firebase Realtime Database
         fetchUsers();
 
         // Add search functionality
@@ -68,29 +72,27 @@ public class SearchFragment extends Fragment {
     }
 
     private void fetchUsers() {
-        CollectionReference usersRef = firestore.collection("Users");
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        usersRef.addSnapshotListener((value, error) -> {
-            if (error != null) {
-                Log.e("Firestore Error", error.getMessage());
-                return;
-            }
-
-            usersList.clear();
-
-            if (value != null) {
-                for (com.google.firebase.firestore.DocumentSnapshot doc : value.getDocuments()) {
-                    NewUser user = doc.toObject(NewUser.class);
-                    if (!user.getId().equals(currentUserId)) { // Exclude current user
+        databaseRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                usersList.clear();
+                for (DataSnapshot userSnapshot : snapshot.getChildren()) {
+                    NewUser user = userSnapshot.getValue(NewUser.class);
+                    if (user != null && !user.getId().equals(currentUserId)) { // Exclude current user
                         usersList.add(user);
                     }
                 }
-
                 // Initially show all users
                 filteredList.clear();
                 filteredList.addAll(usersList);
                 userAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("Database Error", error.getMessage());
             }
         });
     }

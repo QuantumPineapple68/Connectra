@@ -16,35 +16,22 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.storage.FirebaseStorage;
 
 import java.util.HashMap;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    EditText email;
-    EditText password;
+    EditText email, password, name, username, myskill, goalskill, age, gender;
     Button register;
-    EditText name;
-    EditText username;
-    EditText myskill;
-    EditText goalskill;
-    EditText age;
-    EditText gender;
 
     FirebaseAuth auth;
-    FirebaseFirestore mRootRef;
-    FirebaseStorage secondaryStorage = FirebaseStorage.getInstance();
-
+    DatabaseReference databaseRef;
     ProgressDialog pd;
 
     @Override
@@ -52,6 +39,7 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_register2);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -69,7 +57,7 @@ public class RegisterActivity extends AppCompatActivity {
         gender = findViewById(R.id.gender);
 
         auth = FirebaseAuth.getInstance();
-        mRootRef = FirebaseFirestore.getInstance();
+        databaseRef = FirebaseDatabase.getInstance().getReference("Users");
 
         pd = new ProgressDialog(this);
 
@@ -99,41 +87,39 @@ public class RegisterActivity extends AppCompatActivity {
     private void registerUser(String Email, String Password, String name, String username, String myskill, String goalskill, String age, String gender) {
         pd.setMessage("Please Wait ...");
         pd.show();
-        auth.createUserWithEmailAndPassword(Email, Password).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
 
+        auth.createUserWithEmailAndPassword(Email, Password).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
             @Override
             public void onSuccess(AuthResult authResult) {
+                String userId = auth.getCurrentUser().getUid();
 
                 HashMap<String, Object> map = new HashMap<>();
                 map.put("name", name);
                 map.put("username", username);
                 map.put("email", Email);
-                map.put("id", auth.getCurrentUser().getUid());
+                map.put("id", userId);
                 map.put("myskill", myskill);
                 map.put("goalskill", goalskill);
                 map.put("age", age);
                 map.put("gender", gender);
 
-                mRootRef.collection("Users").document(auth.getCurrentUser().getUid()).set(map).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            pd.dismiss();
-                            Toast.makeText(RegisterActivity.this, "Registration Successful", Toast.LENGTH_SHORT).show();
-                            Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            startActivity(intent);
-                            finish();
-                        }
+                databaseRef.child(userId).setValue(map).addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        pd.dismiss();
+                        Toast.makeText(RegisterActivity.this, "Registration Successful", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        pd.dismiss();
+                        Toast.makeText(RegisterActivity.this, "Registration Failed", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                pd.dismiss();
-                Toast.makeText(RegisterActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
+        }).addOnFailureListener(e -> {
+            pd.dismiss();
+            Toast.makeText(RegisterActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
         });
     }
 }

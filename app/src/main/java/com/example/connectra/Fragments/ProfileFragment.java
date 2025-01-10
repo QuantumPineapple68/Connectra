@@ -5,10 +5,6 @@ import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
-
-import com.bumptech.glide.Glide;
-import com.example.connectra.ChangeSkillActivity;
-import com.example.connectra.R;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,13 +21,10 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
+import com.example.connectra.ChangeSkillActivity;
 import com.example.connectra.LoginActivity;
-import com.example.connectra.RecyclerProfileMainActivity;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
+import com.example.connectra.R;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -41,9 +34,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
-
-import java.util.Objects;
 
 public class ProfileFragment extends Fragment {
 
@@ -55,8 +45,8 @@ public class ProfileFragment extends Fragment {
     private TextView mySkillTextView, goalSkillTextView, credit;
 
     private FirebaseAuth auth;
-    private FirebaseFirestore firestore;
-    private FirebaseStorage secondaryStorage;
+    private DatabaseReference userRef;
+    private FirebaseStorage storage;
     private Uri imageUri;
     private ActivityResultLauncher<Intent> imagePickerLauncher;
 
@@ -71,7 +61,7 @@ public class ProfileFragment extends Fragment {
         mySkillTextView = view.findViewById(R.id.myskill_change);
         goalSkillTextView = view.findViewById(R.id.goalskill_change);
         bioTextView = view.findViewById(R.id.show_bio);
-        welcome=view.findViewById(R.id.show_welcome);
+        welcome = view.findViewById(R.id.show_welcome);
         profileImageView = view.findViewById(R.id.imageView_profile_dp);
         logoutButton = view.findViewById(R.id.logout);
         changeSkill = view.findViewById(R.id.skillChange);
@@ -79,11 +69,14 @@ public class ProfileFragment extends Fragment {
 
         // Firebase initialization
         auth = FirebaseAuth.getInstance();
-        firestore = FirebaseFirestore.getInstance();
-        secondaryStorage = FirebaseStorage.getInstance(FirebaseApp.getInstance("secondary"));
-
-        // Fetch and display user data
-        fetchUserData();
+        if (auth.getCurrentUser() != null) {
+            String userId = auth.getCurrentUser().getUid();
+            userRef = FirebaseDatabase.getInstance().getReference("Users").child(userId);
+            storage = FirebaseStorage.getInstance(FirebaseApp.getInstance("secondary"));
+            fetchUserData(); // Fetch user data only if authenticated
+        } else {
+            Toast.makeText(getContext(), "User is not authenticated", Toast.LENGTH_SHORT).show();
+        }
 
         // Logout functionality
         logoutButton.setOnClickListener(v -> {
@@ -94,6 +87,7 @@ public class ProfileFragment extends Fragment {
             requireActivity().finish();
         });
 
+        // Change Skill functionality
         changeSkill.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), ChangeSkillActivity.class);
             startActivity(intent);
@@ -112,71 +106,58 @@ public class ProfileFragment extends Fragment {
                 }
         );
 
-        credit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/QuantumPineapple68"));
-                startActivity(browserIntent);
-            }
+        credit.setOnClickListener(v -> {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/QuantumPineapple68"));
+            startActivity(browserIntent);
         });
         return view;
     }
 
     private void fetchUserData() {
-        if (auth.getCurrentUser() != null) {
-            String userId = auth.getCurrentUser().getUid();
-            firestore.collection("Users").document(userId)
-                    .get()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot snapshot = task.getResult();
-                            if (snapshot != null && snapshot.exists()) {
-                                String userName = snapshot.getString("username");
-                                String email = snapshot.getString("email");
-                                String gender = snapshot.getString("gender");
-                                String fullName = snapshot.getString("name");
-                                String mySkill = snapshot.getString("myskill");
-                                String goalSkill = snapshot.getString("goalskill");
-                                String bio = snapshot.getString("bio");
-                                String profileImage = snapshot.getString("profileImage"); // Fetch profile image URL
+        if (userRef == null) return;
 
-                                // Update UI
-                                if (getActivity() != null) {
-                                    getActivity().runOnUiThread(() -> {
-                                        if (fullName != null) welcome.setText("Welcome, " + fullName);
-                                        if (userName != null) fullNameTextView.setText(userName);
-                                        if (email != null) emailTextView.setText(email);
-                                        if (gender != null) genderTextView.setText(gender);
-                                        if (mySkill != null) mySkillTextView.setText("I know " + mySkill);
-                                        if (goalSkill != null) goalSkillTextView.setText("I want to learn " + goalSkill);
-                                        if (bio != null) bioTextView.setText(bio);
+        userRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    String fullName = dataSnapshot.child("name").getValue(String.class);
+                    String userName = dataSnapshot.child("username").getValue(String.class);
+                    String email = dataSnapshot.child("email").getValue(String.class);
+                    String gender = dataSnapshot.child("gender").getValue(String.class);
+                    String mySkill = dataSnapshot.child("myskill").getValue(String.class);
+                    String goalSkill = dataSnapshot.child("goalskill").getValue(String.class);
+                    String bio = dataSnapshot.child("bio").getValue(String.class);
+                    String profileImage = dataSnapshot.child("profileImage").getValue(String.class);
 
-                                        // Load profile image or display placeholder
-                                        if (profileImage != null && !profileImage.isEmpty()) {
-                                            Glide.with(requireContext())
-                                                    .load(profileImage)
-                                                    .placeholder(R.drawable.no_profile_pic)
-                                                    .error(R.drawable.no_profile_pic)
-                                                    .into(profileImageView);
-                                        } else {
-                                            // Show placeholder if no image is uploaded
-                                            profileImageView.setImageResource(R.drawable.no_profile_pic);
-                                        }
-                                    });
-                                }
+                    // Update UI with retrieved values
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            if (fullName != null) welcome.setText("Welcome, " + fullName);
+                            if (userName != null) fullNameTextView.setText(userName);
+                            if (email != null) emailTextView.setText(email);
+                            if (gender != null) genderTextView.setText(gender);
+                            if (mySkill != null) mySkillTextView.setText("I know " + mySkill);
+                            if (goalSkill != null) goalSkillTextView.setText("I want to learn " + goalSkill);
+                            if (bio != null) bioTextView.setText(bio);
+
+                            // Load profile image or display placeholder
+                            if (profileImage != null && !profileImage.isEmpty()) {
+                                Glide.with(requireContext())
+                                        .load(profileImage)
+                                        .placeholder(R.drawable.no_profile_pic)
+                                        .error(R.drawable.no_profile_pic)
+                                        .into(profileImageView);
                             } else {
-                                Toast.makeText(getContext(), "User data not found", Toast.LENGTH_SHORT).show();
+                                profileImageView.setImageResource(R.drawable.no_profile_pic);
                             }
-                        } else {
-                            Toast.makeText(getContext(), "Failed to fetch data: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-        } else {
-            Toast.makeText(getContext(), "User not logged in", Toast.LENGTH_SHORT).show();
-        }
+                        });
+                    }
+                } else {
+                    Toast.makeText(getContext(), "User data not found", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
-
-
 
     private void openImage() {
         Intent intent = new Intent();
@@ -186,27 +167,33 @@ public class ProfileFragment extends Fragment {
     }
 
     private void uploadImage() {
+        if (imageUri == null) return;
+
         ProgressDialog pd = new ProgressDialog(getActivity());
         pd.setMessage("Uploading...");
         pd.show();
 
-        if (imageUri != null) {
-            StorageReference fireRef = secondaryStorage.getReference().child("connectra").child(System.currentTimeMillis() + "." + getFileExtension(imageUri));
+        StorageReference fireRef = storage.getReference().child("connectra")
+                .child(System.currentTimeMillis() + "." + getFileExtension(imageUri));
 
-            fireRef.putFile(imageUri).addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    fireRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                        String url = uri.toString();
-                        Log.d("DownloadUrl", url);
+        fireRef.putFile(imageUri).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                fireRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                    String url = uri.toString();
+                    userRef.child("profileImage").setValue(url).addOnCompleteListener(task1 -> {
                         pd.dismiss();
-                        Toast.makeText(getActivity(), "Image Upload Successful!", Toast.LENGTH_SHORT).show();
+                        if (task1.isSuccessful()) {
+                            Toast.makeText(getActivity(), "Image Upload Successful!", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getActivity(), "Error updating profile image URL.", Toast.LENGTH_SHORT).show();
+                        }
                     });
-                } else {
-                    pd.dismiss();
-                    Toast.makeText(getActivity(), "Image upload failed", Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
+                });
+            } else {
+                pd.dismiss();
+                Toast.makeText(getActivity(), "Image upload failed", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private String getFileExtension(Uri uri) {

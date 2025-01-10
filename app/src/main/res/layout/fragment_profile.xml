@@ -58,6 +58,7 @@
             android:layout_marginTop="-15dp"
             android:textSize="15dp"
             android:maxHeight="200dp"
+            android:maxLines="3"
             android:layout_marginBottom="24dp"
             android:hint="Write a bio, let the world know you're more than just a profile pic"
             android:textAlignment="center" />

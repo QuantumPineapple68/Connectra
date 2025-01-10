@@ -56,7 +56,7 @@ public class TileAdapter extends RecyclerView.Adapter<TileAdapter.TileViewHolder
         }
 
         // Set profile image (optional logic can be added here if you fetch images)
-        holder.profileImage.setImageResource(R.drawable.no_profile_pic); // Replace with user's image if available
+//        holder.profileImage.setImageResource(R.drawable.no_profile_pic); // Replace with user's image if available
 
         // Set item click listener
         holder.itemView.setOnClickListener(v -> {

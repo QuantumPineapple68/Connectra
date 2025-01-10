@@ -2,114 +2,116 @@ package com.example.connectra;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 
-import com.example.connectra.Fragments.ProfileFragment;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.Firebase;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.SetOptions;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class ChangeSkillActivity extends AppCompatActivity {
 
-    EditText new_myskill, new_goalskill, new_bio;
-    Button save;
+    private EditText mySkillEditText, goalSkillEditText, bioEditText;
+    private Button saveButton;
 
-    FirebaseFirestore mRootRef = FirebaseFirestore.getInstance();
-    FirebaseAuth auth = FirebaseAuth.getInstance();
+    private FirebaseAuth auth;
+    private DatabaseReference userRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_change_skill);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
-        new_myskill = findViewById(R.id.new_myskill);
-        new_goalskill = findViewById(R.id.new_goalskill);
-        new_bio = findViewById(R.id.new_bio);
-        save = findViewById(R.id.save);
+        // Initialize Views
+        mySkillEditText = findViewById(R.id.new_myskill);
+        goalSkillEditText = findViewById(R.id.new_goalskill);
+        saveButton = findViewById(R.id.save);
+        bioEditText = findViewById(R.id.new_bio);
 
-        save.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String txt_myskill = new_myskill.getText().toString();
-                String txt_goalskill = new_goalskill.getText().toString();
-                String txt_bio = new_bio.getText().toString();
+        // Initialize Firebase
+        auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() != null) {
+            String userId = auth.getCurrentUser().getUid();
+            userRef = FirebaseDatabase.getInstance().getReference("Users").child(userId);
+        } else {
+            Toast.makeText(this, "User not logged in!", Toast.LENGTH_SHORT).show();
+            finish(); // End the activity if user is not authenticated
+        }
 
-                boolean hasUpdates = false;
+        // Save button functionality
+        saveButton.setOnClickListener(v -> saveSkills());
+    }
 
-                if (!txt_myskill.isEmpty()) {
-                    mRootRef.collection("Users")
-                            .document(auth.getCurrentUser().getUid())
-                            .update("myskill", txt_myskill)
-                            .addOnCompleteListener(task -> {
-                                if (task.isSuccessful()) {
-                                    Toast.makeText(ChangeSkillActivity.this, "Your Skill has been Updated", Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                    hasUpdates = true;
-                }
+    private void saveSkills() {
+        String mySkill = mySkillEditText.getText().toString().trim();
+        String goalSkill = goalSkillEditText.getText().toString().trim();
+        String bio = bioEditText.getText().toString().trim();
+        boolean hasUpdates = false;
 
-                if (!txt_goalskill.isEmpty()) {
-                    mRootRef.collection("Users")
-                            .document(auth.getCurrentUser().getUid())
-                            .update("goalskill", txt_goalskill)
-                            .addOnCompleteListener(task -> {
-                                if (task.isSuccessful()) {
-                                    Toast.makeText(ChangeSkillActivity.this, "Your Interest has been Updated", Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                    hasUpdates = true;
-                }
+        if (userRef == null) {
+            Toast.makeText(this, "Unable to save skills. User reference is null.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-                if (!txt_bio.isEmpty()) {
-                    Map<String, Object> data = new HashMap<>();
-                    data.put("bio", txt_bio);
+        // Update myskill if not empty
+        if (!mySkill.isEmpty()) {
+            userRef.child("myskill").setValue(mySkill)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(ChangeSkillActivity.this, "Your Skill has been Updated", Toast.LENGTH_SHORT).show();
+                        } else {
+                            showError(task);
+                        }
+                    });
+            hasUpdates = true;
+        }
 
-                    mRootRef.collection("Users")
-                            .document(auth.getCurrentUser().getUid())
-                            .set(data, SetOptions.merge())
-                            .addOnCompleteListener(task -> {
-                                if (task.isSuccessful()) {
-                                    Toast.makeText(ChangeSkillActivity.this, "Bio Updated", Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                    hasUpdates = true;
-                }
+        // Update goalskill if not empty
+        if (!goalSkill.isEmpty()) {
+            userRef.child("goalskill").setValue(goalSkill)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(ChangeSkillActivity.this, "Your Interest has been Updated", Toast.LENGTH_SHORT).show();
+                        } else {
+                            showError(task);
+                        }
+                    });
+            hasUpdates = true;
+        }
 
-                if (!hasUpdates) {
-                    Toast.makeText(ChangeSkillActivity.this, "No fields updated", Toast.LENGTH_SHORT).show();
-                }
+        // Update bio if not empty
+        if (!bio.isEmpty()) {
+            userRef.child("bio").setValue(bio)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(ChangeSkillActivity.this, "Bio Updated", Toast.LENGTH_SHORT).show();
+                        } else {
+                            showError(task);
+                        }
+                    });
+            hasUpdates = true;
+        }
 
-                Intent intent = new Intent(ChangeSkillActivity.this, MainActivity.class);
-                intent.putExtra("refreshProfile", true);
-                startActivity(intent);
-                finish();
-            }
-        });
+        if (!hasUpdates) {
+            Toast.makeText(this, "No changes to update", Toast.LENGTH_SHORT).show();
+        }
 
+        Intent intent = new Intent(ChangeSkillActivity.this, MainActivity.class);
+        intent.putExtra("refreshProfile", true);
+        startActivity(intent);
+        finish();
+    }
 
+    private void showError(@NonNull Task<Void> task) {
+        String message = "Error updating skills.";
+        if (task.getException() != null) {
+            message = task.getException().getMessage();
+        }
+        Toast.makeText(ChangeSkillActivity.this, message, Toast.LENGTH_SHORT).show();
     }
 }

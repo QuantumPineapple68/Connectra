@@ -15,10 +15,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.connectra.R;
 import com.example.connectra.adapter.TileAdapter;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +29,7 @@ public class HomeFragment extends Fragment {
     private RecyclerView recyclerView;
     private TileAdapter tileAdapter;
     private List<NewUser> userList;
-    private FirebaseFirestore firestore;
+    private DatabaseReference databaseRef;
     TextView hi;
 
     @Override
@@ -36,8 +37,9 @@ public class HomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         hi = view.findViewById(R.id.welcome_name);
-        // Initialize Firestore and RecyclerView
-        firestore = FirebaseFirestore.getInstance();
+
+        // Initialize Realtime Database and RecyclerView
+        databaseRef = FirebaseDatabase.getInstance().getReference("Users");
         recyclerView = view.findViewById(R.id.recycler_view_home);
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
 
@@ -47,8 +49,7 @@ public class HomeFragment extends Fragment {
         recyclerView.setAdapter(tileAdapter);
 
         fetchUserData();
-        // Fetch users from Firestore
-        fetchUsersFromFirestore();
+        fetchUsersFromDatabase();
 
         return view;
     }
@@ -61,51 +62,56 @@ public class HomeFragment extends Fragment {
         }
 
         String userId = auth.getCurrentUser().getUid();
-        firestore.collection("Users").document(userId).get()
-                .addOnSuccessListener(snapshot -> {
-                    if (snapshot.exists()) {
-                        String fullName = snapshot.getString("name");
-                        if (getActivity() != null && fullName != null) {
-                            hi.setText("Hi, " + fullName);
-                        }
-                    } else {
-                        Toast.makeText(getContext(), "User data not found", Toast.LENGTH_SHORT).show();
+        databaseRef.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    String fullName = snapshot.child("name").getValue(String.class);
+                    if (getActivity() != null && fullName != null) {
+                        hi.setText("Hi, " + fullName);
                     }
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(getContext(), "Failed to fetch data: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                );
+                } else {
+                    Toast.makeText(getContext(), "User data not found", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(getContext(), "Failed to fetch data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-
-    private void fetchUsersFromFirestore() {
-        CollectionReference usersRef = firestore.collection("Users");
+    private void fetchUsersFromDatabase() {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        usersRef.get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        userList.clear(); // Clear the list before adding new data
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            String userId = document.getId(); // Firestore document ID (UID)
-                            if (!userId.equals(currentUserId)) { // Exclude current user's profile
-                                String name = document.getString("name");
-                                String myskill = document.getString("myskill");
-                                String goalskill = document.getString("goalskill");
-                                String gender = document.getString("gender");
-                                String age = document.getString("age");
-                                String bio = document.getString("bio");
-                                String userName = document.getString("username");
+        databaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                userList.clear(); // Clear the list before adding new data
+                for (DataSnapshot userSnapshot : snapshot.getChildren()) {
+                    String userId = userSnapshot.getKey();
+                    if (!userId.equals(currentUserId)) { // Exclude current user's profile
+                        String name = userSnapshot.child("name").getValue(String.class);
+                        String myskill = userSnapshot.child("myskill").getValue(String.class);
+                        String goalskill = userSnapshot.child("goalskill").getValue(String.class);
+                        String gender = userSnapshot.child("gender").getValue(String.class);
+                        String age = userSnapshot.child("age").getValue(String.class);
+                        String bio = userSnapshot.child("bio").getValue(String.class);
+                        String userName = userSnapshot.child("username").getValue(String.class);
 
-                                // Add user to the list
-                                userList.add(new NewUser(name, myskill, goalskill, gender, age, userId, userName, bio));
-                            }
-                        }
-                        // Notify adapter of data changes
-                        tileAdapter.notifyDataSetChanged();
-                    } else {
-                        Toast.makeText(getContext(), "Failed to fetch data: " + task.getException(), Toast.LENGTH_SHORT).show();
+                        // Add user to the list
+                        userList.add(new NewUser(name, myskill, goalskill, gender, age, userId, userName, bio));
                     }
-                });
+                }
+                // Notify adapter of data changes
+                tileAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(getContext(), "Failed to fetch data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
