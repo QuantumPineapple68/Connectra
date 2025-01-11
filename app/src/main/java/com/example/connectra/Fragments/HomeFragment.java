@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.connectra.NotificationService;
 import com.example.connectra.R;
 import com.example.connectra.adapter.TileAdapter;
 import com.google.firebase.auth.FirebaseAuth;
@@ -31,6 +32,18 @@ public class HomeFragment extends Fragment {
     private List<NewUser> userList;
     private DatabaseReference databaseRef;
     TextView hi;
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // Fetch currentUserId dynamically
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+            NotificationService.listenForMessages(currentUserId, getContext());
+    }
+
+
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

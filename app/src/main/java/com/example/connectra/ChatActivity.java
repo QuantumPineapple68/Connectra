@@ -36,6 +36,8 @@ public class ChatActivity extends AppCompatActivity {
 
     private DatabaseReference messagesRef;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -106,20 +108,39 @@ public class ChatActivity extends AppCompatActivity {
 
 
     private void sendMessage(String messageText) {
-        String messageId = messagesRef.push().getKey();
-        long timestamp = System.currentTimeMillis();
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUserId);
 
-        HashMap<String, Object> messageMap = new HashMap<>();
-        messageMap.put("messageId", messageId);
-        messageMap.put("message", messageText);
-        messageMap.put("senderId", currentUserId);
-        messageMap.put("receiverId", chatPartnerId);
-        messageMap.put("timestamp", timestamp);
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    String myName = snapshot.child("name").getValue(String.class); // Fetch "name" from the database
 
-        if (messageId != null) {
-            messagesRef.child(messageId).setValue(messageMap);
-        }
+                    if (myName != null) {
+                        String messageId = messagesRef.push().getKey();
+                        long timestamp = System.currentTimeMillis();
+
+                        HashMap<String, Object> messageMap = new HashMap<>();
+                        messageMap.put("messageId", messageId);
+                        messageMap.put("message", messageText);
+                        messageMap.put("senderId", currentUserId);
+                        messageMap.put("receiverId", chatPartnerId);
+                        messageMap.put("timestamp", timestamp);
+                        messageMap.put("senderName", myName);
+
+                        if (messageId != null) {
+                            messagesRef.child(messageId).setValue(messageMap);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+            }
+        });
     }
+
 
     private String getConversationId(String user1, String user2) {
         List<String> ids = new ArrayList<>();
