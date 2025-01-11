@@ -1,36 +1,17 @@
 package com.example.connectra;
 
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
-import android.util.Log;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
-import com.example.connectra.Fragments.HealFragment;
 import com.example.connectra.Fragments.HomeFragment;
 import com.example.connectra.Fragments.ProfileFragment;
 import com.example.connectra.Fragments.ScheduleFragment;
 import com.example.connectra.Fragments.SearchFragment;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
-
-import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -52,8 +33,6 @@ public class MainActivity extends AppCompatActivity {
                     selectorFragment = new HomeFragment();
                 } else if (itemId == R.id.nav_search) {
                     selectorFragment = new SearchFragment();
-                } else if (itemId == R.id.nav_mind) {
-                    selectorFragment = new HealFragment();
                 } else if (itemId == R.id.nav_person) {
                     selectorFragment = new ProfileFragment();
                 } else if (itemId == R.id.nav_calender) {

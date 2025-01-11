@@ -13,10 +13,6 @@
         android:icon="@drawable/ic_calender"
         android:title="Schedule"/>
 
-    <item android:id="@+id/nav_mind"
-        android:icon="@drawable/ic_mind"
-        android:title="Heal"/>
-
     <item android:id="@+id/nav_person"
         android:icon="@drawable/ic_person"
         android:title="Profile"/>
