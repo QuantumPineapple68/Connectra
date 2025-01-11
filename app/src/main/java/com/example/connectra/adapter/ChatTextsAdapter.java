@@ -1,0 +1,65 @@
+package com.example.connectra.adapter;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.connectra.ChatTexts;
+import com.example.connectra.R;
+
+import java.util.List;
+
+public class ChatTextsAdapter extends RecyclerView.Adapter<ChatTextsAdapter.ChatTextsViewHolder> {
+
+    private List<ChatTexts> chatTextsList;
+    private String currentUserId;
+
+    public ChatTextsAdapter(List<ChatTexts> chatTextsList, String currentUserId) {
+        this.chatTextsList = chatTextsList;
+        this.currentUserId = currentUserId;
+    }
+
+    @NonNull
+    @Override
+    public ChatTextsViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.chat_layout_view, parent, false);
+        return new ChatTextsViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ChatTextsViewHolder holder, int position) {
+        ChatTexts chatText = chatTextsList.get(position);
+
+        if (chatText.getSenderId().equals(currentUserId)) {
+            // Message sent by the current user
+            holder.sentMessage.setVisibility(View.VISIBLE);
+            holder.receivedMessage.setVisibility(View.GONE);
+            holder.sentMessage.setText(chatText.getMessage());
+        } else {
+            // Message received from the chat partner
+            holder.receivedMessage.setVisibility(View.VISIBLE);
+            holder.sentMessage.setVisibility(View.GONE);
+            holder.receivedMessage.setText(chatText.getMessage());
+        }
+    }
+
+    @Override
+    public int getItemCount() {
+        return chatTextsList.size();
+    }
+
+    public static class ChatTextsViewHolder extends RecyclerView.ViewHolder {
+
+        TextView sentMessage, receivedMessage;
+
+        public ChatTextsViewHolder(@NonNull View itemView) {
+            super(itemView);
+            sentMessage = itemView.findViewById(R.id.receiver_message_text);
+            receivedMessage = itemView.findViewById(R.id.sender_message_text);
+        }
+    }
+}

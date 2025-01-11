@@ -70,6 +70,7 @@ public class TileAdapter extends RecyclerView.Adapter<TileAdapter.TileViewHolder
             intent.putExtra("userGender", user.getGender());
             intent.putExtra("userName", user.getUsername());
             intent.putExtra("bio", user.getBio());
+            intent.putExtra("userId", user.getId());
 
             context.startActivity(intent);
         });
@@ -94,8 +95,6 @@ public class TileAdapter extends RecyclerView.Adapter<TileAdapter.TileViewHolder
             wishSkill = itemView.findViewById(R.id.wish_skill);
             genderIcon = itemView.findViewById(R.id.gender_icon);
             profileImage = itemView.findViewById(R.id.profile_image);
-            username = itemView.findViewById(R.id.toolbar_username);
-            bio = itemView.findViewById(R.id.text_bio);
         }
     }
 }

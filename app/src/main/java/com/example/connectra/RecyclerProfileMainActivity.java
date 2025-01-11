@@ -1,12 +1,18 @@
 package com.example.connectra;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 public class RecyclerProfileMainActivity extends AppCompatActivity {
+
+
+    Button connect;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +36,7 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
         ImageView genderIcon = findViewById(R.id.image_gender);
         TextView bioTextView = findViewById(R.id.text_bio);
         TextView usernameTextView = findViewById(R.id.toolbar_username);
+        connect = findViewById(R.id.connect_button);
 
 
         nameTextView.setText(name);
@@ -46,5 +53,18 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
         } else {
             genderIcon.setImageResource(R.drawable.icon_default); // Default icon
         }
+
+        connect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String chatPartnerId = getIntent().getStringExtra("userId");
+                String chatPartnerName = getIntent().getStringExtra("name");
+
+                Intent intent = new Intent(RecyclerProfileMainActivity.this, ChatActivity.class);
+                intent.putExtra("chatPartnerId", chatPartnerId);
+                intent.putExtra("chatPartnerName", chatPartnerName);
+                startActivity(intent);
+            }
+        });
     }
 }

@@ -229,7 +229,7 @@
   </androidx.core.widget.NestedScrollView>
 
   <com.google.android.material.button.MaterialButton
-      android:id="@+id/message_button"
+      android:id="@+id/connect_button"
       android:layout_width="match_parent"
       android:layout_height="56dp"
       android:layout_gravity="bottom"
