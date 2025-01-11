@@ -30,7 +30,7 @@ public class ChatActivity extends AppCompatActivity {
     private ChatTextsAdapter messageAdapter;
     private List<ChatTexts> messageList;
 
-    private String currentUserId = "user1"; // Replace with actual user ID
+    private String currentUserId;
     private String chatPartnerId;
     private String chatPartnerName;
 
@@ -43,6 +43,7 @@ public class ChatActivity extends AppCompatActivity {
 
         chatPartnerId = getIntent().getStringExtra("chatPartnerId");
         chatPartnerName = getIntent().getStringExtra("chatPartnerName");
+        currentUserId = getIntent().getStringExtra("currentUserId");
 
         String conversationId = getConversationId(currentUserId, chatPartnerId);
 
@@ -89,7 +90,9 @@ public class ChatActivity extends AppCompatActivity {
                 messageList.clear();
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     ChatTexts message = dataSnapshot.getValue(ChatTexts.class);
-                    messageList.add(message);
+                    if (message != null) {
+                        messageList.add(message);
+                    }
                 }
                 messageAdapter.notifyDataSetChanged();
                 messageRecyclerView.scrollToPosition(messageList.size() - 1);
@@ -100,6 +103,7 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
     }
+
 
     private void sendMessage(String messageText) {
         String messageId = messagesRef.push().getKey();

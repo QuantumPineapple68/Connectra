@@ -1,8 +1,10 @@
 package com.example.connectra.adapter;
 
+import android.app.Notification;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -39,13 +41,20 @@ public class ChatTextsAdapter extends RecyclerView.Adapter<ChatTextsAdapter.Chat
             holder.sentMessage.setVisibility(View.VISIBLE);
             holder.receivedMessage.setVisibility(View.GONE);
             holder.sentMessage.setText(chatText.getMessage());
+
+            // Hide profile image for sent messages
+            holder.profileImage.setVisibility(View.GONE);
         } else {
             // Message received from the chat partner
             holder.receivedMessage.setVisibility(View.VISIBLE);
             holder.sentMessage.setVisibility(View.GONE);
             holder.receivedMessage.setText(chatText.getMessage());
+
+            // Show profile image for received messages
+            holder.profileImage.setVisibility(View.VISIBLE);
         }
     }
+
 
     @Override
     public int getItemCount() {
@@ -54,12 +63,14 @@ public class ChatTextsAdapter extends RecyclerView.Adapter<ChatTextsAdapter.Chat
 
     public static class ChatTextsViewHolder extends RecyclerView.ViewHolder {
 
+        public ImageView profileImage;
         TextView sentMessage, receivedMessage;
 
         public ChatTextsViewHolder(@NonNull View itemView) {
             super(itemView);
-            sentMessage = itemView.findViewById(R.id.receiver_message_text);
-            receivedMessage = itemView.findViewById(R.id.sender_message_text);
+            sentMessage = itemView.findViewById(R.id.sender_message_text);
+            receivedMessage = itemView.findViewById(R.id.receiver_message_text);
+            profileImage = itemView.findViewById(R.id.message_profile_image);
         }
     }
 }

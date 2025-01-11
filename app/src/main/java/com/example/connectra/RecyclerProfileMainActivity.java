@@ -9,6 +9,10 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.auth.FirebaseAuth;
+
+import java.util.Objects;
+
 public class RecyclerProfileMainActivity extends AppCompatActivity {
 
 
@@ -18,6 +22,8 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recycler_profile_main);
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
 
         // Retrieve data from the intent
         String name = getIntent().getStringExtra("name");
@@ -61,6 +67,7 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
                 String chatPartnerName = getIntent().getStringExtra("name");
 
                 Intent intent = new Intent(RecyclerProfileMainActivity.this, ChatActivity.class);
+                intent.putExtra("currentUserId", Objects.requireNonNull(auth.getCurrentUser()).getUid());
                 intent.putExtra("chatPartnerId", chatPartnerId);
                 intent.putExtra("chatPartnerName", chatPartnerName);
                 startActivity(intent);
