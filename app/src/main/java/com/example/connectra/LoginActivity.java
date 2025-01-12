@@ -1,8 +1,10 @@
 package com.example.connectra;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -30,6 +32,7 @@ public class LoginActivity extends AppCompatActivity {
     EditText email;
     EditText password;
     TextView forgotPass;
+    ImageView togglePassword;
 
     FirebaseAuth auth;
 
@@ -43,11 +46,12 @@ public class LoginActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        register=findViewById(R.id.button2);
-        login=findViewById(R.id.login);
+        register=findViewById(R.id.txtSignUpNow);
+        login=findViewById(R.id.btnLoginNow);
         email=findViewById(R.id.txtEmailAddress);
         password=findViewById(R.id.txtPassword);
-        forgotPass=findViewById(R.id.txtSignUpNow);
+        forgotPass=findViewById(R.id.txtForgotPassword);
+        togglePassword=findViewById(R.id.togglePassword);
 
         auth=FirebaseAuth.getInstance();
 
@@ -74,6 +78,9 @@ public class LoginActivity extends AppCompatActivity {
                 loginUser(txt_email,txt_password);
             }
         });
+
+        togglePassword.setOnClickListener(v -> togglePasswordVisibility(password, togglePassword));
+
     }
 
     @Override
@@ -110,5 +117,18 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     });
         }
+    }
+
+    @SuppressLint("PrivateResource")
+    private void togglePasswordVisibility(EditText passwordEditText, ImageView togglePassword) {
+        if (passwordEditText.getTransformationMethod() instanceof PasswordTransformationMethod) {
+            passwordEditText.setTransformationMethod(null);
+            togglePassword.setImageResource(com.google.android.material.R.drawable.design_ic_visibility);
+        } else {
+            passwordEditText.setTransformationMethod(PasswordTransformationMethod.getInstance());
+            togglePassword.setImageResource(com.google.android.material.R.drawable.design_ic_visibility_off);
+        }
+        // Set cursor to end of text after toggling visibility
+        passwordEditText.setSelection(passwordEditText.getText().length());
     }
 }
