@@ -25,12 +25,10 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class LoginActivity extends AppCompatActivity {
 
-    Button register;
+    TextView register;
     Button login;
     EditText email;
     EditText password;
-    Button signgmail;
-    Button signfb;
     TextView forgotPass;
 
     FirebaseAuth auth;
@@ -46,12 +44,10 @@ public class LoginActivity extends AppCompatActivity {
             return insets;
         });
         register=findViewById(R.id.button2);
-        login=findViewById(R.id.button);
-        email=findViewById(R.id.editTextTextEmailAddress);
-        password=findViewById(R.id.editTextTextPassword);
-        signgmail=findViewById(R.id.button4);
-        signfb=findViewById(R.id.button3);
-        forgotPass=findViewById(R.id.textView2);
+        login=findViewById(R.id.login);
+        email=findViewById(R.id.txtEmailAddress);
+        password=findViewById(R.id.txtPassword);
+        forgotPass=findViewById(R.id.txtSignUpNow);
 
         auth=FirebaseAuth.getInstance();
 
@@ -59,19 +55,6 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(LoginActivity.this, ForgotPassword.class));
-            }
-        });
-
-        signgmail.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(LoginActivity.this, "Feature isn't available yet", Toast.LENGTH_LONG).show();
-            }
-        });
-        signfb.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(LoginActivity.this, "Feature isn't available yet", Toast.LENGTH_LONG).show();
             }
         });
 
