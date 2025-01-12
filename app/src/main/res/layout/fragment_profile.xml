@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".Fragments.ProfileFragment">
+    tools:context=".Fragments.ProfileFragment"
+    android:background="@drawable/inverted_home_frag_background">
 
     <ImageView
         android:layout_width="500dp"
@@ -196,7 +197,7 @@
             android:backgroundTint="@color/theme"
             android:fontFamily="@font/inter_bold"
             android:text="Edit Profile"
-            android:textColor="@android:color/black" />
+            android:textColor="@android:color/white" />
 
         <Button
             android:id="@+id/logout"
@@ -206,7 +207,7 @@
             android:backgroundTint="@color/theme"
             android:text="Log Out"
             android:fontFamily="@font/inter_bold"
-            android:textColor="@android:color/black" />
+            android:textColor="@android:color/white" />
 
         <!-- Terms and Conditions -->
         <TextView
@@ -217,7 +218,7 @@
             android:text="Made by Nachiket Jadhav (Click for Github)"
             android:fontFamily="@font/inter_bold"
             android:textAlignment="center"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="#CC0000"
             android:textSize="14sp" />
 
     </LinearLayout>

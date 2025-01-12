@@ -34,7 +34,7 @@ android {
 }
 
 dependencies {
-    implementation (libs.glide)
+    implementation(libs.glide)
     implementation(libs.circleimageview)
     implementation(libs.appcompat)
     implementation(libs.material)

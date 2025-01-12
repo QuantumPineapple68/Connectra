@@ -7,7 +7,8 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@drawable/home_frag_background">
 
         <TextView
             android:id="@+id/welcome_name"
@@ -26,7 +27,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Following are some Profiles You may like ..."
-            android:textColor="@android:color/darker_gray"
+            android:textColor="@color/black"
             android:textSize="18dp"
             android:layout_below="@id/welcome_name"
             android:layout_marginStart="@dimen/medium_margin" />

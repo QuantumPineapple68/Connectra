@@ -1,5 +1,7 @@
 package com.example.connectra.adapter;
 
+import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,12 +13,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectra.R;
 import com.example.connectra.Fragments.NewUser;
+import com.example.connectra.RecyclerProfileMainActivity;
 
 import java.util.List;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
 
     private List<NewUser> users;
+    private Context context;  // Added context
 
     public UserAdapter(List<NewUser> users) {
         this.users = users;
@@ -25,6 +29,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        context = parent.getContext();  // Initialize context
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recycler_item, parent, false);
         return new ViewHolder(view);
     }
@@ -51,6 +56,23 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
                     break;
             }
         }
+
+        // Add click listener matching TileAdapter
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, RecyclerProfileMainActivity.class);
+
+            // Pass the same user data as TileAdapter
+            intent.putExtra("name", user.getName());
+            intent.putExtra("userAge", user.getAge());
+            intent.putExtra("userMySkill", user.getMyskill());
+            intent.putExtra("userGoalSkill", user.getGoalskill());
+            intent.putExtra("userGender", user.getGender());
+            intent.putExtra("userName", user.getUsername());
+            intent.putExtra("bio", user.getBio());
+            intent.putExtra("userId", user.getId());
+
+            context.startActivity(intent);
+        });
     }
 
     @Override
@@ -59,7 +81,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView genderImageView; // Changed to ImageView
+        ImageView genderImageView;
         TextView name, offeredSkill, wishSkill;
 
         public ViewHolder(@NonNull View itemView) {
@@ -67,7 +89,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             name = itemView.findViewById(R.id.profile_name);
             offeredSkill = itemView.findViewById(R.id.offered_skill);
             wishSkill = itemView.findViewById(R.id.wish_skill);
-            genderImageView = itemView.findViewById(R.id.gender_icon); // No need for ImageSwitcher
+            genderImageView = itemView.findViewById(R.id.gender_icon);
         }
     }
 }

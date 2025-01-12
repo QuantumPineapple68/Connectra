@@ -79,12 +79,23 @@ public class SearchFragment extends Fragment {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 usersList.clear();
                 for (DataSnapshot userSnapshot : snapshot.getChildren()) {
-                    NewUser user = userSnapshot.getValue(NewUser.class);
-                    if (user != null && !user.getId().equals(currentUserId)) { // Exclude current user
+                    // Fetch each field explicitly like in HomeFragment
+                    String userId = userSnapshot.getKey();
+                    if (!userId.equals(currentUserId)) {
+                        String name = userSnapshot.child("name").getValue(String.class);
+                        String myskill = userSnapshot.child("myskill").getValue(String.class);
+                        String goalskill = userSnapshot.child("goalskill").getValue(String.class);
+                        String gender = userSnapshot.child("gender").getValue(String.class);
+                        String age = userSnapshot.child("age").getValue(String.class);
+                        String bio = userSnapshot.child("bio").getValue(String.class);
+                        String userName = userSnapshot.child("username").getValue(String.class);
+
+                        // Create NewUser object with all fields
+                        NewUser user = new NewUser(name, myskill, goalskill, gender, age, userId, userName, bio);
                         usersList.add(user);
                     }
                 }
-                // Initially show all users
+                // Update filtered list and adapter
                 filteredList.clear();
                 filteredList.addAll(usersList);
                 userAdapter.notifyDataSetChanged();

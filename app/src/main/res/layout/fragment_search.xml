@@ -2,15 +2,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Fragments.SearchFragment">
+    tools:context=".Fragments.SearchFragment"
+    android:background="@drawable/inverted_home_frag_background">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/bar"
         android:layout_margin="12dp"
-        android:background="?android:attr/windowBackground">
-
+        android:background="@android:color/transparent">
 
         <androidx.appcompat.widget.Toolbar
             android:layout_width="match_parent"

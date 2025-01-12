@@ -1,24 +1,52 @@
-<?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<!-- res/layout/fragment_schedule.xml -->
+<LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Fragments.ScheduleFragment">
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/inverted_home_frag_background">
 
-
-    <CalendarView
-        android:id="@+id/calendarView"
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:showWeekNumber="false"
-        android:firstDayOfWeek="2"
-        android:minDate="2023-01-01"
-        android:maxDate="2025-12-31"
-        android:weekSeparatorLineColor="@color/theme"
-        android:focusedMonthDateColor="@color/theme"
-        android:unfocusedMonthDateColor="@color/theme" />
+        android:text="Assign Tasks to Yourself ..."
+        android:textSize="24sp"
+        android:layout_marginTop="16dp" />
 
+    <!-- Calendar View -->
+    <CalendarView
+        android:id="@+id/calendar_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"/>
 
+    <!-- Add Task Button -->
+    <Button
+        android:id="@+id/btn_add_task"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Add Task"
+        android:backgroundTint="@color/theme"
+        android:textColor="@color/black"/>
 
+    <!-- Task List -->
+    <TextView
+        android:id="@+id/tv_no_tasks"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:text="No tasks for the selected date"
+        android:textSize="16sp"
+        android:visibility="gone" />
 
-</FrameLayout>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_tasks"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:visibility="gone" />
+
+</LinearLayout>
