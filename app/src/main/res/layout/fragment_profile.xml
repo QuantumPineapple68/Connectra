@@ -8,10 +8,10 @@
     android:background="@drawable/inverted_home_frag_background">
 
     <ImageView
-        android:layout_width="500dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:src="@drawable/top_decor"
-        android:layout_marginTop="-24dp"
+        android:layout_marginTop="-55dp"
         />
 
     <LinearLayout
@@ -194,7 +194,7 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_marginTop="24dp"
-            android:backgroundTint="@color/theme"
+            android:backgroundTint="@color/theme_dark"
             android:fontFamily="@font/inter_bold"
             android:text="Edit Profile"
             android:textColor="@android:color/white" />
@@ -204,7 +204,7 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_marginTop="4dp"
-            android:backgroundTint="@color/theme"
+            android:backgroundTint="@color/theme_dark"
             android:text="Log Out"
             android:fontFamily="@font/inter_bold"
             android:textColor="@android:color/white" />
