@@ -12,7 +12,8 @@
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="8dp">
+        android:padding="8dp"
+        android:background="@drawable/border_recy_search">
 
         <ImageView
             android:id="@+id/gender_icon"

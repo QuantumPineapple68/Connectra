@@ -18,7 +18,7 @@
             android:textColor="@color/black"
             android:fontFamily="@font/roboto_bold"
             android:textAppearance="@style/TextAppearance.AppCompat.Headline"
-            android:textSize="35dp"
+            android:textSize="40dp"
             android:layout_marginTop="@dimen/medium_margin"
             android:layout_marginStart="@dimen/medium_margin"/>
 
@@ -26,7 +26,7 @@
             android:id="@+id/suggetions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Following are some Profiles You may like ..."
+            android:text="Explore and learn something exciting ..."
             android:textColor="@color/black"
             android:textSize="18dp"
             android:layout_below="@id/welcome_name"
@@ -37,7 +37,11 @@
             android:layout_height="match_parent"
             android:id="@+id/recycler_view_home"
             android:layout_below="@id/suggetions"
-            android:padding="8dp" />
+            android:paddingBottom="85dp"
+            android:clipToPadding="true"
+            android:paddingStart="8dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="8dp" />
 
     </RelativeLayout>
 </FrameLayout>

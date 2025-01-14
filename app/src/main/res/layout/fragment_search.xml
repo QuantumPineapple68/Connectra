@@ -1,22 +1,24 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Fragments.SearchFragment"
-    android:background="@drawable/inverted_home_frag_background">
+    android:background="@drawable/inverted_home_frag_background"
+    tools:context=".Fragments.SearchFragment">
 
+    <!-- AppBarLayout -->
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/bar"
         android:layout_margin="12dp"
         android:background="@android:color/transparent">
 
         <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="5dp"
-            android:id="@+id/toolbar"
             android:background="@drawable/border">
 
             <ImageView
@@ -25,19 +27,24 @@
                 android:src="@drawable/ic_search" />
 
             <AutoCompleteTextView
+                android:id="@+id/search_bar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/search_bar"
+                android:layout_marginStart="20dp"
                 android:background="@android:color/transparent"
-                android:hint="Search any skill"
-                android:layout_marginStart="20dp" />
+                android:hint="Search any skill" />
         </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
+    <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/recycler_view"
         android:layout_below="@id/bar"
-        android:padding="8dp" />
+        android:paddingBottom="85dp"
+        android:clipToPadding="true"
+        android:paddingStart="8dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="8dp"/>
 </RelativeLayout>
