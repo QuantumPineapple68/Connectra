@@ -8,14 +8,14 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/home_frag_background">
+        android:background="@color/white">
 
         <TextView
             android:id="@+id/welcome_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Loading ..."
-            android:textColor="@color/black"
+            android:textColor="@color/theme"
             android:fontFamily="@font/roboto_bold"
             android:textAppearance="@style/TextAppearance.AppCompat.Headline"
             android:textSize="40dp"
@@ -27,7 +27,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Explore and learn something exciting ..."
-            android:textColor="@color/black"
+            android:textColor="@android:color/darker_gray"
             android:textSize="18dp"
             android:layout_below="@id/welcome_name"
             android:layout_marginStart="@dimen/medium_margin" />

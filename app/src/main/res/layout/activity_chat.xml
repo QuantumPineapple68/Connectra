@@ -12,7 +12,7 @@
         android:id="@+id/linear_title"
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:padding="1dp">
+        android:padding="5dp">
 
         <RelativeLayout
             android:layout_width="match_parent"
