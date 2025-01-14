@@ -46,7 +46,8 @@ public class LoginActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        register=findViewById(R.id.txtSignUpNow);
+
+        register = findViewById(R.id.txtSignUpNow);
         login=findViewById(R.id.btnLoginNow);
         email=findViewById(R.id.txtEmailAddress);
         password=findViewById(R.id.txtPassword);
