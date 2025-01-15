@@ -13,6 +13,8 @@ import android.widget.TextView;
 
 import android.widget.ImageView;
 import android.widget.Toast;
+import com.example.connectra.R;
+
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;

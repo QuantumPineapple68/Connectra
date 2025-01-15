@@ -60,6 +60,7 @@
                 android:fontFamily="@font/roboto_bold"
                 android:layout_marginBottom="24dp"
                 android:text="Loading .."
+                android:textColor="@color/black"
                 android:textAppearance="@style/TextAppearance.AppCompat.Headline"
                 android:textAlignment="center" />
             <TextView
@@ -72,6 +73,7 @@
                 android:maxHeight="200dp"
                 android:maxLines="3"
                 android:layout_marginBottom="24dp"
+                android:textColor="#656565"
                 android:hint="Write a bio, let the world know you're more than just a profile pic"
                 android:textAlignment="center" />
 

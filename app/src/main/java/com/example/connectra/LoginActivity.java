@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
+import com.example.connectra.R;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;

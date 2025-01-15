@@ -1,6 +1,5 @@
 package com.example.connectra.adapter;
 
-import android.app.Notification;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.connectra.ChatTexts;
 import com.example.connectra.R;
 
@@ -19,10 +19,12 @@ public class ChatTextsAdapter extends RecyclerView.Adapter<ChatTextsAdapter.Chat
 
     private List<ChatTexts> chatTextsList;
     private String currentUserId;
+    private String profileImageUrl; // URL for the profile image of the opposite user
 
-    public ChatTextsAdapter(List<ChatTexts> chatTextsList, String currentUserId) {
+    public ChatTextsAdapter(List<ChatTexts> chatTextsList, String currentUserId, String profileImageUrl) {
         this.chatTextsList = chatTextsList;
         this.currentUserId = currentUserId;
+        this.profileImageUrl = profileImageUrl;
     }
 
     @NonNull
@@ -52,9 +54,15 @@ public class ChatTextsAdapter extends RecyclerView.Adapter<ChatTextsAdapter.Chat
 
             // Show profile image for received messages
             holder.profileImage.setVisibility(View.VISIBLE);
+
+            // Load the profile image using Glide
+            Glide.with(holder.itemView.getContext())
+                    .load(profileImageUrl) // Load the URL
+                    .placeholder(R.drawable.no_profile_pic) // Placeholder in case image is not available
+                    .error(R.drawable.no_profile_pic) // Error image
+                    .into(holder.profileImage);
         }
     }
-
 
     @Override
     public int getItemCount() {

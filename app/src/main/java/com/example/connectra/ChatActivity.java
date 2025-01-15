@@ -1,5 +1,6 @@
 package com.example.connectra;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -32,6 +33,7 @@ public class ChatActivity extends AppCompatActivity {
     private RecyclerView messageRecyclerView;
     private ChatTextsAdapter messageAdapter;
     private List<ChatTexts> messageList;
+    private ImageView backButton;
 
     private String currentUserId;
     private String chatPartnerId;
@@ -45,6 +47,7 @@ public class ChatActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+        backButton=findViewById(R.id.backBtn);
 
         chatPartnerId = getIntent().getStringExtra("chatPartnerId");
         chatPartnerName = getIntent().getStringExtra("chatPartnerName");
@@ -85,6 +88,14 @@ public class ChatActivity extends AppCompatActivity {
                 }
             }
         });
+
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ChatActivity.this,RegisterActivity.class);
+                finish();
+            }
+        });
     }
 
     private void initializeFields() {
@@ -94,9 +105,12 @@ public class ChatActivity extends AppCompatActivity {
         nameTextView.setText(chatPartnerName);
     }
 
+
+
     private void setupRecyclerView() {
         messageRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        messageAdapter = new ChatTextsAdapter(messageList, currentUserId);
+        String profileImageUrl = getIntent().getStringExtra("profileImage"); // Get the profile image URL
+        messageAdapter = new ChatTextsAdapter(messageList, currentUserId, profileImageUrl);
         messageRecyclerView.setAdapter(messageAdapter);
     }
 

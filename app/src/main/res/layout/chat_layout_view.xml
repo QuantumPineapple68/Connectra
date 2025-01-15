@@ -17,13 +17,11 @@
         android:layout_marginTop="2dp"
         android:layout_toEndOf="@+id/message_profile_image"
         android:background="@drawable/receiver_chat_text_background"
-        android:text="Reciever message"
+        android:text="Receiver message"
         android:textColor="@color/black"
         android:fontFamily="@font/inter_bold"
         android:padding="10dp"
-        android:textSize="15sp">
-    </TextView>
-
+        android:textSize="15sp" />
 
     <TextView
         android:id="@+id/sender_message_text"
@@ -38,7 +36,31 @@
         android:textColor="@color/black"
         android:fontFamily="@font/inter_bold"
         android:padding="10dp"
-        android:textSize="15sp"/>
+        android:textSize="15sp" />
 
+<!--    <TextView-->
+<!--        android:id="@+id/message_time_receiver"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_below="@id/receiver_message_text"-->
+<!--        android:layout_alignStart="@id/receiver_message_text"-->
+<!--        android:layout_marginTop="2dp"-->
+<!--        android:layout_marginEnd="5dp"-->
+<!--        android:textColor="@android:color/darker_gray"-->
+<!--        android:textSize="12sp"-->
+<!--        android:fontFamily="@font/inter_bold"-->
+<!--        android:text="12:34 PM" />-->
 
+<!--    <TextView-->
+<!--        android:id="@+id/message_time_sender"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_below="@id/sender_message_text"-->
+<!--        android:layout_alignEnd="@id/sender_message_text"-->
+<!--        android:layout_marginTop="2dp"-->
+<!--        android:layout_marginEnd="5dp"-->
+<!--        android:textColor="@android:color/darker_gray"-->
+<!--        android:textSize="12sp"-->
+<!--        android:fontFamily="@font/inter_bold"-->
+<!--        android:text="12:34 PM" />-->
 </RelativeLayout>

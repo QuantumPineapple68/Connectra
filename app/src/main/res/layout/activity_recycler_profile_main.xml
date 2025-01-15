@@ -23,6 +23,13 @@
         app:expandedTitleMarginStart="16dp"
         app:expandedTitleTextAppearance="@style/TextAppearance.AppCompat.Title">
 
+      <ImageView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:src="@drawable/top_decor"
+          android:layout_gravity="top"
+          android:layout_marginTop="-110dp"/>
+
       <LinearLayout
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
@@ -44,13 +51,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/black"
             android:textSize="25sp"
-            android:textStyle="bold"
             android:hint="Loading..."
+            android:textStyle="italic"
             android:shadowColor="#4D000000"
-            android:shadowDx="1"
-            android:shadowDy="1"
+            android:shadowDx="3"
+            android:shadowDy="2"
             android:shadowRadius="2"/>
 
         <TextView
@@ -63,7 +70,7 @@
             android:textStyle="bold"
             android:hint="Loading..."
             android:shadowColor="#4D000000"
-            android:shadowRadius="2"/>
+            android:shadowRadius="10"/>
 
       </LinearLayout>
 
@@ -160,7 +167,8 @@
               android:hint="Nothing to show"
               android:layout_marginTop="8dp"
               android:textSize="16sp"
-              android:lineSpacingExtra="4dp"/>
+              android:lineSpacingExtra="4dp"
+              android:textColor="@color/black"/>
 
         </LinearLayout>
       </com.google.android.material.card.MaterialCardView>
@@ -195,7 +203,8 @@
               android:hint="Loading ..."
               android:layout_marginTop="8dp"
               android:textSize="16sp"
-              android:lineSpacingExtra="4dp"/>
+              android:lineSpacingExtra="4dp"
+              android:textColor="@color/black"/>
 
           <View
               android:layout_width="match_parent"
@@ -219,7 +228,8 @@
               android:hint="Loading ..."
               android:layout_marginTop="8dp"
               android:textSize="16sp"
-              android:lineSpacingExtra="4dp"/>
+              android:lineSpacingExtra="4dp"
+              android:textColor="@color/black"/>
 
         </LinearLayout>
       </com.google.android.material.card.MaterialCardView>
