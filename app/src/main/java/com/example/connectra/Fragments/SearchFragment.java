@@ -89,9 +89,10 @@ public class SearchFragment extends Fragment {
                         String age = userSnapshot.child("age").getValue(String.class);
                         String bio = userSnapshot.child("bio").getValue(String.class);
                         String userName = userSnapshot.child("username").getValue(String.class);
+                        String profileImage = userSnapshot.child("profileImage").getValue(String.class);
 
                         // Create NewUser object with all fields
-                        NewUser user = new NewUser(name, myskill, goalskill, gender, age, userId, userName, bio);
+                        NewUser user = new NewUser(name, myskill, goalskill, gender, age, userId, userName, bio, profileImage);
                         usersList.add(user);
                     }
                 }

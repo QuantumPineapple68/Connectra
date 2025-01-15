@@ -46,7 +46,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     }
 
     public static class TaskViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTaskTitle, tvTaskDescription;
+        TextView tvTaskTitle;
 
         public TaskViewHolder(@NonNull View itemView) {
             super(itemView);

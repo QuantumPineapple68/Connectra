@@ -1,11 +1,18 @@
 <!-- res/layout/fragment_schedule.xml -->
-<LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
     android:background="@drawable/inverted_home_frag_background">
+
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="85dp">
 
     <TextView
         android:layout_width="match_parent"
@@ -52,3 +59,4 @@
         android:visibility="gone" />
 
 </LinearLayout>
+</ScrollView>

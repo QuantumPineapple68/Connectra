@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.connectra.Fragments.NewUser;
 import com.example.connectra.R;
 import com.example.connectra.RecyclerProfileMainActivity;
@@ -55,8 +56,17 @@ public class TileAdapter extends RecyclerView.Adapter<TileAdapter.TileViewHolder
             holder.genderIcon.setImageResource(R.drawable.icon_default); // Default icon
         }
 
-        // Set profile image (optional logic can be added here if you fetch images)
-//        holder.profileImage.setImageResource(R.drawable.no_profile_pic); // Replace with user's image if available
+        // Set profile image using Glide
+        String profileImage = user.getProfileImage();
+        if (profileImage != null && !profileImage.isEmpty()) {
+            Glide.with(context)
+                    .load(profileImage)
+                    .placeholder(R.drawable.no_profile_pic)
+                    .error(R.drawable.no_profile_pic)
+                    .into(holder.profileImage);
+        } else {
+            holder.profileImage.setImageResource(R.drawable.no_profile_pic);
+        }
 
         // Set item click listener
         holder.itemView.setOnClickListener(v -> {
@@ -71,6 +81,7 @@ public class TileAdapter extends RecyclerView.Adapter<TileAdapter.TileViewHolder
             intent.putExtra("userName", user.getUsername());
             intent.putExtra("bio", user.getBio());
             intent.putExtra("userId", user.getId());
+            intent.putExtra("profileImage", user.getProfileImage());
 
             context.startActivity(intent);
         });
@@ -82,7 +93,7 @@ public class TileAdapter extends RecyclerView.Adapter<TileAdapter.TileViewHolder
     }
 
     public static class TileViewHolder extends RecyclerView.ViewHolder {
-        TextView profileName, profileAge, offeredSkill, wishSkill, username, bio;
+        TextView profileName, profileAge, offeredSkill, wishSkill;
         ImageView genderIcon;
         CircleImageView profileImage;
 

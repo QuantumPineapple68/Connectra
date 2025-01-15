@@ -11,11 +11,14 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.connectra.R;
 import com.example.connectra.Fragments.NewUser;
 import com.example.connectra.RecyclerProfileMainActivity;
 
 import java.util.List;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
 
@@ -40,6 +43,18 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         holder.name.setText(user.getName());
         holder.offeredSkill.setText("Offered: " + user.getMyskill());
         holder.wishSkill.setText("Wants to learn: " + user.getGoalskill());
+
+        // Set profile image using Glide
+        String profileImage = user.getProfileImage();
+        if (profileImage != null && !profileImage.isEmpty()) {
+            Glide.with(context)
+                    .load(profileImage)
+                    .placeholder(R.drawable.no_profile_pic)
+                    .error(R.drawable.no_profile_pic)
+                    .into(holder.profileImage);
+        } else {
+            holder.profileImage.setImageResource(R.drawable.no_profile_pic);
+        }
 
         // Gender logic
         if (holder.genderImageView != null) {
@@ -70,6 +85,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             intent.putExtra("userName", user.getUsername());
             intent.putExtra("bio", user.getBio());
             intent.putExtra("userId", user.getId());
+            intent.putExtra("profileImage", user.getProfileImage());
 
             context.startActivity(intent);
         });
@@ -83,6 +99,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView genderImageView;
         TextView name, offeredSkill, wishSkill;
+        CircleImageView profileImage;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -90,6 +107,8 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             offeredSkill = itemView.findViewById(R.id.offered_skill);
             wishSkill = itemView.findViewById(R.id.wish_skill);
             genderImageView = itemView.findViewById(R.id.gender_icon);
+            profileImage = itemView.findViewById(R.id.profile_image);
+
         }
     }
 }

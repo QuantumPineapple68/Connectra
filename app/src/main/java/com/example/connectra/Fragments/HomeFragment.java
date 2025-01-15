@@ -1,6 +1,9 @@
 package com.example.connectra.Fragments;
 
+import android.content.res.Configuration;
+import android.graphics.Rect;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,7 +45,13 @@ public class HomeFragment extends Fragment {
         // Initialize Realtime Database and RecyclerView
         databaseRef = FirebaseDatabase.getInstance().getReference("Users");
         recyclerView = view.findViewById(R.id.recycler_view_home);
-        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
+
+        // Dynamically set the span count
+        int spanCount = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 4 : 2;
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), spanCount);
+        recyclerView.setLayoutManager(gridLayoutManager);
+        recyclerView.addItemDecoration(new GridSpacingItemDecoration(8)); // 16dp spacing
+
 
         // Initialize user list and adapter
         userList = new ArrayList<>();
@@ -54,6 +63,19 @@ public class HomeFragment extends Fragment {
 
         return view;
     }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        // Update span count on orientation change
+        int spanCount = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE ? 4 : 2;
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), spanCount);
+        recyclerView.setLayoutManager(gridLayoutManager);
+        tileAdapter.notifyDataSetChanged();
+    }
+
+
 
     private void fetchUserData() {
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -100,9 +122,11 @@ public class HomeFragment extends Fragment {
                         String age = userSnapshot.child("age").getValue(String.class);
                         String bio = userSnapshot.child("bio").getValue(String.class);
                         String userName = userSnapshot.child("username").getValue(String.class);
+                        String profileImage = userSnapshot.child("profileImage").getValue(String.class);
 
+                        Log.e("test1",profileImage+"");
                         // Add user to the list
-                        userList.add(new NewUser(name, myskill, goalskill, gender, age, userId, userName, bio));
+                        userList.add(new NewUser(name, myskill, goalskill, gender, age, userId, userName, bio, profileImage));
                     }
                 }
                 // Notify adapter of data changes
@@ -114,5 +138,25 @@ public class HomeFragment extends Fragment {
                 Toast.makeText(getContext(), "Failed to fetch data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {
+        private final int spacing;
+
+        public GridSpacingItemDecoration(int spacing) {
+            this.spacing = spacing;
+        }
+
+        @Override
+        public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+            outRect.left = spacing;
+            outRect.right = spacing;
+            outRect.bottom = spacing;
+
+            // Add top margin only for the first row to avoid double space between items
+            if (parent.getChildAdapterPosition(view) < 2) {
+                outRect.top = spacing;
+            }
+        }
     }
 }

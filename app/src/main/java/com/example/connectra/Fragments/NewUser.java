@@ -9,6 +9,7 @@ public class NewUser {
     private String id;
     private String userName;
     private String profileImage;
+
     private String bio;
 
 
@@ -16,7 +17,15 @@ public class NewUser {
     public NewUser() {
     }
 
-    public NewUser(String name, String myskill, String goalskill, String gender, String age, String id, String userName, String bio) {
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
+
+    public NewUser(String name, String myskill, String goalskill, String gender, String age, String id, String userName, String bio, String profileImage) {
         this.name = name;
         this.myskill = myskill;
         this.goalskill = goalskill;
@@ -25,6 +34,7 @@ public class NewUser {
         this.id = id;
         this.userName = userName;
         this.bio = bio;
+        this.profileImage = profileImage;
     }
 
     public String getUsername() {

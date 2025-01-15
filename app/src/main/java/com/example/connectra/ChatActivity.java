@@ -12,6 +12,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.example.connectra.ChatTexts;
+import com.example.connectra.R;
 import com.example.connectra.adapter.ChatTextsAdapter;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -36,7 +39,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private DatabaseReference messagesRef;
 
-
+    private ImageView profileImageView; // Profile image view to show chat partner's profile image
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +49,7 @@ public class ChatActivity extends AppCompatActivity {
         chatPartnerId = getIntent().getStringExtra("chatPartnerId");
         chatPartnerName = getIntent().getStringExtra("chatPartnerName");
         currentUserId = getIntent().getStringExtra("currentUserId");
+        String profileImage = getIntent().getStringExtra("profileImage"); // Get the profile image URL
 
         String conversationId = getConversationId(currentUserId, chatPartnerId);
 
@@ -54,6 +58,18 @@ public class ChatActivity extends AppCompatActivity {
         initializeFields();
         setupRecyclerView();
         loadMessages();
+
+        // Set profile image using Glide
+        profileImageView = findViewById(R.id.profile_image); // Ensure you have an ImageView in your layout with this ID
+        if (profileImage != null && !profileImage.isEmpty()) {
+            Glide.with(this)
+                    .load(profileImage)
+                    .placeholder(R.drawable.no_profile_pic)  // Placeholder image in case of null
+                    .error(R.drawable.no_profile_pic)      // Error image
+                    .into(profileImageView);  // Set the profile image into the ImageView
+        } else {
+            profileImageView.setImageResource(R.drawable.no_profile_pic); // Default image if no profile image URL
+        }
 
         ImageView sendButton = findViewById(R.id.send_button);
         EditText messageInput = findViewById(R.id.message_input);
@@ -76,7 +92,6 @@ public class ChatActivity extends AppCompatActivity {
         messageList = new ArrayList<>();
         TextView nameTextView = findViewById(R.id.full_name);
         nameTextView.setText(chatPartnerName);
-        // Space for profile pic
     }
 
     private void setupRecyclerView() {
@@ -105,7 +120,6 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
     }
-
 
     private void sendMessage(String messageText) {
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUserId);
@@ -140,7 +154,6 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
     }
-
 
     private String getConversationId(String user1, String user2) {
         List<String> ids = new ArrayList<>();

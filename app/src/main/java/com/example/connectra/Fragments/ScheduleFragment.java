@@ -68,8 +68,10 @@ public class ScheduleFragment extends Fragment {
 
         // Set default date to today
         selectedDate = getCurrentDate();
+        calendarView.setDate(System.currentTimeMillis(), false, true); // Ensure today is set in the CalendarView
+        fetchTasks(); // Fetch tasks for today immediately
 
-        // Fetch tasks for the selected date
+        // Listen for date changes
         calendarView.setOnDateChangeListener((view1, year, month, dayOfMonth) -> {
             selectedDate = year + "-" + (month + 1) + "-" + dayOfMonth;
             fetchTasks();
@@ -77,11 +79,9 @@ public class ScheduleFragment extends Fragment {
 
         btnAddTask.setOnClickListener(v -> showAddTaskDialog());
 
-        // Fetch initial tasks
-        fetchTasks();
-
         return view;
     }
+
 
     private void fetchTasks() {
         tasksRef.child(selectedDate).addValueEventListener(new ValueEventListener() {
@@ -111,7 +111,7 @@ public class ScheduleFragment extends Fragment {
 
     private void showAddTaskDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.item_task, null, false);
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_task, null, false);
         EditText etTitle = dialogView.findViewById(R.id.tv_task_title);
 
         builder.setView(dialogView);
