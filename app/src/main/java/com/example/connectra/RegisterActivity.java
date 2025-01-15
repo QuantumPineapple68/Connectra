@@ -1,12 +1,17 @@
 package com.example.connectra;
 
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.text.method.PasswordTransformationMethod;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
+
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -27,12 +32,14 @@ import java.util.HashMap;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    EditText email, password, name, username, myskill, goalskill, age, gender;
+    EditText email, password, name, username, myskill, goalskill, age, gender, confirmPass;
     Button register;
+    TextView login;
 
     FirebaseAuth auth;
     DatabaseReference databaseRef;
     ProgressDialog pd;
+    ImageView togglePassword;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,15 +53,19 @@ public class RegisterActivity extends AppCompatActivity {
             return insets;
         });
 
-        email = findViewById(R.id.editTextTextEmailAddress);
-        password = findViewById(R.id.editTextTextPassword);
-        register = findViewById(R.id.button2);
-        name = findViewById(R.id.name);
-        username = findViewById(R.id.username);
-        myskill = findViewById(R.id.myskill);
-        goalskill = findViewById(R.id.goalskill);
-        age = findViewById(R.id.age);
-        gender = findViewById(R.id.gender);
+        email = findViewById(R.id.txtEmailAddress);
+        password = findViewById(R.id.txtPassword);
+        register = findViewById(R.id.btnRegNow);
+        name = findViewById(R.id.fulltxtname);
+        username = findViewById(R.id.fulltxtusername);
+        myskill = findViewById(R.id.mytxtskill);
+        goalskill = findViewById(R.id.goaltxtskill);
+        age = findViewById(R.id.mytxtage);
+        gender = findViewById(R.id.mytxtgender);
+        confirmPass = findViewById(R.id.comfirmtxtPassword);
+        togglePassword=findViewById(R.id.togglePassword);
+        login = findViewById(R.id.txtLoginNow);
+
 
         auth = FirebaseAuth.getInstance();
         databaseRef = FirebaseDatabase.getInstance().getReference("Users");
@@ -72,14 +83,32 @@ public class RegisterActivity extends AppCompatActivity {
                 String txt_goalskill = goalskill.getText().toString();
                 String txt_age = age.getText().toString();
                 String txt_gender = gender.getText().toString();
+                String txt_confirmPass = confirmPass.getText().toString();
 
                 if (TextUtils.isEmpty(txt_email) || TextUtils.isEmpty(txt_password) || TextUtils.isEmpty(txt_name) || TextUtils.isEmpty(txt_username)) {
                     Toast.makeText(RegisterActivity.this, "Fields can't be Empty", Toast.LENGTH_SHORT).show();
                 } else if (txt_password.length() < 6) {
                     Toast.makeText(RegisterActivity.this, "Password must be at least 6 Digits", Toast.LENGTH_SHORT).show();
+                } else if (!txt_password.equals(txt_confirmPass)) {
+                    Toast.makeText(RegisterActivity.this, "Password doesn't match", Toast.LENGTH_SHORT).show();
+                } else if (!txt_gender.toLowerCase().equals("male") || !txt_gender.toLowerCase().equals("female")) {
+                    Toast.makeText(RegisterActivity.this, "Gender must be Male or Female", Toast.LENGTH_SHORT).show();
+                } else if (txt_myskill.length()>30 || txt_goalskill.length()>30) {
+                    Toast.makeText(RegisterActivity.this, "Describe skill sets in brief (30 letters)", Toast.LENGTH_SHORT).show();
+                } else if (!txt_email.endsWith(".com")) {
+                    Toast.makeText(RegisterActivity.this, "Enter Valid e-mail", Toast.LENGTH_SHORT).show();
                 } else {
                     registerUser(txt_email, txt_password, txt_name, txt_username, txt_myskill, txt_goalskill, txt_age, txt_gender);
                 }
+            }
+        });
+        togglePassword.setOnClickListener(v -> togglePasswordVisibility(password, togglePassword));
+
+        login.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(RegisterActivity.this , LoginActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                finish();
             }
         });
     }
@@ -121,5 +150,18 @@ public class RegisterActivity extends AppCompatActivity {
             pd.dismiss();
             Toast.makeText(RegisterActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
         });
+    }
+
+    @SuppressLint("PrivateResource")
+    private void togglePasswordVisibility(EditText passwordEditText, ImageView togglePassword) {
+        if (passwordEditText.getTransformationMethod() instanceof PasswordTransformationMethod) {
+            passwordEditText.setTransformationMethod(null);
+            togglePassword.setImageResource(com.google.android.material.R.drawable.design_ic_visibility);
+        } else {
+            passwordEditText.setTransformationMethod(PasswordTransformationMethod.getInstance());
+            togglePassword.setImageResource(com.google.android.material.R.drawable.design_ic_visibility_off);
+        }
+        // Set cursor to end of text after toggling visibility
+        passwordEditText.setSelection(passwordEditText.getText().length());
     }
 }
