@@ -3,6 +3,7 @@ package com.example.connectra.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,9 +18,18 @@ import java.util.List;
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
 
     private final List<Task> taskList;
+    private OnDeleteClickListener deleteClickListener;
+
+    public interface OnDeleteClickListener {
+        void onDeleteClick(Task task);
+    }
 
     public TaskAdapter(List<Task> taskList) {
         this.taskList = taskList;
+    }
+
+    public void setOnDeleteClickListener(OnDeleteClickListener listener) {
+        this.deleteClickListener = listener;
     }
 
     @NonNull
@@ -38,6 +48,12 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         holder.itemView.setOnClickListener(v ->
                 Toast.makeText(v.getContext(), "Clicked: " + task.getTitle(), Toast.LENGTH_SHORT).show()
         );
+
+        holder.deleteImage.setOnClickListener(v -> {
+            if (deleteClickListener != null) {
+                deleteClickListener.onDeleteClick(task);
+            }
+        });
     }
 
     @Override
@@ -47,10 +63,12 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
 
     public static class TaskViewHolder extends RecyclerView.ViewHolder {
         TextView tvTaskTitle;
+        ImageView deleteImage;
 
         public TaskViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTaskTitle = itemView.findViewById(R.id.tv_task_title);
+            deleteImage = itemView.findViewById(R.id.del);
         }
     }
 }

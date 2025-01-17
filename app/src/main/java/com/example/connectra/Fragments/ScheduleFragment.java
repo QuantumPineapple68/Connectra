@@ -77,21 +77,54 @@ public class ScheduleFragment extends Fragment {
             fetchTasks();
         });
 
+        taskAdapter = new TaskAdapter(taskList);
+        taskAdapter.setOnDeleteClickListener(task -> deleteTask(task));
+        rvTasks.setAdapter(taskAdapter);
+
         btnAddTask.setOnClickListener(v -> showAddTaskDialog());
 
         return view;
     }
 
+    private void deleteTask(Task task) {
+        if (selectedDate == null || task.getId() == null) {
+            Toast.makeText(getContext(), "Unable to delete task", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        new AlertDialog.Builder(getContext())
+                .setTitle("Delete Task")
+                .setMessage("Are you sure you want to delete this task?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    tasksRef.child(selectedDate).child(task.getId())
+                            .removeValue()
+                            .addOnSuccessListener(aVoid ->
+                                    Toast.makeText(getContext(), "Task deleted successfully", Toast.LENGTH_SHORT).show())
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(getContext(), "Failed to delete task", Toast.LENGTH_SHORT).show());
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
 
     private void fetchTasks() {
+        if (selectedDate == null) {
+            selectedDate = getCurrentDate();
+        }
+
         tasksRef.child(selectedDate).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 taskList.clear();
                 if (snapshot.exists()) {
                     for (DataSnapshot taskSnapshot : snapshot.getChildren()) {
-                        Task task = taskSnapshot.getValue(Task.class);
-                        taskList.add(task);
+                        String id = taskSnapshot.getKey(); // Get the key as ID
+                        String title = taskSnapshot.child("title").getValue(String.class);
+                        if (id != null && title != null) {
+                            Task task = new Task(id, title);
+                            taskList.add(task);
+                        }
                     }
                     taskAdapter.notifyDataSetChanged();
                     rvTasks.setVisibility(View.VISIBLE);
@@ -129,12 +162,16 @@ public class ScheduleFragment extends Fragment {
     }
 
     private void addTaskToFirebase(String title) {
-        String taskId = tasksRef.child(selectedDate).push().getKey();
-        HashMap<String, String> task = new HashMap<>();
-        task.put("title", title);
+        if (selectedDate == null) {
+            selectedDate = getCurrentDate();
+        }
 
+        String taskId = tasksRef.child(selectedDate).push().getKey();
         if (taskId != null) {
-            tasksRef.child(selectedDate).child(taskId).setValue(task)
+            HashMap<String, Object> taskMap = new HashMap<>();
+            taskMap.put("title", title);
+
+            tasksRef.child(selectedDate).child(taskId).setValue(taskMap)
                     .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Task added", Toast.LENGTH_SHORT).show())
                     .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to add task", Toast.LENGTH_SHORT).show());
         }

@@ -1,6 +1,7 @@
 package com.example.connectra.model;
 
 public class Task {
+    private String id;
     private String title;
     private String description;
 
@@ -8,9 +9,17 @@ public class Task {
         // Default constructor required for Firebase
     }
 
-    public Task(String title) {
+    public Task(String id, String title) {
+        this.id = id;
         this.title = title;
-        this.description = description;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getTitle() {
@@ -20,5 +29,4 @@ public class Task {
     public void setTitle(String title) {
         this.title = title;
     }
-
 }
