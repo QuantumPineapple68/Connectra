@@ -27,7 +27,7 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
     private DatabaseReference databaseRef;
     private Button connect, submitButton;
     private RatingBar ratingBar;
-    private ImageView displayRating;
+    private ImageView displayRating, profilImg;
     private String profileUserId;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +40,7 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
         ratingBar = findViewById(R.id.ratingbar);
         submitButton = findViewById(R.id.submitrev);
         displayRating = findViewById(R.id.display_rating);
+        profilImg = findViewById(R.id.profile_image);
 
         // Retrieve data from the intent
         String name = getIntent().getStringExtra("name");
@@ -103,6 +104,15 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
         });
 
         fetchAndDisplayRating();
+
+        profilImg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(RecyclerProfileMainActivity.this, ShowProfileImage.class);
+                intent.putExtra("profileImage", profileImage);
+                startActivity(intent);
+            }
+        });
     }
 
     private void fetchAndDisplayRating() {
