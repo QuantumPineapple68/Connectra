@@ -1,7 +1,11 @@
 package com.example.connectra;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkCapabilities;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.text.method.PasswordTransformationMethod;
@@ -56,6 +60,10 @@ public class LoginActivity extends AppCompatActivity {
         togglePassword=findViewById(R.id.togglePassword);
 
         auth=FirebaseAuth.getInstance();
+
+        if (!isInternetAvailable()) {
+            showNoInternetDialog();
+        }
 
         forgotPass.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -132,5 +140,40 @@ public class LoginActivity extends AppCompatActivity {
         }
         // Set cursor to end of text after toggling visibility
         passwordEditText.setSelection(passwordEditText.getText().length());
+    }
+
+    private boolean isInternetAvailable() {
+        ConnectivityManager connectivityManager =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        if (connectivityManager != null) {
+            NetworkCapabilities capabilities =
+                    connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
+            if (capabilities != null) {
+                return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR);
+            }
+        }
+        return false;
+    }
+
+    // Show a popup dialog when there is no internet
+    private void showNoInternetDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("No Internet Connection")
+                .setMessage("Please check your internet connection and try again.")
+                .setCancelable(false) // User can't dismiss the dialog by tapping outside
+                .setPositiveButton("Retry", (dialog, which) -> {
+                    // Retry logic: Check for internet again
+                    if (!isInternetAvailable()) {
+                        showNoInternetDialog(); // Show the dialog again if still no internet
+                    } else {
+                        dialog.dismiss(); // Dismiss if internet is available
+                    }
+                })
+                .setNegativeButton("Exit", (dialog, which) -> {
+                    finish(); // Exit the app
+                })
+                .show();
     }
 }

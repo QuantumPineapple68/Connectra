@@ -117,20 +117,26 @@
               android:textStyle="bold"
               android:textColor="@color/black"/>
 
+          <ImageView
+            android:id="@+id/display_rating"
+              android:layout_width="160dp"
+              android:layout_height="30dp"
+              android:layout_marginTop="5dp"
+              android:src="@drawable/r0"
+              android:layout_gravity="start"/>
+
           <TextView
-              android:id="@+id/rating"
-              android:layout_width="match_parent"
+              android:id="@+id/numb_revs"
+              android:layout_width="wrap_content"
               android:layout_height="wrap_content"
-              android:hint="Rating (upcoming feature)"
-              android:textSize="16sp"
-              android:textColor="#757575"
-              android:layout_marginTop="4dp"/>
+              android:text="(0)"/>
+
 
           <ImageView
               android:id="@+id/image_gender"
               android:layout_width="24dp"
               android:layout_height="24dp"
-              android:layout_marginTop="8dp"
+              android:layout_marginTop="5dp"
               android:src="@drawable/icon_default"/>
 
         </LinearLayout>
@@ -232,8 +238,33 @@
               android:textColor="@color/black"/>
 
         </LinearLayout>
+
       </com.google.android.material.card.MaterialCardView>
 
+      <TextView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Rate user: "
+          android:textSize="18sp"
+          android:textStyle="bold"
+          android:textColor="@color/theme_light"
+          android:layout_marginTop="20dp"/>
+
+      <RatingBar
+          android:id="@+id/ratingbar"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:numStars="5"
+          android:stepSize="0.5"
+          android:layout_marginTop="5dp"/>
+
+      <Button
+          android:id="@+id/submitrev"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Submit"
+          android:textColor="@color/black"
+          android:backgroundTint="@color/theme_extra_light"/>
     </LinearLayout>
 
   </androidx.core.widget.NestedScrollView>

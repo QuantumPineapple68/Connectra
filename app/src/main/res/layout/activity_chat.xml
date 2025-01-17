@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ChatActivity"
-    android:background="@drawable/home_frag_background">
+    android:background="#ede1ff">
 
     <LinearLayout
         android:id="@+id/linear_title"
@@ -80,12 +80,11 @@
             android:textColor="@color/black"
             android:hint="Type a message" />
 
-        <ImageButton
+        <ImageView
             android:id="@+id/send_button"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@drawable/send_image_orange"
-            android:contentDescription="Send" />
+            android:src="@drawable/send_logo"/>
     </LinearLayout>
 
 

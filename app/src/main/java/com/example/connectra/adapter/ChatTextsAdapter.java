@@ -38,6 +38,7 @@ public class ChatTextsAdapter extends RecyclerView.Adapter<ChatTextsAdapter.Chat
     public void onBindViewHolder(@NonNull ChatTextsViewHolder holder, int position) {
         ChatTexts chatText = chatTextsList.get(position);
 
+        // Check if the current message is from the current user
         if (chatText.getSenderId().equals(currentUserId)) {
             // Message sent by the current user
             holder.sentMessage.setVisibility(View.VISIBLE);
@@ -52,17 +53,23 @@ public class ChatTextsAdapter extends RecyclerView.Adapter<ChatTextsAdapter.Chat
             holder.sentMessage.setVisibility(View.GONE);
             holder.receivedMessage.setText(chatText.getMessage());
 
-            // Show profile image for received messages
-            holder.profileImage.setVisibility(View.VISIBLE);
+            // Show profile image only if it's the first message in a group
+            if (position == 0 || !chatTextsList.get(position - 1).getSenderId().equals(chatText.getSenderId())) {
+                holder.profileImage.setVisibility(View.VISIBLE);
 
-            // Load the profile image using Glide
-            Glide.with(holder.itemView.getContext())
-                    .load(profileImageUrl) // Load the URL
-                    .placeholder(R.drawable.no_profile_pic) // Placeholder in case image is not available
-                    .error(R.drawable.no_profile_pic) // Error image
-                    .into(holder.profileImage);
+                // Load the profile image using Glide
+                Glide.with(holder.itemView.getContext())
+                        .load(profileImageUrl) // Load the URL
+                        .placeholder(R.drawable.no_profile_pic) // Placeholder in case image is not available
+                        .error(R.drawable.no_profile_pic) // Error image
+                        .into(holder.profileImage);
+            } else {
+                // Hide profile image for subsequent messages in the group
+                holder.profileImage.setVisibility(View.INVISIBLE);
+            }
         }
     }
+
 
     @Override
     public int getItemCount() {

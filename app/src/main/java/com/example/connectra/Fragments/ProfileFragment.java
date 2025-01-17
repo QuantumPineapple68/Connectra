@@ -6,6 +6,8 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +29,8 @@ import com.example.connectra.LoginActivity;
 import com.example.connectra.R;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuth.AuthStateListener;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -50,6 +54,9 @@ public class ProfileFragment extends Fragment {
     private Uri imageUri;
     private ActivityResultLauncher<Intent> imagePickerLauncher;
 
+    private AuthStateListener authStateListener;
+    private ValueEventListener userValueEventListener;
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
@@ -69,23 +76,20 @@ public class ProfileFragment extends Fragment {
 
         // Firebase initialization
         auth = FirebaseAuth.getInstance();
+        storage = FirebaseStorage.getInstance(FirebaseApp.getInstance("secondary"));
+
+        setupAuthListener();
+
         if (auth.getCurrentUser() != null) {
             String userId = auth.getCurrentUser().getUid();
             userRef = FirebaseDatabase.getInstance().getReference("Users").child(userId);
-            storage = FirebaseStorage.getInstance(FirebaseApp.getInstance("secondary"));
-            fetchUserData(); // Fetch user data only if authenticated
+            setupUserValueEventListener();
         } else {
             Toast.makeText(getContext(), "User is not authenticated", Toast.LENGTH_SHORT).show();
         }
 
         // Logout functionality
-        logoutButton.setOnClickListener(v -> {
-            FirebaseAuth.getInstance().signOut();
-            Toast.makeText(getActivity(), "You have been signed out.", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(getActivity(), LoginActivity.class);
-            startActivity(intent);
-            requireActivity().finish();
-        });
+        logoutButton.setOnClickListener(v -> logout());
 
         // Change Skill functionality
         changeSkill.setOnClickListener(v -> {
@@ -110,13 +114,24 @@ public class ProfileFragment extends Fragment {
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/QuantumPineapple68"));
             startActivity(browserIntent);
         });
+
         return view;
     }
 
-    private void fetchUserData() {
-        if (userRef == null) return;
+    private void setupAuthListener() {
+        authStateListener = firebaseAuth -> {
+            FirebaseUser user = firebaseAuth.getCurrentUser();
+            if (user == null) {
+                Toast.makeText(getActivity(), "User signed out.", Toast.LENGTH_SHORT).show();
+                navigateToLogin();
+            }
+        };
 
-        userRef.addValueEventListener(new ValueEventListener() {
+        auth.addAuthStateListener(authStateListener);
+    }
+
+    private void setupUserValueEventListener() {
+        userValueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
@@ -129,7 +144,6 @@ public class ProfileFragment extends Fragment {
                     String bio = dataSnapshot.child("bio").getValue(String.class);
                     String profileImage = dataSnapshot.child("profileImage").getValue(String.class);
 
-                    // Update UI with retrieved values
                     if (getActivity() != null) {
                         getActivity().runOnUiThread(() -> {
                             if (fullName != null) welcome.setText("Welcome, " + fullName);
@@ -140,7 +154,6 @@ public class ProfileFragment extends Fragment {
                             if (goalSkill != null) goalSkillTextView.setText("I want to learn " + goalSkill);
                             if (bio != null) bioTextView.setText(bio);
 
-                            // Load profile image or display placeholder
                             if (profileImage != null && !profileImage.isEmpty()) {
                                 Glide.with(requireContext())
                                         .load(profileImage)
@@ -162,7 +175,27 @@ public class ProfileFragment extends Fragment {
                 Log.e("DatabaseError", databaseError.getMessage());
                 Toast.makeText(getContext(), "Failed to load user data", Toast.LENGTH_SHORT).show();
             }
-        });
+        };
+
+        userRef.addValueEventListener(userValueEventListener);
+    }
+
+    private void logout() {
+        if (authStateListener != null) {
+            auth.removeAuthStateListener(authStateListener);
+        }
+        if (userRef != null && userValueEventListener != null) {
+            userRef.removeEventListener(userValueEventListener);
+        }
+        auth.signOut();
+
+        new Handler(Looper.getMainLooper()).postDelayed(this::navigateToLogin, 200);
+    }
+
+    private void navigateToLogin() {
+        Intent intent = new Intent(getActivity(), LoginActivity.class);
+        startActivity(intent);
+        requireActivity().finish();
     }
 
     private void openImage() {
@@ -206,5 +239,16 @@ public class ProfileFragment extends Fragment {
         ContentResolver contentResolver = requireContext().getContentResolver();
         MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
         return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri));
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (authStateListener != null) {
+            auth.removeAuthStateListener(authStateListener);
+        }
+        if (userRef != null && userValueEventListener != null) {
+            userRef.removeEventListener(userValueEventListener);
+        }
     }
 }

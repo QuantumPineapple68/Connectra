@@ -1,7 +1,12 @@
 package com.example.connectra.Fragments;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Rect;
+import android.net.ConnectivityManager;
+import android.net.NetworkCapabilities;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -24,6 +29,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +40,7 @@ public class HomeFragment extends Fragment {
     private TileAdapter tileAdapter;
     private List<NewUser> userList;
     private DatabaseReference databaseRef;
-    TextView hi;
+    private TextView hi;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -52,7 +58,6 @@ public class HomeFragment extends Fragment {
         recyclerView.setLayoutManager(gridLayoutManager);
         recyclerView.addItemDecoration(new GridSpacingItemDecoration(8)); // 16dp spacing
 
-
         // Initialize user list and adapter
         userList = new ArrayList<>();
         tileAdapter = new TileAdapter(getContext(), userList);
@@ -60,6 +65,11 @@ public class HomeFragment extends Fragment {
 
         fetchUserData();
         fetchUsersFromDatabase();
+        saveFCMToken(); // Save FCM token logic here
+
+        if (!isInternetAvailable()) {
+            showNoInternetDialog();
+        }
 
         return view;
     }
@@ -75,7 +85,33 @@ public class HomeFragment extends Fragment {
         tileAdapter.notifyDataSetChanged();
     }
 
+    private void saveFCMToken() {
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        String token = task.getResult();
+                        Log.d("FCM Token", "Token: " + token);
 
+                        // Save the token in SharedPreferences
+                        SharedPreferences prefs = requireContext().getSharedPreferences("FCM", Context.MODE_PRIVATE);
+                        prefs.edit().putString("token", token).apply();
+
+                        // If the user is logged in, update the token in the database
+                        FirebaseAuth auth = FirebaseAuth.getInstance();
+                        if (auth.getCurrentUser() != null) {
+                            String userId = auth.getCurrentUser().getUid();
+                            databaseRef.child(userId).child("fcmToken").setValue(token)
+                                    .addOnCompleteListener(dbTask -> {
+                                        if (!dbTask.isSuccessful()){
+                                            Toast.makeText(getContext(), "Failed to update FCM token", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                        }
+                    } else {
+                        Log.e("FCM Token", "Fetching token failed", task.getException());
+                    }
+                });
+    }
 
     private void fetchUserData() {
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -124,7 +160,7 @@ public class HomeFragment extends Fragment {
                         String userName = userSnapshot.child("username").getValue(String.class);
                         String profileImage = userSnapshot.child("profileImage").getValue(String.class);
 
-                        Log.e("test1",profileImage+"");
+                        Log.e("test1", profileImage + "");
                         // Add user to the list
                         userList.add(new NewUser(name, myskill, goalskill, gender, age, userId, userName, bio, profileImage));
                     }
@@ -158,5 +194,40 @@ public class HomeFragment extends Fragment {
                 outRect.top = spacing;
             }
         }
+    }
+
+    private boolean isInternetAvailable() {
+        ConnectivityManager connectivityManager =
+                (ConnectivityManager) requireContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        if (connectivityManager != null) {
+            NetworkCapabilities capabilities =
+                    connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
+            if (capabilities != null) {
+                return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR);
+            }
+        }
+        return false;
+    }
+
+    // Show a popup dialog when there is no internet
+    private void showNoInternetDialog() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("No Internet Connection")
+                .setMessage("Please check your internet connection and try again.")
+                .setCancelable(false) // User can't dismiss the dialog by tapping outside
+                .setPositiveButton("Retry", (dialog, which) -> {
+                    // Retry logic: Check for internet again
+                    if (!isInternetAvailable()) {
+                        showNoInternetDialog(); // Show the dialog again if still no internet
+                    } else {
+                        dialog.dismiss(); // Dismiss if internet is available
+                    }
+                })
+                .setNegativeButton("Exit", (dialog, which) -> {
+                    requireActivity().finish(); // Exit the app
+                })
+                .show();
     }
 }

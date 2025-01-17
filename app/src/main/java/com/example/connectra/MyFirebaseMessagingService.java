@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.widget.Button;
+import android.widget.RatingBar;
 
 import androidx.core.app.NotificationCompat;
 
@@ -18,6 +20,7 @@ import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
+
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
@@ -37,20 +40,22 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     public void onNewToken(String token) {
         super.onNewToken(token);
 
+        // Get current logged-in user
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
         if (currentUser != null) {
-            // User is signed in, save the token
+            // Save the token to Realtime Database under the logged-in user's UID
             DatabaseReference userRef = FirebaseDatabase.getInstance()
                     .getReference("Users")
                     .child(currentUser.getUid());
             userRef.child("fcmToken").setValue(token);
         } else {
-            // Save token somewhere temporarily or handle the case when user isn't signed in
-            // You might want to save it in SharedPreferences and update Firebase when user signs in
+            // Save the token temporarily in SharedPreferences if the user isn't logged in
             SharedPreferences prefs = getSharedPreferences("FCM", Context.MODE_PRIVATE);
             prefs.edit().putString("token", token).apply();
         }
     }
+
 
 
     private void showNotification(String senderName, String message) {
