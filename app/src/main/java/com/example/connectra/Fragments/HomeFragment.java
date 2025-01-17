@@ -92,9 +92,17 @@ public class HomeFragment extends Fragment {
                         String token = task.getResult();
                         Log.d("FCM Token", "Token: " + token);
 
+                        if (!isAdded()) {
+                            // Fragment is no longer attached, abort further operations
+                            return;
+                        }
+
                         // Save the token in SharedPreferences
-                        SharedPreferences prefs = requireContext().getSharedPreferences("FCM", Context.MODE_PRIVATE);
-                        prefs.edit().putString("token", token).apply();
+                        Context context = getContext();
+                        if (context != null) {
+                            SharedPreferences prefs = context.getSharedPreferences("FCM", Context.MODE_PRIVATE);
+                            prefs.edit().putString("token", token).apply();
+                        }
 
                         // If the user is logged in, update the token in the database
                         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -102,8 +110,10 @@ public class HomeFragment extends Fragment {
                             String userId = auth.getCurrentUser().getUid();
                             databaseRef.child(userId).child("fcmToken").setValue(token)
                                     .addOnCompleteListener(dbTask -> {
-                                        if (!dbTask.isSuccessful()){
-                                            Toast.makeText(getContext(), "Failed to update FCM token", Toast.LENGTH_SHORT).show();
+                                        if (!dbTask.isSuccessful()) {
+                                            if (isAdded()) {
+                                                Toast.makeText(getContext(), "Failed to update FCM token", Toast.LENGTH_SHORT).show();
+                                            }
                                         }
                                     });
                         }
@@ -112,6 +122,7 @@ public class HomeFragment extends Fragment {
                     }
                 });
     }
+
 
     private void fetchUserData() {
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -161,8 +172,21 @@ public class HomeFragment extends Fragment {
                         String profileImage = userSnapshot.child("profileImage").getValue(String.class);
 
                         Log.e("test1", profileImage + "");
-                        // Add user to the list
-                        userList.add(new NewUser(name, myskill, goalskill, gender, age, userId, userName, bio, profileImage));
+
+                        float rating = 0f;
+                        DataSnapshot ratingsSnapshot = userSnapshot.child("ratings");
+                        DataSnapshot revSnapshot = userSnapshot.child("rev");
+
+                        if (ratingsSnapshot.exists() && revSnapshot.exists()) {
+                            float totalRev = revSnapshot.getValue(Float.class);
+                            long totalReviews = ratingsSnapshot.getChildrenCount();
+                            rating = totalReviews > 0 ? totalRev / totalReviews : 0f;
+
+                            Log.e("rat",rating+"");
+                        }
+
+                        userList.add(new NewUser(name, myskill, goalskill, gender, age, userId,
+                                userName, bio, profileImage, rating));
                     }
                 }
                 // Notify adapter of data changes

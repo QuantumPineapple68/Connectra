@@ -71,6 +71,7 @@ public class SearchFragment extends Fragment {
         return view;
     }
 
+
     private void fetchUsers() {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
@@ -91,9 +92,20 @@ public class SearchFragment extends Fragment {
                         String userName = userSnapshot.child("username").getValue(String.class);
                         String profileImage = userSnapshot.child("profileImage").getValue(String.class);
 
-                        // Create NewUser object with all fields
-                        NewUser user = new NewUser(name, myskill, goalskill, gender, age, userId, userName, bio, profileImage);
-                        usersList.add(user);
+                        float rating = 0f;
+                        DataSnapshot ratingsSnapshot = userSnapshot.child("ratings");
+                        DataSnapshot revSnapshot = userSnapshot.child("rev");
+
+                        if (ratingsSnapshot.exists() && revSnapshot.exists()) {
+                            float totalRev = revSnapshot.getValue(Float.class);
+                            long totalReviews = ratingsSnapshot.getChildrenCount();
+                            rating = totalReviews > 0 ? totalRev / totalReviews : 0f;
+
+                            Log.e("rat",rating+"");
+                        }
+
+                        usersList.add(new NewUser(name, myskill, goalskill, gender, age, userId,
+                                userName, bio, profileImage, rating));
                     }
                 }
                 // Update filtered list and adapter
@@ -108,6 +120,7 @@ public class SearchFragment extends Fragment {
             }
         });
     }
+
 
     private void filterUsersBySkill(String query) {
         filteredList.clear();

@@ -93,8 +93,6 @@ public class RegisterActivity extends AppCompatActivity {
                     Toast.makeText(RegisterActivity.this, "Password must be at least 6 Digits", Toast.LENGTH_SHORT).show();
                 } else if (!txt_password.equals(txt_confirmPass)) {
                     Toast.makeText(RegisterActivity.this, "Password doesn't match", Toast.LENGTH_SHORT).show();
-                } else if (!txt_gender.toLowerCase().equals("male") || !txt_gender.toLowerCase().equals("female")) {
-                    Toast.makeText(RegisterActivity.this, "Gender must be Male or Female", Toast.LENGTH_SHORT).show();
                 } else if (txt_myskill.length()>30 || txt_goalskill.length()>30) {
                     Toast.makeText(RegisterActivity.this, "Describe skill sets in brief (30 letters)", Toast.LENGTH_SHORT).show();
                 } else if (!txt_email.endsWith(".com")) {

@@ -25,6 +25,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     private List<NewUser> users;
     private Context context;  // Added context
 
+
     public UserAdapter(List<NewUser> users) {
         this.users = users;
     }
@@ -54,6 +55,12 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
                     .into(holder.profileImage);
         } else {
             holder.profileImage.setImageResource(R.drawable.no_profile_pic);
+        }
+
+        float rating = user.getRating();
+        if (holder.ratingImage != null) {
+            int ratingResource = getRatingImageResource(rating);
+            holder.ratingImage.setImageResource(ratingResource);
         }
 
         // Gender logic
@@ -97,7 +104,8 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView genderImageView;
+        ImageView genderImageView, ratingImage;
+
         TextView name, offeredSkill, wishSkill;
         CircleImageView profileImage;
 
@@ -108,7 +116,22 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             wishSkill = itemView.findViewById(R.id.wish_skill);
             genderImageView = itemView.findViewById(R.id.gender_icon);
             profileImage = itemView.findViewById(R.id.profile_image);
+            ratingImage = itemView.findViewById(R.id.recy_rev);
 
         }
+    }
+
+    private int getRatingImageResource(float average) {
+        if (average <= 0) return R.drawable.r0;
+        else if (average <= 0.5) return R.drawable.r0_5;
+        else if (average <= 1) return R.drawable.r1;
+        else if (average <= 1.5) return R.drawable.r1_5;
+        else if (average <= 2) return R.drawable.r2;
+        else if (average <= 2.5) return R.drawable.r2_5;
+        else if (average <= 3) return R.drawable.r3;
+        else if (average <= 3.5) return R.drawable.r3_5;
+        else if (average <= 4) return R.drawable.r4;
+        else if (average <= 4.5) return R.drawable.r4_5;
+        else return R.drawable.r5;
     }
 }

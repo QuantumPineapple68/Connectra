@@ -9,9 +9,21 @@ public class NewUser {
     private String id;
     private String userName;
     private String profileImage;
-
+    private float rating;
     private String bio;
 
+    public NewUser(String name, String myskill, String goalskill, String gender, String age, String id, String userName, String bio, String profileImage, float rating) {
+        this.name = name;
+        this.myskill = myskill;
+        this.goalskill = goalskill;
+        this.gender = gender;
+        this.age = age;
+        this.id = id;
+        this.userName = userName;
+        this.bio = bio;
+        this.profileImage = profileImage;
+        this.rating = rating;
+    }
 
     // Default constructor for Firebase
     public NewUser() {
@@ -25,16 +37,12 @@ public class NewUser {
         this.profileImage = profileImage;
     }
 
-    public NewUser(String name, String myskill, String goalskill, String gender, String age, String id, String userName, String bio, String profileImage) {
-        this.name = name;
-        this.myskill = myskill;
-        this.goalskill = goalskill;
-        this.gender = gender;
-        this.age = age;
-        this.id = id;
-        this.userName = userName;
-        this.bio = bio;
-        this.profileImage = profileImage;
+    public float getRating() {
+        return rating;
+    }
+
+    public void setRating(int rating) {
+        this.rating = rating;
     }
 
     public String getUsername() {
