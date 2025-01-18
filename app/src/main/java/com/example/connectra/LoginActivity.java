@@ -53,19 +53,12 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         new AlertDialog.Builder(this)
-                .setTitle("Please use this app without Dark mode for best experience")
+                .setTitle("Suggestion")
                 .setMessage("Please use this app without Dark mode for best experience")
                 .setCancelable(false) // User can't dismiss the dialog by tapping outside
-                .setPositiveButton("Retry", (dialog, which) -> {
+                .setPositiveButton("ok", (dialog, which) -> {
                     // Retry logic: Check for internet again
-                    if (!isInternetAvailable()) {
-                        showNoInternetDialog(); // Show the dialog again if still no internet
-                    } else {
-                        dialog.dismiss(); // Dismiss if internet is available
-                    }
-                })
-                .setNegativeButton("Exit", (dialog, which) -> {
-                    finish(); // Exit the app
+                    dialog.dismiss();
                 })
                 .show();
 
