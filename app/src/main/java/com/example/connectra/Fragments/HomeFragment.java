@@ -170,6 +170,7 @@ public class HomeFragment extends Fragment {
                         String bio = userSnapshot.child("bio").getValue(String.class);
                         String userName = userSnapshot.child("username").getValue(String.class);
                         String profileImage = userSnapshot.child("profileImage").getValue(String.class);
+                        String certificate = userSnapshot.child("certificateUrl").getValue(String.class);
 
                         Log.e("test1", profileImage + "");
 
@@ -186,7 +187,7 @@ public class HomeFragment extends Fragment {
                         }
 
                         userList.add(new NewUser(name, myskill, goalskill, gender, age, userId,
-                                userName, bio, profileImage, rating));
+                                userName, bio, profileImage, rating, certificate));
                     }
                 }
                 // Notify adapter of data changes

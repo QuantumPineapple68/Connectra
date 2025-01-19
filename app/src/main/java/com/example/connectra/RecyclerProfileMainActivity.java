@@ -27,7 +27,7 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
     private DatabaseReference databaseRef;
     private Button connect, submitButton;
     private RatingBar ratingBar;
-    private ImageView displayRating, profilImg;
+    private ImageView displayRating, profilImg, userCerf;
     private String profileUserId;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +41,7 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
         submitButton = findViewById(R.id.submitrev);
         displayRating = findViewById(R.id.display_rating);
         profilImg = findViewById(R.id.profile_image);
+        userCerf = findViewById(R.id.user_cerf);
 
         // Retrieve data from the intent
         String name = getIntent().getStringExtra("name");
@@ -52,6 +53,7 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
         String userName = getIntent().getStringExtra("userName");
         String profileImage = getIntent().getStringExtra("profileImage");
         profileUserId = getIntent().getStringExtra("userId");
+        String certificate = getIntent().getStringExtra("certificate");
 
         // Set data to UI elements
         TextView nameTextView = findViewById(R.id.text_name);
@@ -79,6 +81,16 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
                     .into((ImageView) findViewById(R.id.profile_image));
         } else {
             ((ImageView) findViewById(R.id.profile_image)).setImageResource(R.drawable.no_profile_pic);
+        }
+
+        if (certificate != null && !certificate.isEmpty()) {
+            Glide.with(this)
+                    .load(certificate)
+                    .placeholder(R.drawable.default_certificate)
+                    .error(R.drawable.default_certificate)
+                    .into((ImageView) findViewById(R.id.user_cerf));
+        } else {
+            ((ImageView) findViewById(R.id.user_cerf)).setImageResource(R.drawable.default_certificate);
         }
 
         // Set gender icon

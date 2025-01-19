@@ -91,6 +91,7 @@ public class SearchFragment extends Fragment {
                         String bio = userSnapshot.child("bio").getValue(String.class);
                         String userName = userSnapshot.child("username").getValue(String.class);
                         String profileImage = userSnapshot.child("profileImage").getValue(String.class);
+                        String certificate = userSnapshot.child("certificateUrl").getValue(String.class);
 
                         float rating = 0f;
                         DataSnapshot ratingsSnapshot = userSnapshot.child("ratings");
@@ -105,7 +106,7 @@ public class SearchFragment extends Fragment {
                         }
 
                         usersList.add(new NewUser(name, myskill, goalskill, gender, age, userId,
-                                userName, bio, profileImage, rating));
+                                userName, bio, profileImage, rating, certificate));
                     }
                 }
                 // Update filtered list and adapter

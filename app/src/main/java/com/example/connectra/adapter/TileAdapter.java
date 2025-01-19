@@ -82,6 +82,7 @@ public class TileAdapter extends RecyclerView.Adapter<TileAdapter.TileViewHolder
             intent.putExtra("bio", user.getBio());
             intent.putExtra("userId", user.getId());
             intent.putExtra("profileImage", user.getProfileImage());
+            intent.putExtra("certificate", user.getCerf());
 
             context.startActivity(intent);
         });

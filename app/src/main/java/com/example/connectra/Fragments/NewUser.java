@@ -11,8 +11,9 @@ public class NewUser {
     private String profileImage;
     private float rating;
     private String bio;
+    private String cerf;
 
-    public NewUser(String name, String myskill, String goalskill, String gender, String age, String id, String userName, String bio, String profileImage, float rating) {
+    public NewUser(String name, String myskill, String goalskill, String gender, String age, String id, String userName, String bio, String profileImage, float rating, String cerf) {
         this.name = name;
         this.myskill = myskill;
         this.goalskill = goalskill;
@@ -23,10 +24,19 @@ public class NewUser {
         this.bio = bio;
         this.profileImage = profileImage;
         this.rating = rating;
+        this.cerf = cerf;
     }
 
     // Default constructor for Firebase
     public NewUser() {
+    }
+
+    public String getCerf() {
+        return cerf;
+    }
+
+    public void setCerf(String cerf) {
+        this.cerf = cerf;
     }
 
     public String getProfileImage() {
