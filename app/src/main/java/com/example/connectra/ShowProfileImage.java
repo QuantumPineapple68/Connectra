@@ -13,7 +13,7 @@ import com.bumptech.glide.Glide;
 
 public class ShowProfileImage extends AppCompatActivity {
 
-    private ImageView imageView;  // Changed to private
+    private ImageView imageView, back;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +29,11 @@ public class ShowProfileImage extends AppCompatActivity {
 
         // Fixed the findViewById line
         imageView = findViewById(R.id.profile_image);
+        back = findViewById(R.id.backBtnpfp);
+
+        back.setOnClickListener(v -> {
+            finish();
+        });
 
         String profileImage = getIntent().getStringExtra("profileImage");
 
