@@ -175,4 +175,6 @@ public class ChatActivity extends AppCompatActivity {
         Collections.sort(ids);
         return ids.get(0) + "_" + ids.get(1);
     }
+
+
 }

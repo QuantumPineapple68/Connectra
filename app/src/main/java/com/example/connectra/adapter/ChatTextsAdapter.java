@@ -38,7 +38,6 @@ public class ChatTextsAdapter extends RecyclerView.Adapter<ChatTextsAdapter.Chat
     public void onBindViewHolder(@NonNull ChatTextsViewHolder holder, int position) {
         ChatTexts chatText = chatTextsList.get(position);
 
-        // Check if the current message is from the current user
         if (chatText.getSenderId().equals(currentUserId)) {
             // Message sent by the current user
             holder.sentMessage.setVisibility(View.VISIBLE);
@@ -53,15 +52,15 @@ public class ChatTextsAdapter extends RecyclerView.Adapter<ChatTextsAdapter.Chat
             holder.sentMessage.setVisibility(View.GONE);
             holder.receivedMessage.setText(chatText.getMessage());
 
-            // Show profile image only if it's the first message in a group
+            // Show profile image only at the start of a group
             if (position == 0 || !chatTextsList.get(position - 1).getSenderId().equals(chatText.getSenderId())) {
                 holder.profileImage.setVisibility(View.VISIBLE);
 
                 // Load the profile image using Glide
                 Glide.with(holder.itemView.getContext())
-                        .load(profileImageUrl) // Load the URL
-                        .placeholder(R.drawable.no_profile_pic) // Placeholder in case image is not available
-                        .error(R.drawable.no_profile_pic) // Error image
+                        .load(profileImageUrl)
+                        .placeholder(R.drawable.no_profile_pic)
+                        .error(R.drawable.no_profile_pic)
                         .into(holder.profileImage);
             } else {
                 // Hide profile image for subsequent messages in the group
@@ -69,6 +68,7 @@ public class ChatTextsAdapter extends RecyclerView.Adapter<ChatTextsAdapter.Chat
             }
         }
     }
+
 
 
     @Override

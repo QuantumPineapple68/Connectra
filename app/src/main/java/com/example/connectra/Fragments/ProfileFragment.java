@@ -54,7 +54,6 @@ public class ProfileFragment extends Fragment {
     private Uri imageUri;
     private ActivityResultLauncher<Intent> imagePickerLauncher;
 
-    private AuthStateListener authStateListener;
     private ValueEventListener userValueEventListener;
 
     @Override
@@ -77,8 +76,6 @@ public class ProfileFragment extends Fragment {
         // Firebase initialization
         auth = FirebaseAuth.getInstance();
         storage = FirebaseStorage.getInstance(FirebaseApp.getInstance("secondary"));
-
-        setupAuthListener();
 
         if (auth.getCurrentUser() != null) {
             String userId = auth.getCurrentUser().getUid();
@@ -116,18 +113,6 @@ public class ProfileFragment extends Fragment {
         });
 
         return view;
-    }
-
-    private void setupAuthListener() {
-        authStateListener = firebaseAuth -> {
-            FirebaseUser user = firebaseAuth.getCurrentUser();
-            if (user == null) {
-                Toast.makeText(getActivity(), "User signed out.", Toast.LENGTH_SHORT).show();
-                navigateToLogin();
-            }
-        };
-
-        auth.addAuthStateListener(authStateListener);
     }
 
     private void setupUserValueEventListener() {
@@ -181,21 +166,20 @@ public class ProfileFragment extends Fragment {
     }
 
     private void logout() {
-        if (authStateListener != null) {
-            auth.removeAuthStateListener(authStateListener);
-        }
+        Activity activity = getActivity();
+        if (activity == null) return;
+
+        // Only need to clean up database listener now
         if (userRef != null && userValueEventListener != null) {
             userRef.removeEventListener(userValueEventListener);
         }
+
         auth.signOut();
 
-        new Handler(Looper.getMainLooper()).postDelayed(this::navigateToLogin, 200);
-    }
-
-    private void navigateToLogin() {
-        Intent intent = new Intent(getActivity(), LoginActivity.class);
+        Intent intent = new Intent(activity, LoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
-        requireActivity().finish();
+        activity.finish();
     }
 
     private void openImage() {
@@ -244,9 +228,6 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        if (authStateListener != null) {
-            auth.removeAuthStateListener(authStateListener);
-        }
         if (userRef != null && userValueEventListener != null) {
             userRef.removeEventListener(userValueEventListener);
         }
