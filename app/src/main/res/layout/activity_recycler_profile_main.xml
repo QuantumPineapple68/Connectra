@@ -300,7 +300,8 @@
           android:layout_height="wrap_content"
           android:text="Submit"
           android:textColor="@color/black"
-          android:backgroundTint="@color/theme_extra_light"/>
+          android:backgroundTint="@color/theme_extra_light"
+          android:layout_marginBottom="61dp"/>
     </LinearLayout>
 
 
