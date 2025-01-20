@@ -19,6 +19,14 @@
         android:theme="@style/Theme.Connectra"
         tools:targetApi="31">
         <activity
+            android:name=".ExtraDetailsActivity"
+            android:exported="false" />
+
+        <meta-data
+            android:name="com.google.android.gms.client_id"
+            android:value="404492716071-h47f0h8m4kmqni2a2jst09kupcisolm0.apps.googleusercontent.com" />
+
+        <activity
             android:name=".ShowProfileImage"
             android:exported="false" />
         <activity

@@ -13,7 +13,20 @@
           "package_name": "com.example.connectra"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "404492716071-thiat994bnhl6b3tqueje26uqn815n1j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.connectra",
+            "certificate_hash": "03201830c3d3382852a22cbf4bb50598f98782f9"
+          }
+        },
+        {
+          "client_id": "404492716071-h47f0h8m4kmqni2a2jst09kupcisolm0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDafM4xwNR2GwhybcyvZ9rriR23YpDLHnA"
@@ -21,7 +34,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "404492716071-h47f0h8m4kmqni2a2jst09kupcisolm0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
