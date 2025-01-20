@@ -92,6 +92,7 @@ public class HomeFragment extends Fragment {
                         String token = task.getResult();
                         Log.d("FCM Token", "Token: " + token);
 
+
                         if (!isAdded()) {
                             // Fragment is no longer attached, abort further operations
                             return;

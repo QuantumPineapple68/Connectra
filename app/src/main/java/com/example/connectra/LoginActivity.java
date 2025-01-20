@@ -2,6 +2,7 @@ package com.example.connectra;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -51,6 +52,7 @@ public class LoginActivity extends AppCompatActivity {
     EditText password;
     TextView forgotPass;
     ImageView togglePassword;
+    ProgressDialog pd;
 
     FirebaseAuth auth;
     private LinearLayout googleSignInBtn;
@@ -85,6 +87,7 @@ public class LoginActivity extends AppCompatActivity {
         password=findViewById(R.id.txtPassword);
         forgotPass=findViewById(R.id.txtForgotPassword);
         togglePassword=findViewById(R.id.togglePassword);
+        pd = new ProgressDialog(this);
 
         auth=FirebaseAuth.getInstance();
 
@@ -219,6 +222,8 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void signIn() {
+        pd.setMessage("Signing In...");
+        pd.show();
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
@@ -256,11 +261,13 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
+                    pd.dismiss();
                     // User exists, proceed to MainActivity
                     startActivity(new Intent(LoginActivity.this, MainActivity.class)
                             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
                     finish();
                 } else {
+                    pd.dismiss();
                     // New user, proceed to ExtraDetailsActivity
                     Intent intent = new Intent(LoginActivity.this, ExtraDetailsActivity.class);
                     intent.putExtra("email", auth.getCurrentUser().getEmail());

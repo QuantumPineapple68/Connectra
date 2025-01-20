@@ -3,6 +3,7 @@ package com.example.connectra;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -17,6 +18,8 @@ import com.bumptech.glide.Glide;
 import com.example.connectra.ChatTexts;
 import com.example.connectra.R;
 import com.example.connectra.adapter.ChatTextsAdapter;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -136,13 +139,15 @@ public class ChatActivity extends AppCompatActivity {
 
     private void sendMessage(String messageText) {
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUserId);
+        Log.e("namaiwa", currentUserId);
 
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     String myName = snapshot.child("name").getValue(String.class); // Fetch "name" from the database
-
+                    Log.e("namaiwa", myName);
+                    Log.e("namaiwa", chatPartnerId);
                     if (myName != null) {
                         String messageId = messagesRef.push().getKey();
                         long timestamp = System.currentTimeMillis();
@@ -156,7 +161,16 @@ public class ChatActivity extends AppCompatActivity {
                         messageMap.put("senderName", myName);
 
                         if (messageId != null) {
-                            messagesRef.child(messageId).setValue(messageMap);
+                            messagesRef.child(messageId).setValue(messageMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        sendPushNotification(chatPartnerId, messageText, myName);
+                                    } else {
+                                        Log.e("namaiwa", "Failed to send message");
+                                    }
+                                }
+                            });
                         }
                     }
                 }
@@ -166,6 +180,31 @@ public class ChatActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError error) {
             }
         });
+    }
+
+    private void sendPushNotification(String token, String message, String name) {
+        DatabaseReference partnerTok = FirebaseDatabase.getInstance().getReference("Users").child(chatPartnerId);
+        partnerTok.child("fcmToken").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                String token = snapshot.getValue(String.class);
+                FCMsender(token, name, message);
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
+
+    }
+
+    private void FCMsender(String token, String name, String message) {
+        FCMSender msg = new FCMSender();
+        msg.sendPushNotification(token, name, message);
+        Log.e("hari", token);
+        Log.e("hari", name);
+        Log.e("hari", message);
     }
 
     private String getConversationId(String user1, String user2) {

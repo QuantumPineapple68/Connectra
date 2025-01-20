@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.RatingBar;
 
@@ -16,8 +17,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+
+import java.util.HashMap;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
@@ -26,12 +30,16 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     public void onMessageReceived(RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
 
-        // Check if the message contains data payload
+        Log.d("FCM", "Message received");
+        Log.d("FCM", "Data: " + remoteMessage.getData());
+
         if (remoteMessage.getData().size() > 0) {
             String senderName = remoteMessage.getData().get("senderName");
             String message = remoteMessage.getData().get("message");
 
-            // Show notification
+            Log.d("FCM", "senderName: " + senderName);
+            Log.d("FCM", "message: " + message);
+
             showNotification(senderName, message);
         }
     }
@@ -40,19 +48,17 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     public void onNewToken(String token) {
         super.onNewToken(token);
 
-        // Get current logged-in user
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-
         if (currentUser != null) {
-            // Save the token to Realtime Database under the logged-in user's UID
             DatabaseReference userRef = FirebaseDatabase.getInstance()
                     .getReference("Users")
                     .child(currentUser.getUid());
-            userRef.child("fcmToken").setValue(token);
-        } else {
-            // Save the token temporarily in SharedPreferences if the user isn't logged in
-            SharedPreferences prefs = getSharedPreferences("FCM", Context.MODE_PRIVATE);
-            prefs.edit().putString("token", token).apply();
+
+            // Update both token and lastTokenUpdate timestamp
+            HashMap<String, Object> updates = new HashMap<>();
+            updates.put("fcmToken", token);
+            updates.put("lastTokenUpdate", ServerValue.TIMESTAMP);
+            userRef.updateChildren(updates);
         }
     }
 

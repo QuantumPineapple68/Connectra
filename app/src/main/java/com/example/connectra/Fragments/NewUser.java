@@ -72,22 +72,51 @@ public class NewUser {
     }
 
     // Getters and setters
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getMyskill() { return myskill; }
-    public void setMyskill(String myskill) { this.myskill = myskill; }
+    public String getMyskill() {
+        return myskill;
+    }
 
-    public String getGoalskill() { return goalskill; }
-    public void setGoalskill(String goalskill) { this.goalskill = goalskill; }
+    public void setMyskill(String myskill) {
+        this.myskill = myskill;
+    }
 
-    public String getGender() { return gender; }
-    public void setGender(String gender) { this.gender = gender; }
+    public String getGoalskill() {
+        return goalskill;
+    }
 
-    public String getAge() { return age; }
-    public void setAge(String age) { this.age = age; }
+    public void setGoalskill(String goalskill) {
+        this.goalskill = goalskill;
+    }
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getAge() {
+        return age;
+    }
+
+    public void setAge(String age) {
+        this.age = age;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
 }

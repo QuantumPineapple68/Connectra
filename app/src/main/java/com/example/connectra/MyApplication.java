@@ -1,5 +1,9 @@
 package com.example.connectra;
+
 import android.app.Application;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -18,6 +22,9 @@ public class MyApplication extends Application {
         // Initialize the primary Firebase app (default project)
         FirebaseApp.initializeApp(this);
 
+        // Create notification channel
+        createNotificationChannel();
+
         // Log currently available Firebase apps
         for (FirebaseApp app : FirebaseApp.getApps(this)) {
             Log.d(TAG, "Available FirebaseApp: " + app.getName());
@@ -25,6 +32,20 @@ public class MyApplication extends Application {
 
         // Delay initialization of the secondary Firebase app slightly
         new Handler(Looper.getMainLooper()).postDelayed(this::initializeSecondaryApp, 200);
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    "chat_notifications",  // Must match the ID in MyFirebaseMessagingService
+                    "Chat Notifications",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setDescription("Notifications for chat messages");
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
     }
 
     private void initializeSecondaryApp() {
@@ -58,5 +79,3 @@ public class MyApplication extends Application {
         }
     }
 }
-
-

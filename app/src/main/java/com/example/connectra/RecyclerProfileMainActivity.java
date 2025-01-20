@@ -27,7 +27,7 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
     private DatabaseReference databaseRef;
     private Button connect, submitButton;
     private RatingBar ratingBar;
-    private ImageView displayRating, profilImg, userCerf;
+    private ImageView displayRating, profilImg, userCerf, backBtnpfp;
     private String profileUserId;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +42,7 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
         displayRating = findViewById(R.id.display_rating);
         profilImg = findViewById(R.id.profile_image);
         userCerf = findViewById(R.id.user_cerf);
+        backBtnpfp = findViewById(R.id.backBtnpfp);
 
         // Retrieve data from the intent
         String name = getIntent().getStringExtra("name");
@@ -71,6 +72,13 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
         goalSkillTextView.setText(goalSkill);
         bioTextView.setText(bio);
         usernameTextView.setText(userName);
+
+        backBtnpfp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
 
         // Set profile image using Glide
         if (profileImage != null && !profileImage.isEmpty()) {
