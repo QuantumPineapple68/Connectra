@@ -94,7 +94,7 @@ public class RegisterActivity extends AppCompatActivity {
             String txt_myskill = myskill.getText().toString();
             String txt_goalskill = goalskill.getText().toString();
             String txt_age = age.getText().toString();
-            String txt_gender = gender.getText().toString();
+            String txt_gender = gender.getText().toString().trim().toLowerCase();;
             String txt_confirmPass = confirmPass.getText().toString();
 
             if (TextUtils.isEmpty(txt_email) || TextUtils.isEmpty(txt_password) || TextUtils.isEmpty(txt_name) || TextUtils.isEmpty(txt_username)) {
@@ -107,8 +107,21 @@ public class RegisterActivity extends AppCompatActivity {
                 Toast.makeText(RegisterActivity.this, "Describe skill sets in brief (30 letters)", Toast.LENGTH_SHORT).show();
             } else if (!txt_email.endsWith(".com")) {
                 Toast.makeText(RegisterActivity.this, "Enter Valid e-mail", Toast.LENGTH_SHORT).show();
+            } else if (!txt_name.contains(" ")) {
+                Toast.makeText(RegisterActivity.this, "Please enter your full name with space in between", Toast.LENGTH_SHORT).show();
+            } else if (!txt_gender.equals("male") && !txt_gender.equals("female")) {
+                Toast.makeText(RegisterActivity.this, "Gender must be either male or female", Toast.LENGTH_SHORT).show();
             } else {
-                registerUser(txt_email, txt_password, txt_name, txt_username, txt_myskill, txt_goalskill, txt_age, txt_gender);
+                try {
+                    int ageValue = Integer.parseInt(txt_age);
+                    if (ageValue < 5 || ageValue > 150) {
+                        Toast.makeText(RegisterActivity.this, "Age must be between 5 and 150", Toast.LENGTH_SHORT).show();
+                    } else {
+                        registerUser(txt_email,txt_password,txt_name, txt_username, txt_myskill, txt_goalskill, txt_age, txt_gender);
+                    }
+                } catch (NumberFormatException e) {
+                    Toast.makeText(RegisterActivity.this, "Please enter a valid age", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

@@ -10,80 +10,97 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
-
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import com.bumptech.glide.Glide;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.HashMap;
 
 public class ExtraDetailsActivity extends AppCompatActivity {
-
     EditText name, username, myskill, goalskill, age, gender;
-    Button submitDetails;
+    Button register, cerfbtn;
     ImageView cerf;
 
-    Uri certificateUri;
+    FirebaseAuth auth;
     DatabaseReference databaseRef;
     ProgressDialog pd;
-    FirebaseAuth auth;
+
     FirebaseStorage storage;
+    Uri certificateUri;
     File localCertificateFile;
     ActivityResultLauncher<Intent> certificatePickerLauncher;
+    String userEmail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_register2);
+        setContentView(R.layout.activity_extra_details);
 
+        // Initialize views
         name = findViewById(R.id.fulltxtname);
         username = findViewById(R.id.fulltxtusername);
         myskill = findViewById(R.id.mytxtskill);
         goalskill = findViewById(R.id.goaltxtskill);
         age = findViewById(R.id.mytxtage);
         gender = findViewById(R.id.mytxtgender);
+        register = findViewById(R.id.btnRegNow);
+        cerfbtn = findViewById(R.id.cerf_btn);
         cerf = findViewById(R.id.reg_cerf);
-        submitDetails = findViewById(R.id.btnRegNow);
 
+        // Get email from intent
+        userEmail = getIntent().getStringExtra("email");
+
+        // Initialize Firebase
         auth = FirebaseAuth.getInstance();
         databaseRef = FirebaseDatabase.getInstance().getReference("Users");
         storage = FirebaseStorage.getInstance(FirebaseApp.getInstance("secondary"));
-
         pd = new ProgressDialog(this);
 
-        FirebaseUser currentUser = auth.getCurrentUser();
-        if (currentUser == null) {
-            Toast.makeText(this, "Authentication failed. Please sign in again.", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
+        register.setOnClickListener(v -> {
+            String txt_name = name.getText().toString();
+            String txt_username = username.getText().toString();
+            String txt_myskill = myskill.getText().toString();
+            String txt_goalskill = goalskill.getText().toString();
+            String txt_age = age.getText().toString();
+            String txt_gender = gender.getText().toString().trim().toLowerCase();;
 
-        String email = getIntent().getStringExtra("email");
-        String displayName = getIntent().getStringExtra("name");
+            if (TextUtils.isEmpty(txt_name) || TextUtils.isEmpty(txt_username)) {
+                Toast.makeText(ExtraDetailsActivity.this, "Fields can't be Empty", Toast.LENGTH_SHORT).show();
+            }
+            else if (!txt_name.contains(" ")) {
+                Toast.makeText(ExtraDetailsActivity.this, "Please enter your full name with space in between", Toast.LENGTH_SHORT).show();
+            }
+            else if (txt_myskill.length() > 30 || txt_goalskill.length() > 30) {
+                Toast.makeText(ExtraDetailsActivity.this, "Describe skill sets in brief (30 letters)", Toast.LENGTH_SHORT).show();
+            }
+            else if (!txt_gender.equals("male") && !txt_gender.equals("female")) {
+                Toast.makeText(ExtraDetailsActivity.this, "Gender must be either male or female", Toast.LENGTH_SHORT).show();
+            }
+            else {
+                try {
+                    int ageValue = Integer.parseInt(txt_age);
+                    if (ageValue < 5 || ageValue > 150) {
+                        Toast.makeText(ExtraDetailsActivity.this, "Age must be between 5 and 150", Toast.LENGTH_SHORT).show();
+                    } else {
+                        registerUser(txt_name, txt_username, txt_myskill, txt_goalskill, txt_age, txt_gender);
+                    }
+                } catch (NumberFormatException e) {
+                    Toast.makeText(ExtraDetailsActivity.this, "Please enter a valid age", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
-        if (email == null || displayName == null) {
-            Toast.makeText(this, "Failed to retrieve user details. Please try again.", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
-
-
-        String userId = currentUser.getUid();
-
-        cerf.setOnClickListener(v -> openCertificatePicker());
+        // Certificate Upload functionality
+        cerfbtn.setOnClickListener(v -> openCertificatePicker());
 
         certificatePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -94,27 +111,35 @@ public class ExtraDetailsActivity extends AppCompatActivity {
                     }
                 }
         );
+    }
 
-        submitDetails.setOnClickListener(v -> {
-            String txt_name = name.getText().toString();
-            String txt_username = username.getText().toString();
-            String txt_myskill = myskill.getText().toString();
-            String txt_goalskill = goalskill.getText().toString();
-            String txt_age = age.getText().toString();
-            String txt_gender = gender.getText().toString();
+    private void registerUser(String name, String username, String myskill, String goalskill, String age, String gender) {
+        pd.setMessage("Please Wait ...");
+        pd.show();
 
-            if (TextUtils.isEmpty(txt_name) || TextUtils.isEmpty(txt_username)) {
-                Toast.makeText(this, "Fields can't be empty", Toast.LENGTH_SHORT).show();
-            } else if (txt_myskill.length() > 30 || txt_goalskill.length() > 30) {
-                Toast.makeText(this, "Describe skill sets in brief (30 letters)", Toast.LENGTH_SHORT).show();
-            } else if (certificateUri == null) {
-                Toast.makeText(this, "Please upload a certificate!", Toast.LENGTH_SHORT).show();
+        String userId = auth.getCurrentUser().getUid();
+
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("name", name);
+        map.put("username", username);
+        map.put("email", userEmail);
+        map.put("id", userId);
+        map.put("myskill", myskill);
+        map.put("goalskill", goalskill);
+        map.put("age", age);
+        map.put("gender", gender);
+
+        databaseRef.child(userId).setValue(map).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                uploadCertificate(userId);
             } else {
-                uploadCertificate(userId, () -> saveDetailsToDatabase(txt_name, txt_username, txt_myskill, txt_goalskill, txt_age, txt_gender, userId));
+                pd.dismiss();
+                Toast.makeText(ExtraDetailsActivity.this, "Registration Failed", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
+    // ... Include the same certificate handling methods from RegisterActivity ...
     private void openCertificatePicker() {
         Intent intent = new Intent();
         intent.setType("image/*");
@@ -153,57 +178,46 @@ public class ExtraDetailsActivity extends AppCompatActivity {
         }
     }
 
-    private void uploadCertificate(String userId, Runnable onSuccess) {
-        if (certificateUri == null) {
-            Toast.makeText(this, "No certificate selected.", Toast.LENGTH_SHORT).show();
+    private void uploadCertificate(String userId) {
+        if (localCertificateFile == null) {
+            pd.dismiss();
+            // Registration successful even without certificate
+            proceedToMainActivity();
             return;
         }
 
-        pd.setMessage("Uploading certificate...");
-        pd.show();
+        StorageReference certRef = storage.getReference().child("connectra_certificates")
+                .child(System.currentTimeMillis() + "_" + localCertificateFile.getName());
 
-        StorageReference certRef = storage.getReference("connectra_certificates").child(userId + "_certificate.jpg");
-
-        certRef.putFile(certificateUri).addOnSuccessListener(taskSnapshot -> certRef.getDownloadUrl().addOnSuccessListener(uri -> {
-            databaseRef.child(userId).child("certificateUrl").setValue(uri.toString()).addOnCompleteListener(task -> {
+        certRef.putFile(Uri.fromFile(localCertificateFile)).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                certRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                    String url = uri.toString();
+                    databaseRef.child(userId).child("certificateUrl").setValue(url)
+                            .addOnCompleteListener(task1 -> {
+                                pd.dismiss();
+                                if (task1.isSuccessful()) {
+                                    proceedToMainActivity();
+                                } else {
+                                    Toast.makeText(ExtraDetailsActivity.this,
+                                            "Error saving certificate URL.", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                });
+            } else {
                 pd.dismiss();
-                if (task.isSuccessful()) {
-                    Toast.makeText(this, "Certificate uploaded successfully.", Toast.LENGTH_SHORT).show();
-                    onSuccess.run();
-                } else {
-                    Toast.makeText(this, "Failed to save certificate URL.", Toast.LENGTH_SHORT).show();
-                }
-            });
-        }).addOnFailureListener(e -> {
-            pd.dismiss();
-            Toast.makeText(this, "Failed to upload certificate.", Toast.LENGTH_SHORT).show();
-        }));
+                Toast.makeText(ExtraDetailsActivity.this, "Certificate upload failed",
+                        Toast.LENGTH_SHORT).show();
+                proceedToMainActivity();
+            }
+        });
     }
 
-    private void saveDetailsToDatabase(String name, String username, String myskill, String goalskill, String age, String gender, String userId) {
-        pd.setMessage("Saving details...");
-        pd.show();
-
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("name", name);
-        map.put("username", username);
-        map.put("myskill", myskill);
-        map.put("goalskill", goalskill);
-        map.put("age", age);
-        map.put("gender", gender);
-
-        databaseRef.child(userId).setValue(map).addOnCompleteListener(task -> {
-            pd.dismiss();
-            if (task.isSuccessful()) {
-                Toast.makeText(this, "Details saved successfully.", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
-                finish();
-            } else {
-                Toast.makeText(this, "Failed to save details.", Toast.LENGTH_SHORT).show();
-            }
-        }).addOnFailureListener(e -> {
-            pd.dismiss();
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-        });
+    private void proceedToMainActivity() {
+        Toast.makeText(ExtraDetailsActivity.this, "Registration Successful!", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(ExtraDetailsActivity.this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+        finish();
     }
 }
