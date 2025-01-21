@@ -1,10 +1,13 @@
 package com.example.connectra;
 
+import static androidx.core.content.ContentProviderCompat.requireContext;
+
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
 import android.os.Bundle;
@@ -71,15 +74,16 @@ public class LoginActivity extends AppCompatActivity {
             return insets;
         });
 
-        new AlertDialog.Builder(this)
-                .setTitle("Suggestion")
-                .setMessage("Please use this app without Dark mode for best experience")
-                .setCancelable(false) // User can't dismiss the dialog by tapping outside
-                .setPositiveButton("ok", (dialog, which) -> {
-                    // Retry logic: Check for internet again
-                    dialog.dismiss();
-                })
-                .show();
+        int nightModeFlags = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Suggestion")
+                    .setMessage("Please use this app without Dark mode for the best experience.")
+                    .setCancelable(true) // User can dismiss the dialog by tapping outside
+                    .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                    .show();
+        }
+
 
         register = findViewById(R.id.txtSignUpNow);
         login=findViewById(R.id.btnLoginNow);
