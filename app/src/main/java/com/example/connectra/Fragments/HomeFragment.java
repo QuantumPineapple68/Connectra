@@ -114,7 +114,10 @@ public class HomeFragment extends Fragment {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(getContext(), "Failed to fetch data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                Context context = getContext(); // Get context safely
+                if (context != null) { // Ensure it's not null
+                    Toast.makeText(context, "Database error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -208,16 +211,20 @@ public class HomeFragment extends Fragment {
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(getContext(), "Failed to fetch data: " +
-                                error.getMessage(), Toast.LENGTH_SHORT).show();
+                        Context context = getContext(); // Get context safely
+                        if (context != null) { // Ensure it's not null
+                            Toast.makeText(context, "Database error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
                     }
                 });
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(getContext(), "Failed to fetch messages: " +
-                        error.getMessage(), Toast.LENGTH_SHORT).show();
+                Context context = getContext(); // Get context safely
+                if (context != null) { // Ensure it's not null
+                    Toast.makeText(context, "Database error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -316,8 +323,10 @@ public class HomeFragment extends Fragment {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(getContext(), "Failed to fetch data: " +
-                        error.getMessage(), Toast.LENGTH_SHORT).show();
+                Context context = getContext(); // Get context safely
+                if (context != null) { // Ensure it's not null
+                    Toast.makeText(context, "Database error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
