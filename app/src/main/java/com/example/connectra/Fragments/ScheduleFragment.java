@@ -123,6 +123,8 @@ public class ScheduleFragment extends Fragment {
         tasksRef.child(selectedDate).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!isAdded()) return;
+
                 taskList.clear();
                 if (snapshot.exists()) {
                     for (DataSnapshot taskSnapshot : snapshot.getChildren()) {
@@ -144,7 +146,12 @@ public class ScheduleFragment extends Fragment {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(getContext(), "Failed to fetch tasks: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                // Check if Fragment is attached before showing Toast
+                if (isAdded() && getContext() != null) {
+                    Toast.makeText(getContext(),
+                            "Failed to fetch tasks: " + error.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
