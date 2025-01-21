@@ -1,5 +1,6 @@
 package com.example.connectra;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -13,6 +14,8 @@ import com.example.connectra.Fragments.SearchFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -25,6 +28,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Check if the user is logged in
+        checkLoginStatus();
+
         // Initialize Firebase Apps
         initializeFirebaseApps();
 
@@ -35,6 +41,17 @@ public class MainActivity extends AppCompatActivity {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, new HomeFragment())
                 .commit();
+    }
+
+    private void checkLoginStatus() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            // User is not logged in, redirect to LoginActivity
+            Intent loginIntent = new Intent(MainActivity.this, LoginActivity.class);
+            loginIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(loginIntent);
+            finish(); // Prevent returning to MainActivity
+        }
     }
 
     private void initializeFirebaseApps() {
