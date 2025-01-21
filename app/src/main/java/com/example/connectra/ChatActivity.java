@@ -85,7 +85,7 @@ public class ChatActivity extends AppCompatActivity {
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String messageText = messageInput.getText().toString();
+                String messageText = messageInput.getText().toString().trim();
 
                 if (!TextUtils.isEmpty(messageText)) {
                     sendMessage(messageText);

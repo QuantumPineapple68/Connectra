@@ -20,7 +20,7 @@
             android:id="@+id/notification_dot"
             android:layout_width="16dp"
             android:layout_height="16dp"
-            android:background="@drawable/dot"
+            android:background="@drawable/dot_notif"
             android:layout_alignTop="@+id/profile_image"
             android:layout_alignStart="@+id/profile_image"
             android:elevation="5dp"
