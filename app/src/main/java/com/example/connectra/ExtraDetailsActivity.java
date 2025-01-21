@@ -66,11 +66,11 @@ public class ExtraDetailsActivity extends AppCompatActivity {
         pd = new ProgressDialog(this);
 
         register.setOnClickListener(v -> {
-            String txt_name = name.getText().toString();
-            String txt_username = username.getText().toString();
-            String txt_myskill = myskill.getText().toString();
-            String txt_goalskill = goalskill.getText().toString();
-            String txt_age = age.getText().toString();
+            String txt_name = name.getText().toString().trim();
+            String txt_username = username.getText().toString().trim();
+            String txt_myskill = myskill.getText().toString().trim();
+            String txt_goalskill = goalskill.getText().toString().trim();
+            String txt_age = age.getText().toString().trim();
             String txt_gender = gender.getText().toString().trim().toLowerCase();;
 
             if (TextUtils.isEmpty(txt_name) || TextUtils.isEmpty(txt_username)) {
