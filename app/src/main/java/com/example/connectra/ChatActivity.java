@@ -61,6 +61,8 @@ public class ChatActivity extends AppCompatActivity {
 
         messagesRef = FirebaseDatabase.getInstance().getReference("Messages").child(conversationId);
 
+        markMessagesAsRead();
+
         initializeFields();
         setupRecyclerView();
         loadMessages();
@@ -159,13 +161,14 @@ public class ChatActivity extends AppCompatActivity {
                         messageMap.put("receiverId", chatPartnerId);
                         messageMap.put("timestamp", timestamp);
                         messageMap.put("senderName", myName);
+                        messageMap.put("read", false);
 
                         if (messageId != null) {
                             messagesRef.child(messageId).setValue(messageMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
                                     if (task.isSuccessful()) {
-                                        sendPushNotification(chatPartnerId, messageText, myName);
+                                        Log.e("namaiwa", "Message sent successfully");
                                     } else {
                                         Log.e("namaiwa", "Failed to send message");
                                     }
@@ -182,37 +185,37 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
-    private void sendPushNotification(String token, String message, String name) {
-        DatabaseReference partnerTok = FirebaseDatabase.getInstance().getReference("Users").child(chatPartnerId);
-        partnerTok.child("fcmToken").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                String token = snapshot.getValue(String.class);
-                FCMsender(token, name, message);
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
-
-
-    }
-
-    private void FCMsender(String token, String name, String message) {
-        FCMSender msg = new FCMSender();
-        msg.sendPushNotification(token, name, message);
-        Log.e("hari", token);
-        Log.e("hari", name);
-        Log.e("hari", message);
-    }
-
     private String getConversationId(String user1, String user2) {
         List<String> ids = new ArrayList<>();
         ids.add(user1);
         ids.add(user2);
         Collections.sort(ids);
         return ids.get(0) + "_" + ids.get(1);
+    }
+
+    private void markMessagesAsRead() {
+        String conversationId = getConversationId(currentUserId, chatPartnerId);
+        DatabaseReference messagesRef = FirebaseDatabase.getInstance()
+                .getReference("Messages")
+                .child(conversationId);
+
+        messagesRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot messageSnapshot : snapshot.getChildren()) {
+                    ChatTexts message = messageSnapshot.getValue(ChatTexts.class);
+                    if (message != null && message.getReceiverId().equals(currentUserId)
+                            && !message.isRead()) {
+                        messageSnapshot.getRef().child("read").setValue(true);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Handle error
+            }
+        });
     }
 
 

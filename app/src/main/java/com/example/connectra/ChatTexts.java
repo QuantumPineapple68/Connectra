@@ -5,9 +5,11 @@ public class ChatTexts {
     private String receiverId;
     private String message;
     private long timestamp;
+    private boolean read;  // New field
 
     // Default constructor for Firebase
     public ChatTexts() {
+        this.read = false;  // Default to unread
     }
 
     public ChatTexts(String senderId, String receiverId, String message, long timestamp) {
@@ -15,6 +17,7 @@ public class ChatTexts {
         this.receiverId = receiverId;
         this.message = message;
         this.timestamp = timestamp;
+        this.read = false;  // Default to unread
     }
 
     public String getSenderId() {
@@ -47,5 +50,13 @@ public class ChatTexts {
 
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public boolean isRead() {
+        return read;
+    }
+
+    public void setRead(boolean read) {
+        this.read = read;
     }
 }

@@ -12,6 +12,8 @@ public class NewUser {
     private float rating;
     private String bio;
     private String cerf;
+    private boolean hasUnreadMessages;
+    private long lastMessageTimestamp;
 
     public NewUser(String name, String myskill, String goalskill, String gender, String age, String id, String userName, String bio, String profileImage, float rating, String cerf) {
         this.name = name;
@@ -25,10 +27,28 @@ public class NewUser {
         this.profileImage = profileImage;
         this.rating = rating;
         this.cerf = cerf;
+        this.hasUnreadMessages = false;
+        this.lastMessageTimestamp = 0;
     }
 
     // Default constructor for Firebase
     public NewUser() {
+    }
+
+    public boolean hasUnreadMessages() {
+        return hasUnreadMessages;
+    }
+
+    public void setHasUnreadMessages(boolean hasUnreadMessages) {
+        this.hasUnreadMessages = hasUnreadMessages;
+    }
+
+    public long getLastMessageTimestamp() {
+        return lastMessageTimestamp;
+    }
+
+    public void setLastMessageTimestamp(long lastMessageTimestamp) {
+        this.lastMessageTimestamp = lastMessageTimestamp;
     }
 
     public String getCerf() {

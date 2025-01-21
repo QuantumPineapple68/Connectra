@@ -30,10 +30,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-
 }
 
 dependencies {
+    implementation(platform("com.google.firebase:firebase-bom:32.7.1"))
+
     implementation(libs.glide)
     implementation(libs.circleimageview)
     implementation(libs.appcompat)
@@ -46,12 +47,9 @@ dependencies {
     implementation(libs.firebase.database)
     implementation(libs.firebase.storage)
     implementation(libs.firebase.firestore)
-    implementation(libs.firebase.messaging)
     implementation(libs.play.services.auth)
-    implementation (libs.okhttp)
-    annotationProcessor (libs.compiler)
+    annotationProcessor(libs.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 }
-apply(plugin = "com.google.gms.google-services")

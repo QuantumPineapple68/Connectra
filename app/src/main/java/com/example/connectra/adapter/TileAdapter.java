@@ -47,6 +47,13 @@ public class TileAdapter extends RecyclerView.Adapter<TileAdapter.TileViewHolder
         holder.offeredSkill.setText("Offered: " + user.getMyskill());
         holder.wishSkill.setText("Wants to learn: " + user.getGoalskill());
 
+        View notificationDot = holder.itemView.findViewById(R.id.notification_dot);
+        if (user.hasUnreadMessages()) {
+            notificationDot.setVisibility(View.VISIBLE);
+        } else {
+            notificationDot.setVisibility(View.GONE);
+        }
+
         // Set gender icon
         if ("Male".equalsIgnoreCase(user.getGender())) {
             holder.genderIcon.setImageResource(R.drawable.icon_male);
