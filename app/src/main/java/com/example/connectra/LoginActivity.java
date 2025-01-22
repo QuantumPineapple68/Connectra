@@ -1,5 +1,6 @@
 package com.example.connectra;
 
+import static android.content.ContentValues.TAG;
 import static androidx.core.content.ContentProviderCompat.requireContext;
 
 import android.annotation.SuppressLint;
@@ -98,7 +99,7 @@ public class LoginActivity extends AppCompatActivity {
         auth=FirebaseAuth.getInstance();
 
         detonatorRef = FirebaseDatabase.getInstance().getReference("Detonator");
-        checkAppState();`
+        checkAppState();
 
         if (!isInternetAvailable()) {
             showNoInternetDialog();
@@ -306,13 +307,31 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void showExitDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle("App Unavailable")
-                .setMessage("This application is currently under maintenance. Please try again later.")
-                .setCancelable(false)
-                .setPositiveButton("Exit", (dialog, which) -> {
-                    finishAffinity();
-                })
-                .show();
+        // Check if activity is finishing or destroyed
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
+
+        try {
+            runOnUiThread(() -> {
+                try {
+                    new AlertDialog.Builder(LoginActivity.this)
+                            .setTitle("App Unavailable")
+                            .setMessage("This application is currently under maintenance. Please try again later.")
+                            .setCancelable(false)
+                            .setPositiveButton("Exit", (dialog, which) -> {
+                                finishAffinity();
+                            })
+                            .create()
+                            .show();
+                } catch (Exception e) {
+                    Log.e(TAG, "Error showing dialog: " + e.getMessage());
+                    finishAffinity(); // Safely exit if we can't show the dialog
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Error in showExitDialog: " + e.getMessage());
+            finishAffinity(); // Safely exit if we can't show the dialog
+        }
     }
 }

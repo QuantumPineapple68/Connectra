@@ -95,16 +95,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showExitDialog() {
-        if (isFinishing()) return;
+        // Check if activity is finishing or destroyed
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
 
-        new AlertDialog.Builder(this)
-                .setTitle("App Unavailable")
-                .setMessage("This application is currently under maintenance. Please try again later.")
-                .setCancelable(false)
-                .setPositiveButton("Exit", (dialog, which) -> {
-                    finishAffinity();
-                })
-                .show();
+        try {
+            runOnUiThread(() -> {
+                try {
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setTitle("App Unavailable")
+                            .setMessage("This application is currently under maintenance. Please try again later.")
+                            .setCancelable(false)
+                            .setPositiveButton("Exit", (dialog, which) -> {
+                                finishAffinity();
+                            })
+                            .create()
+                            .show();
+                } catch (Exception e) {
+                    Log.e(TAG, "Error showing dialog: " + e.getMessage());
+                    finishAffinity(); // Safely exit if we can't show the dialog
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Error in showExitDialog: " + e.getMessage());
+            finishAffinity(); // Safely exit if we can't show the dialog
+        }
     }
 
     private void checkLoginStatus() {
