@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.app.AlertDialog;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -16,16 +17,28 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
 
     private BottomNavigationView bottomNavigationView;
     private Fragment selectorFragment;
     private static final String TAG = "MainActivity";
+    private DatabaseReference detonatorRef;
+    private ValueEventListener stateListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Initialize detonator reference and check app state
+        detonatorRef = FirebaseDatabase.getInstance().getReference("Detonator");
+        checkAppState();
+
         setContentView(R.layout.activity_main);
 
         // Check if the user is logged in
@@ -37,10 +50,61 @@ public class MainActivity extends AppCompatActivity {
         // Initialize UI
         initializeUI();
 
+        // Set up state listener
+        setupStateListener();
+
         // Set default fragment
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, new HomeFragment())
                 .commit();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        checkAppState();
+    }
+
+    private void setupStateListener() {
+        stateListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Boolean isActive = snapshot.child("isActive_1,0").getValue(Boolean.class);
+                if (isActive != null && !isActive) {
+                    showExitDialog();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Database error: " + error.getMessage());
+            }
+        };
+        detonatorRef.addValueEventListener(stateListener);
+    }
+
+    private void checkAppState() {
+        detonatorRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult() != null) {
+                Boolean isActive = task.getResult().child("isActive_1,0").getValue(Boolean.class);
+                if (isActive != null && !isActive) {
+                    showExitDialog();
+                }
+            }
+        });
+    }
+
+    private void showExitDialog() {
+        if (isFinishing()) return;
+
+        new AlertDialog.Builder(this)
+                .setTitle("App Unavailable")
+                .setMessage("This application is currently under maintenance. Please try again later.")
+                .setCancelable(false)
+                .setPositiveButton("Exit", (dialog, which) -> {
+                    finishAffinity();
+                })
+                .show();
     }
 
     private void checkLoginStatus() {
@@ -109,6 +173,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        if (stateListener != null) {
+            detonatorRef.removeEventListener(stateListener);
+        }
         super.onDestroy();
         // Cleanup if needed
         try {

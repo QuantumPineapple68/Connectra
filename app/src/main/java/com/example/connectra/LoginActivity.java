@@ -56,6 +56,8 @@ public class LoginActivity extends AppCompatActivity {
     TextView forgotPass;
     ImageView togglePassword;
     ProgressDialog pd;
+    private DatabaseReference detonatorRef;
+
 
     FirebaseAuth auth;
     private LinearLayout googleSignInBtn;
@@ -95,6 +97,9 @@ public class LoginActivity extends AppCompatActivity {
 
         auth=FirebaseAuth.getInstance();
 
+        detonatorRef = FirebaseDatabase.getInstance().getReference("Detonator");
+        checkAppState();`
+
         if (!isInternetAvailable()) {
             showNoInternetDialog();
         }
@@ -122,6 +127,7 @@ public class LoginActivity extends AppCompatActivity {
                 loginUser(txt_email,txt_password);
             }
         });
+
 
         togglePassword.setOnClickListener(v -> togglePasswordVisibility(password, togglePassword));
         googleSignInBtn = findViewById(R.id.loginBtn);
@@ -286,5 +292,27 @@ public class LoginActivity extends AppCompatActivity {
                         Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void checkAppState() {
+        detonatorRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult() != null) {
+                Boolean isActive = task.getResult().child("isActive_1,0").getValue(Boolean.class);
+                if (isActive != null && !isActive) {
+                    showExitDialog();
+                }
+            }
+        });
+    }
+
+    private void showExitDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("App Unavailable")
+                .setMessage("This application is currently under maintenance. Please try again later.")
+                .setCancelable(false)
+                .setPositiveButton("Exit", (dialog, which) -> {
+                    finishAffinity();
+                })
+                .show();
     }
 }

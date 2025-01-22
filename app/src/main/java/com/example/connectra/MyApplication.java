@@ -14,10 +14,15 @@ import com.google.firebase.storage.FirebaseStorage;
 
 public class MyApplication extends Application {
     private static final String TAG = "FirebaseInit";
+    private AppDetonator appDetonator;
+
 
     @Override
     public void onCreate() {
         super.onCreate();
+
+        appDetonator = new AppDetonator();
+        registerActivityLifecycleCallbacks(appDetonator);
 
         // Initialize the primary Firebase app (default project)
         FirebaseApp.initializeApp(this);

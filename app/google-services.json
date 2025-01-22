@@ -42,6 +42,35 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:404492716071:android:16f08a3cb682a4c6e0a602",
+        "android_client_info": {
+          "package_name": "com.nachiket.connectra_admin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "404492716071-h47f0h8m4kmqni2a2jst09kupcisolm0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDafM4xwNR2GwhybcyvZ9rriR23YpDLHnA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "404492716071-h47f0h8m4kmqni2a2jst09kupcisolm0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"
