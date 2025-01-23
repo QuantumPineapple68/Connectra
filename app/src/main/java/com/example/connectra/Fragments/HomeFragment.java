@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,6 +44,7 @@ public class HomeFragment extends Fragment {
     private List<NewUser> userList;
     private DatabaseReference databaseRef;
     private TextView hi;
+    private ProgressBar loadingProgressBar;
     String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
     @Override
@@ -54,6 +56,7 @@ public class HomeFragment extends Fragment {
         // Initialize Realtime Database and RecyclerView
         databaseRef = FirebaseDatabase.getInstance().getReference("Users");
         recyclerView = view.findViewById(R.id.recycler_view_home);
+        loadingProgressBar = view.findViewById(R.id.loading_progress_bar);
 
         // Dynamically set the span count
         int spanCount = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 4 : 2;
@@ -66,7 +69,7 @@ public class HomeFragment extends Fragment {
         tileAdapter = new TileAdapter(getContext(), userList);
         recyclerView.setAdapter(tileAdapter);
 
-
+        loadingProgressBar.setVisibility(View.VISIBLE);
 
         fetchUserData();
         fetchUsersFromDatabase();
@@ -126,7 +129,7 @@ public class HomeFragment extends Fragment {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference messagesRef = FirebaseDatabase.getInstance().getReference("Messages");
 
-        messagesRef.addValueEventListener(new ValueEventListener() {
+        messagesRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 HashMap<String, Boolean> unreadMessages = new HashMap<>();
@@ -197,6 +200,13 @@ public class HomeFragment extends Fragment {
                             }
                         }
 
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                loadingProgressBar.setVisibility(View.GONE);
+                                tileAdapter.notifyDataSetChanged();
+                            });
+                        }
+
                         // Sort users with messages by timestamp
                         Collections.sort(usersWithMessages,
                                 (u1, u2) -> Long.compare(u2.getLastMessageTimestamp(),
@@ -215,6 +225,12 @@ public class HomeFragment extends Fragment {
                         if (context != null) { // Ensure it's not null
                             Toast.makeText(context, "Database error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                         }
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                loadingProgressBar.setVisibility(View.GONE);
+                                Toast.makeText(getContext(), "Database error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
+                        }
                     }
                 });
             }
@@ -224,6 +240,12 @@ public class HomeFragment extends Fragment {
                 Context context = getContext(); // Get context safely
                 if (context != null) { // Ensure it's not null
                     Toast.makeText(context, "Database error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        loadingProgressBar.setVisibility(View.GONE);
+                        Toast.makeText(getContext(), "Database error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
                 }
             }
         });

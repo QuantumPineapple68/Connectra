@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AutoCompleteTextView;
+import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -38,6 +39,7 @@ public class SearchFragment extends Fragment {
     private List<NewUser> usersList, filteredList;
     private DatabaseReference databaseRef;
     private AutoCompleteTextView searchBar;
+    private ProgressBar progressBar;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -46,6 +48,8 @@ public class SearchFragment extends Fragment {
         // Initialize components
         recyclerView = view.findViewById(R.id.recycler_view);
         searchBar = view.findViewById(R.id.search_bar);
+        progressBar=view.findViewById(R.id.loading_progress_bar_search);
+
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         usersList = new ArrayList<>();
@@ -61,6 +65,7 @@ public class SearchFragment extends Fragment {
 
         // Fetching data from Firebase Realtime Database
         fetchUsers();
+
 
         // Add search functionality
         searchBar.addTextChangedListener(new TextWatcher() {
@@ -81,6 +86,7 @@ public class SearchFragment extends Fragment {
 
 
     private void fetchUsers() {
+        progressBar.setVisibility(View.VISIBLE);
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         databaseRef.addValueEventListener(new ValueEventListener() {
@@ -121,11 +127,13 @@ public class SearchFragment extends Fragment {
                 filteredList.clear();
                 filteredList.addAll(usersList);
                 userAdapter.notifyDataSetChanged();
+                progressBar.setVisibility(View.GONE);
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Log.e("Database Error", error.getMessage());
+                progressBar.setVisibility(View.GONE);
             }
         });
     }
