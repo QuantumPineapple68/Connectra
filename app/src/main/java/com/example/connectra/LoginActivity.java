@@ -143,9 +143,35 @@ public class LoginActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        if (FirebaseAuth.getInstance().getCurrentUser() != null){
-            startActivity(new Intent(LoginActivity.this,MainActivity.class));
-            finish();
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+            // Check if user exists in the database
+            FirebaseDatabase.getInstance().getReference("Users")
+                    .child(userId)
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if (snapshot.exists()) {
+                                // User exists in database, proceed to MainActivity
+                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                                finish();
+                            } else {
+                                // User doesn't exist in database, redirect to ExtraDetailsActivity
+                                Intent intent = new Intent(LoginActivity.this, ExtraDetailsActivity.class);
+                                intent.putExtra("email", FirebaseAuth.getInstance().getCurrentUser().getEmail());
+                                startActivity(intent);
+                                finish();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            // Handle potential errors
+                            Toast.makeText(LoginActivity.this, "Database error: " + error.getMessage(),
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    });
         }
     }
 

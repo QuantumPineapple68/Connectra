@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.app.AlertDialog;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -130,7 +132,29 @@ public class MainActivity extends AppCompatActivity {
             Intent loginIntent = new Intent(MainActivity.this, LoginActivity.class);
             loginIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(loginIntent);
-            finish(); // Prevent returning to MainActivity
+            finish();
+        } else {
+            // Check if user has completed profile
+            FirebaseDatabase.getInstance().getReference("Users")
+                    .child(currentUser.getUid())
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if (!snapshot.exists()) {
+                                // User hasn't completed profile, redirect to ExtraDetailsActivity
+                                Intent intent = new Intent(MainActivity.this, ExtraDetailsActivity.class);
+                                intent.putExtra("email", currentUser.getEmail());
+                                startActivity(intent);
+                                finish();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            Toast.makeText(MainActivity.this, "Database error: " + error.getMessage(),
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    });
         }
     }
 
