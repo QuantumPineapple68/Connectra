@@ -93,7 +93,7 @@
                 android:maxLines="3"
                 android:layout_marginBottom="24dp"
                 android:textColor="#656565"
-                android:hint="Write a bio, let the world know you're more than just a profile pic"
+                android:hint="Write a bio ..."
                 android:textAlignment="center" />
 
             <TextView
@@ -102,8 +102,9 @@
                 android:layout_height="wrap_content"
                 android:text="Made by Nachiket Jadhav (Click for Github)"
                 android:fontFamily="@font/inter_bold"
+                android:textStyle="bold"
                 android:textAlignment="center"
-                android:textColor="@color/theme_dark"
+                android:textColor="#fc7b54"
                 android:textSize="14sp" />
 
             <!-- Details Section -->

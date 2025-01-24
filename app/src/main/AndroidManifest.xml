@@ -18,8 +18,7 @@
         android:theme="@style/Theme.Connectra"
         tools:targetApi="31">
         <activity
-            android:name=".ExtraDetailsActivity"
-            android:exported="false" />
+            android:name=".ExtraDetailsActivity" />
 
         <meta-data
             android:name="com.google.android.gms.client_id"
