@@ -43,9 +43,6 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        // Check if the user is logged in
-        checkLoginStatus();
-
         // Initialize Firebase Apps
         initializeFirebaseApps();
 
@@ -59,6 +56,12 @@ public class MainActivity extends AppCompatActivity {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, new HomeFragment())
                 .commit();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        checkLoginStatus();
     }
 
     @Override

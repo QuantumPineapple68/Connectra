@@ -41,6 +41,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -143,35 +144,14 @@ public class LoginActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
-            // Check if user exists in the database
-            FirebaseDatabase.getInstance().getReference("Users")
-                    .child(userId)
-                    .addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            if (snapshot.exists()) {
-                                // User exists in database, proceed to MainActivity
-                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                                finish();
-                            } else {
-                                // User doesn't exist in database, redirect to ExtraDetailsActivity
-                                Intent intent = new Intent(LoginActivity.this, ExtraDetailsActivity.class);
-                                intent.putExtra("email", FirebaseAuth.getInstance().getCurrentUser().getEmail());
-                                startActivity(intent);
-                                finish();
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-                            // Handle potential errors
-                            Toast.makeText(LoginActivity.this, "Database error: " + error.getMessage(),
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    });
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            runOnUiThread(() -> {
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+                finish();
+            });
         }
     }
 
