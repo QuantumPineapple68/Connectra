@@ -1,12 +1,14 @@
 package com.example.connectra;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.text.method.PasswordTransformationMethod;
 import android.view.View;
@@ -86,6 +88,8 @@ public class RegisterActivity extends AppCompatActivity {
 
         pd = new ProgressDialog(this);
 
+        initializeFirebaseInstances();
+
         register.setOnClickListener(v -> {
             String txt_email = email.getText().toString().trim();
             String txt_password = password.getText().toString().trim();
@@ -144,6 +148,7 @@ public class RegisterActivity extends AppCompatActivity {
                     }
                 }
         );
+
     }
 
     private void registerUser(String Email, String Password, String name, String username, String myskill, String goalskill, String age, String gender) {
@@ -216,12 +221,13 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void uploadCertificate(String userId) {
+        // If no certificate is selected, proceed directly to completion
         if (localCertificateFile == null) {
-            pd.dismiss();
-            Toast.makeText(this, "No certificate to upload.", Toast.LENGTH_SHORT).show();
+            completeRegistration(userId, null);
             return;
         }
 
+        // If certificate is selected, upload it
         StorageReference certRef = storage.getReference().child("connectra_certificates")
                 .child(System.currentTimeMillis() + "_" + localCertificateFile.getName());
 
@@ -229,24 +235,45 @@ public class RegisterActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 certRef.getDownloadUrl().addOnSuccessListener(uri -> {
                     String url = uri.toString();
-                    databaseRef.child(userId).child("certificateUrl").setValue(url).addOnCompleteListener(task1 -> {
-                        pd.dismiss();
-                        if (task1.isSuccessful()) {
-                            Toast.makeText(RegisterActivity.this, "Registration Successful!", Toast.LENGTH_SHORT).show();
-                            Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            startActivity(intent);
-                            finish();
-                        } else {
-                            Toast.makeText(RegisterActivity.this, "Error saving certificate URL.", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    completeRegistration(userId, url);
+                }).addOnFailureListener(e -> {
+                    pd.dismiss();
+                    Toast.makeText(RegisterActivity.this, "Failed to get certificate URL", Toast.LENGTH_SHORT).show();
                 });
             } else {
                 pd.dismiss();
                 Toast.makeText(RegisterActivity.this, "Certificate upload failed", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void completeRegistration(String userId, String certificateUrl) {
+        DatabaseReference userRef = databaseRef.child(userId);
+
+        if (certificateUrl != null) {
+            // If certificate was uploaded, save its URL
+            userRef.child("certificateUrl").setValue(certificateUrl)
+                    .addOnCompleteListener(task -> {
+                        pd.dismiss();
+                        handleRegistrationCompletion(task.isSuccessful());
+                    });
+        } else {
+            // If no certificate, just complete registration
+            pd.dismiss();
+            handleRegistrationCompletion(true);
+        }
+    }
+
+    private void handleRegistrationCompletion(boolean isSuccessful) {
+        if (isSuccessful) {
+            Toast.makeText(RegisterActivity.this, "Registration Successful!", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+            finish();
+        } else {
+            Toast.makeText(RegisterActivity.this, "Error completing registration.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @SuppressLint("PrivateResource")
@@ -260,4 +287,53 @@ public class RegisterActivity extends AppCompatActivity {
         }
         passwordEditText.setSelection(passwordEditText.getText().length());
     }
+
+    private void initializeFirebaseInstances() {
+        auth = FirebaseAuth.getInstance();
+        databaseRef = FirebaseDatabase.getInstance().getReference("Users");
+
+        // Try to initialize storage with retry mechanism
+        initializeStorage();
+    }
+
+    private void initializeStorage() {
+        if (!MyApplication.isSecondaryInitialized()) {
+            // Show a loading dialog
+            ProgressDialog initDialog = new ProgressDialog(this);
+            initDialog.setMessage("Initializing...");
+            initDialog.setCancelable(false);
+            initDialog.show();
+
+            // Retry mechanism with a max of 3 attempts
+            new Handler().postDelayed(new Runnable() {
+                private int attempts = 0;
+
+                @Override
+                public void run() {
+                    try {
+                        storage = FirebaseStorage.getInstance(FirebaseApp.getInstance("secondary"));
+                        initDialog.dismiss();
+                    } catch (IllegalStateException e) {
+                        attempts++;
+                        if (attempts < 3) {
+                            // Retry after 1 second
+                            new Handler().postDelayed(this, 1000);
+                        } else {
+                            initDialog.dismiss();
+                            // Show error dialog
+                            new AlertDialog.Builder(RegisterActivity.this)
+                                    .setTitle("Initialization Error")
+                                    .setMessage("Failed to initialize storage. Please restart the app.")
+                                    .setPositiveButton("OK", (dialog, which) -> finish())
+                                    .setCancelable(false)
+                                    .show();
+                        }
+                    }
+                }
+            }, 500);
+        } else {
+            storage = FirebaseStorage.getInstance(FirebaseApp.getInstance("secondary"));
+        }
+    }
+
 }

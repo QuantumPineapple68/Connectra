@@ -15,6 +15,8 @@ import com.google.firebase.storage.FirebaseStorage;
 public class MyApplication extends Application {
     private static final String TAG = "FirebaseInit";
     private AppDetonator appDetonator;
+    private static boolean isSecondaryInitialized = false;
+    private static final Object initLock = new Object();
 
 
     @Override
@@ -30,13 +32,7 @@ public class MyApplication extends Application {
         // Create notification channel
         createNotificationChannel();
 
-        // Log currently available Firebase apps
-        for (FirebaseApp app : FirebaseApp.getApps(this)) {
-            Log.d(TAG, "Available FirebaseApp: " + app.getName());
-        }
-
-        // Delay initialization of the secondary Firebase app slightly
-        new Handler(Looper.getMainLooper()).postDelayed(this::initializeSecondaryApp, 200);
+        initializeSecondaryApp();
     }
 
     private void createNotificationChannel() {
@@ -54,33 +50,40 @@ public class MyApplication extends Application {
     }
 
     private void initializeSecondaryApp() {
-        try {
-            // Check if the secondary app is already initialized
-            FirebaseApp secondaryApp = FirebaseApp.getInstance("secondary");
-            Log.d(TAG, "Secondary FirebaseApp already exists.");
-        } catch (IllegalStateException e) {
-            Log.d(TAG, "Initializing Secondary FirebaseApp...");
-
-            // Set up FirebaseOptions for the secondary project
-            FirebaseOptions secondaryOptions = new FirebaseOptions.Builder()
-                    .setProjectId("genzcrop-c72a2")
-                    .setApplicationId("1:371842266437:android:cbdf5cd0f890f851647a2c")
-                    .setApiKey("AIzaSyAWrork2SzWDZSovFD1W5CSS5dvoOvOZaQ")
-                    .setStorageBucket("genzcrop-c72a2.appspot.com")
-                    .build();
-
-            // Initialize secondary Firebase app with name "secondary"
-            FirebaseApp secondaryApp;
-            try {
-                secondaryApp = FirebaseApp.initializeApp(this, secondaryOptions, "secondary");
-                Log.d(TAG, "Secondary FirebaseApp initialized successfully.");
-
-                // Test Firebase Storage with secondary app to confirm initialization
-                FirebaseStorage secondaryStorage = FirebaseStorage.getInstance(secondaryApp);
-                Log.d(TAG, "Successfully accessed Firebase Storage from secondary FirebaseApp.");
-            } catch (Exception ex) {
-                Log.e(TAG, "Failed to initialize secondary FirebaseApp: " + ex.getMessage());
+        synchronized (initLock) {
+            if (isSecondaryInitialized) {
+                return;
             }
+
+            try {
+                // Set up FirebaseOptions for the secondary project
+                FirebaseOptions secondaryOptions = new FirebaseOptions.Builder()
+                        .setProjectId("genzcrop-c72a2")
+                        .setApplicationId("1:371842266437:android:cbdf5cd0f890f851647a2c")
+                        .setApiKey("AIzaSyAWrork2SzWDZSovFD1W5CSS5dvoOvOZaQ")
+                        .setStorageBucket("genzcrop-c72a2.appspot.com")
+                        .build();
+
+                // Initialize secondary Firebase app
+                FirebaseApp secondaryApp = FirebaseApp.initializeApp(this, secondaryOptions, "secondary");
+
+                // Test Firebase Storage to confirm initialization
+                FirebaseStorage.getInstance(secondaryApp);
+
+                isSecondaryInitialized = true;
+                Log.d(TAG, "Secondary FirebaseApp initialized successfully.");
+            } catch (IllegalStateException e) {
+                Log.d(TAG, "Secondary FirebaseApp already exists.");
+                isSecondaryInitialized = true;
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to initialize secondary FirebaseApp: " + e.getMessage());
+            }
+        }
+    }
+
+    public static boolean isSecondaryInitialized() {
+        synchronized (initLock) {
+            return isSecondaryInitialized;
         }
     }
 }
