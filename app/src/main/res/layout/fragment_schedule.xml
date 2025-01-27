@@ -35,6 +35,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:layout_marginBottom="20dp"
         android:text="Add Task"
         android:backgroundTint="@color/theme"
         android:textColor="@color/white"/>
@@ -48,7 +49,7 @@
         android:gravity="center"
         android:text="No tasks for the selected date"
         android:textSize="16sp"
-        android:visibility="gone" />
+        android:visibility="gone"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_tasks"
@@ -56,7 +57,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:paddingBottom="85dp"
-        android:visibility="gone" />
+        android:visibility="gone"/>
 
 </LinearLayout>
 </ScrollView>

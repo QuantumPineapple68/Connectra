@@ -76,7 +76,10 @@ public class ScheduleFragment extends Fragment {
 
         // Listen for date changes
         calendarView.setOnDateChangeListener((view1, year, month, dayOfMonth) -> {
-            selectedDate = year + "-" + (month + 1) + "-" + dayOfMonth;
+            // Format month and day to ensure 2 digits
+            String formattedMonth = String.format(Locale.getDefault(), "%02d", month + 1);
+            String formattedDay = String.format(Locale.getDefault(), "%02d", dayOfMonth);
+            selectedDate = year + "-" + formattedMonth + "-" + formattedDay;
             fetchTasks();
         });
 

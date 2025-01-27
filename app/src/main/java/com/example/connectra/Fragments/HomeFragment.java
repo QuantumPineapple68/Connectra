@@ -129,7 +129,7 @@ public class HomeFragment extends Fragment {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference messagesRef = FirebaseDatabase.getInstance().getReference("Messages");
 
-        messagesRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        messagesRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 HashMap<String, Boolean> unreadMessages = new HashMap<>();
