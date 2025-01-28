@@ -82,13 +82,9 @@ public class RegisterActivity extends AppCompatActivity {
         cerfbtn = findViewById(R.id.cerf_btn);
         cerf = findViewById(R.id.reg_cerf);
 
-        auth = FirebaseAuth.getInstance();
-        databaseRef = FirebaseDatabase.getInstance().getReference("Users");
-        storage = FirebaseStorage.getInstance(FirebaseApp.getInstance("secondary"));
+        initializeFirebaseInstances();
 
         pd = new ProgressDialog(this);
-
-        initializeFirebaseInstances();
 
         register.setOnClickListener(v -> {
             String txt_email = email.getText().toString().trim();
@@ -102,29 +98,29 @@ public class RegisterActivity extends AppCompatActivity {
             String txt_confirmPass = confirmPass.getText().toString().trim();
 
             if (TextUtils.isEmpty(txt_email) || TextUtils.isEmpty(txt_password) || TextUtils.isEmpty(txt_name) || TextUtils.isEmpty(txt_username)) {
-                Toast.makeText(RegisterActivity.this, "Fields can't be Empty", Toast.LENGTH_SHORT).show();
+                toast("Fields can't be Empty");
             } else if (txt_password.length() < 6) {
-                Toast.makeText(RegisterActivity.this, "Password must be at least 6 Digits", Toast.LENGTH_SHORT).show();
+                toast("Password must be at least 6 Digits");
             } else if (!txt_password.equals(txt_confirmPass)) {
-                Toast.makeText(RegisterActivity.this, "Password doesn't match", Toast.LENGTH_SHORT).show();
+                toast("Password doesn't match");
             } else if (txt_myskill.length() > 30 || txt_goalskill.length() > 30) {
-                Toast.makeText(RegisterActivity.this, "Describe skill sets in brief (30 letters)", Toast.LENGTH_SHORT).show();
+                toast("Describe skill sets in brief (30 letters)");
             } else if (!txt_email.endsWith(".com")) {
-                Toast.makeText(RegisterActivity.this, "Enter Valid e-mail", Toast.LENGTH_SHORT).show();
+                toast("Enter Valid e-mail");
             } else if (!txt_name.contains(" ")) {
-                Toast.makeText(RegisterActivity.this, "Please enter your full name with space in between", Toast.LENGTH_SHORT).show();
+                toast("Please enter your full name with space in between");
             } else if (!txt_gender.equals("male") && !txt_gender.equals("female")) {
-                Toast.makeText(RegisterActivity.this, "Gender must be either male or female", Toast.LENGTH_SHORT).show();
+                toast("Gender must be either male or female");
             } else {
                 try {
                     int ageValue = Integer.parseInt(txt_age);
-                    if (ageValue < 5 || ageValue > 150) {
-                        Toast.makeText(RegisterActivity.this, "Age must be between 5 and 150", Toast.LENGTH_SHORT).show();
+                    if (ageValue < 0 || ageValue > 150) {
+                        toast("Age must be a valid number");
                     } else {
                         registerUser(txt_email,txt_password,txt_name, txt_username, txt_myskill, txt_goalskill, txt_age, txt_gender);
                     }
                 } catch (NumberFormatException e) {
-                    Toast.makeText(RegisterActivity.this, "Please enter a valid age", Toast.LENGTH_SHORT).show();
+                    toast("Please enter a valid age");
                 }
             }
         });
@@ -173,12 +169,12 @@ public class RegisterActivity extends AppCompatActivity {
                     uploadCertificate(userId);
                 } else {
                     pd.dismiss();
-                    Toast.makeText(RegisterActivity.this, "Registration Failed", Toast.LENGTH_SHORT).show();
+                    toast("Registration Failed");
                 }
             });
         }).addOnFailureListener(e -> {
             pd.dismiss();
-            Toast.makeText(RegisterActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            toast(e.getMessage());
         });
     }
 
@@ -213,10 +209,10 @@ public class RegisterActivity extends AppCompatActivity {
                     .error(R.drawable.default_certificate)
                     .into(cerf);
 
-            Toast.makeText(this, "Certificate selected and saved locally.", Toast.LENGTH_SHORT).show();
+            toast("Certificate selected and saved locally.");
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Failed to save certificate locally.", Toast.LENGTH_SHORT).show();
+            toast("Failed to save certificate locally.");
         }
     }
 
@@ -238,11 +234,11 @@ public class RegisterActivity extends AppCompatActivity {
                     completeRegistration(userId, url);
                 }).addOnFailureListener(e -> {
                     pd.dismiss();
-                    Toast.makeText(RegisterActivity.this, "Failed to get certificate URL", Toast.LENGTH_SHORT).show();
+                    toast("Failed to get certificate URL");
                 });
             } else {
                 pd.dismiss();
-                Toast.makeText(RegisterActivity.this, "Certificate upload failed", Toast.LENGTH_SHORT).show();
+                toast("Certificate upload failed");
             }
         });
     }
@@ -266,13 +262,13 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void handleRegistrationCompletion(boolean isSuccessful) {
         if (isSuccessful) {
-            Toast.makeText(RegisterActivity.this, "Registration Successful!", Toast.LENGTH_SHORT).show();
+            toast("Registration Successful!");
             Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
             finish();
         } else {
-            Toast.makeText(RegisterActivity.this, "Error completing registration.", Toast.LENGTH_SHORT).show();
+            toast("Error completing registration.");
         }
     }
 
@@ -297,43 +293,44 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void initializeStorage() {
-        if (!MyApplication.isSecondaryInitialized()) {
-            // Show a loading dialog
-            ProgressDialog initDialog = new ProgressDialog(this);
-            initDialog.setMessage("Initializing...");
-            initDialog.setCancelable(false);
-            initDialog.show();
+        ProgressDialog initDialog = new ProgressDialog(this);
+        initDialog.setMessage("Initializing...");
+        initDialog.setCancelable(false);
+        initDialog.show();
 
-            // Retry mechanism with a max of 3 attempts
-            new Handler().postDelayed(new Runnable() {
-                private int attempts = 0;
+        new Handler().post(new Runnable() {
+            private int attempts = 0;
 
-                @Override
-                public void run() {
-                    try {
-                        storage = FirebaseStorage.getInstance(FirebaseApp.getInstance("secondary"));
+            @Override
+            public void run() {
+                try {
+                    // First ensure we clean up any existing instances
+                    MyApplication.cleanupFirebaseInstances();
+                    // Then initialize a fresh instance
+                    FirebaseApp secondaryApp = MyApplication.initializeSecondaryApp();
+                    storage = FirebaseStorage.getInstance(secondaryApp);
+                    initDialog.dismiss();
+                } catch (Exception e) {
+                    attempts++;
+                    if (attempts < 3) {
+                        // Retry after 1 second
+                        new Handler().postDelayed(this, 1000);
+                    } else {
                         initDialog.dismiss();
-                    } catch (IllegalStateException e) {
-                        attempts++;
-                        if (attempts < 3) {
-                            // Retry after 1 second
-                            new Handler().postDelayed(this, 1000);
-                        } else {
-                            initDialog.dismiss();
-                            // Show error dialog
-                            new AlertDialog.Builder(RegisterActivity.this)
-                                    .setTitle("Initialization Error")
-                                    .setMessage("Failed to initialize storage. Please restart the app.")
-                                    .setPositiveButton("OK", (dialog, which) -> finish())
-                                    .setCancelable(false)
-                                    .show();
-                        }
+                        new AlertDialog.Builder(RegisterActivity.this)
+                                .setTitle("Initialization Error")
+                                .setMessage("Failed to initialize storage. Please restart the app.")
+                                .setPositiveButton("OK", (dialog, which) -> finish())
+                                .setCancelable(false)
+                                .show();
                     }
                 }
-            }, 500);
-        } else {
-            storage = FirebaseStorage.getInstance(FirebaseApp.getInstance("secondary"));
-        }
+            }
+        });
+    }
+
+    private void toast(String msg){
+        Toast.makeText(RegisterActivity.this, msg, Toast.LENGTH_SHORT).show();
     }
 
 }

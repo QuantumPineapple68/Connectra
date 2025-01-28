@@ -158,24 +158,24 @@ public class LoginActivity extends AppCompatActivity {
     private void loginUser(String txtEmail, String txtPassword) {
 
         if (TextUtils.isEmpty(txtEmail) || TextUtils.isEmpty(txtPassword)){
-            Toast.makeText(LoginActivity.this, "E-mail or Password can't be Empty", Toast.LENGTH_SHORT).show();
+            toast("E-mail or Password can't be Empty");
         }
         else if (txtPassword.length() < 6){
-            Toast.makeText(LoginActivity.this, "Password must be atleast 6 Digits", Toast.LENGTH_SHORT).show();
+            toast("Password must be atleast 6 Digits");
         }
         else{
             auth.signInWithEmailAndPassword(txtEmail,txtPassword)
                     .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                         @Override
                         public void onSuccess(AuthResult authResult) {
-                            Toast.makeText(LoginActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
+                            toast("Login Successful");
                             startActivity(new Intent(LoginActivity.this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
                             finish();
                         }
                     })      .addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(LoginActivity.this, "Invalid Credentials", Toast.LENGTH_SHORT).show();
+                            toast("Invalid Credentials");
                         }
                     });
         }
@@ -255,8 +255,7 @@ public class LoginActivity extends AppCompatActivity {
                 GoogleSignInAccount account = task.getResult(ApiException.class);
                 firebaseAuthWithGoogle(account.getIdToken());
             } catch (ApiException e) {
-                Toast.makeText(this, "Google sign in failed: " + e.getMessage(),
-                        Toast.LENGTH_SHORT).show();
+                toast("Google sign in failed: " + e.getMessage());
             }
         }
     }
@@ -267,8 +266,7 @@ public class LoginActivity extends AppCompatActivity {
                         String userId = auth.getCurrentUser().getUid();
                         checkUserExistence(userId);
                     } else {
-                        Toast.makeText(LoginActivity.this, "Authentication failed.",
-                                Toast.LENGTH_SHORT).show();
+                        toast("Authentication failed.");
                     }
                 });
     }
@@ -295,8 +293,7 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(LoginActivity.this, "Database error: " + error.getMessage(),
-                        Toast.LENGTH_SHORT).show();
+                toast("Database error: " + error.getMessage());
             }
         });
     }
@@ -339,5 +336,9 @@ public class LoginActivity extends AppCompatActivity {
             Log.e(TAG, "Error in showExitDialog: " + e.getMessage());
             finishAffinity(); // Safely exit if we can't show the dialog
         }
+    }
+
+    private void toast(String msg){
+        Toast.makeText(LoginActivity.this, msg, Toast.LENGTH_SHORT).show();
     }
 }

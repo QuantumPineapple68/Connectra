@@ -12,50 +12,39 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.storage.FirebaseStorage;
 
+import java.util.List;
+
 public class MyApplication extends Application {
     private static final String TAG = "FirebaseInit";
     private AppDetonator appDetonator;
     private static boolean isSecondaryInitialized = false;
     private static final Object initLock = new Object();
-
+    private static MyApplication instance;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        instance = this;
 
         appDetonator = new AppDetonator();
         registerActivityLifecycleCallbacks(appDetonator);
 
         // Initialize the primary Firebase app (default project)
         FirebaseApp.initializeApp(this);
-
-        // Create notification channel
-        createNotificationChannel();
-
-        initializeSecondaryApp();
     }
 
-    private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    "chat_notifications",  // Must match the ID in MyFirebaseMessagingService
-                    "Chat Notifications",
-                    NotificationManager.IMPORTANCE_HIGH
-            );
-            channel.setDescription("Notifications for chat messages");
-
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-        }
-    }
-
-    private void initializeSecondaryApp() {
+    public static synchronized FirebaseApp initializeSecondaryApp() {
         synchronized (initLock) {
-            if (isSecondaryInitialized) {
-                return;
-            }
-
             try {
+                // First try to get existing instance
+                try {
+                    FirebaseApp existingApp = FirebaseApp.getInstance("secondary");
+                    isSecondaryInitialized = true;
+                    return existingApp;
+                } catch (IllegalStateException e) {
+                    // App doesn't exist, continue with initialization
+                }
+
                 // Set up FirebaseOptions for the secondary project
                 FirebaseOptions secondaryOptions = new FirebaseOptions.Builder()
                         .setProjectId("genzcrop-c72a2")
@@ -65,25 +54,44 @@ public class MyApplication extends Application {
                         .build();
 
                 // Initialize secondary Firebase app
-                FirebaseApp secondaryApp = FirebaseApp.initializeApp(this, secondaryOptions, "secondary");
-
-                // Test Firebase Storage to confirm initialization
-                FirebaseStorage.getInstance(secondaryApp);
-
+                FirebaseApp secondaryApp = FirebaseApp.initializeApp(instance, secondaryOptions, "secondary");
                 isSecondaryInitialized = true;
                 Log.d(TAG, "Secondary FirebaseApp initialized successfully.");
-            } catch (IllegalStateException e) {
-                Log.d(TAG, "Secondary FirebaseApp already exists.");
-                isSecondaryInitialized = true;
+                return secondaryApp;
             } catch (Exception e) {
                 Log.e(TAG, "Failed to initialize secondary FirebaseApp: " + e.getMessage());
+                throw new RuntimeException("Failed to initialize Firebase", e);
             }
         }
     }
 
-    public static boolean isSecondaryInitialized() {
+    public static MyApplication getInstance() {
+        return instance;
+    }
+
+    public static void cleanupFirebaseInstances() {
         synchronized (initLock) {
-            return isSecondaryInitialized;
+            try {
+                // Get all Firebase app instances
+                List<FirebaseApp> apps = FirebaseApp.getApps(instance);
+                for (FirebaseApp app : apps) {
+                    if ("secondary".equals(app.getName())) {
+                        app.delete();
+                    }
+                }
+                isSecondaryInitialized = false;
+                Log.d(TAG, "Secondary FirebaseApp cleaned up successfully.");
+            } catch (Exception e) {
+                Log.e(TAG, "Error cleaning up Firebase instances: " + e.getMessage());
+            }
+        }
+    }
+
+    public static void reinitializeSecondaryIfNeeded() {
+        synchronized (initLock) {
+            if (!isSecondaryInitialized) {
+                initializeSecondaryApp();
+            }
         }
     }
 }

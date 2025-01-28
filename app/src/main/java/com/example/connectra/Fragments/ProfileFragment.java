@@ -30,7 +30,11 @@ import androidx.fragment.app.Fragment;
 import com.bumptech.glide.Glide;
 import com.example.connectra.ChangeSkillActivity;
 import com.example.connectra.LoginActivity;
+import com.example.connectra.MyApplication;
 import com.example.connectra.R;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuth.AuthStateListener;
@@ -177,17 +181,29 @@ public class ProfileFragment extends Fragment {
         Activity activity = getActivity();
         if (activity == null) return;
 
-        // Only need to clean up database listener now
+        // Clean up database listener
         if (userRef != null && userValueEventListener != null) {
             userRef.removeEventListener(userValueEventListener);
         }
 
+        // Sign out from Firebase Auth
         auth.signOut();
 
-        Intent intent = new Intent(activity, LoginActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        activity.finish();
+        // Clean up the secondary Firebase instance
+        MyApplication.cleanupFirebaseInstances();
+
+        // Sign out from Google if it was a Google sign-in
+        GoogleSignInClient googleSignInClient = GoogleSignIn.getClient(requireActivity(),
+                new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestIdToken(getString(R.string.client_id))
+                        .requestEmail()
+                        .build());
+        googleSignInClient.signOut().addOnCompleteListener(task -> {
+            Intent intent = new Intent(activity, LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            activity.finish();
+        });
     }
 
     private void openImage() {

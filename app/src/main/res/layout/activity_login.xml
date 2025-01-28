@@ -61,10 +61,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/roboto_bold"
                 android:text="Login"
                 android:textSize="20sp"
                 android:textColor="@color/black"
+                android:textStyle="bold"
                 android:layout_marginBottom="16dp"
                 android:layout_gravity="center" />
 
@@ -89,7 +89,7 @@
                 android:id="@+id/passwordInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="32dp"
+                android:layout_marginBottom="12dp"
                 android:hint="Password"
                 app:endIconMode="custom">
 
@@ -116,6 +116,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="13dp"
+                android:layout_marginBottom="20dp"
                 android:fontFamily="@font/inter_bold"
                 android:text="Forgot Password?"
                 android:textAlignment="textEnd"
@@ -170,8 +171,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:layout_marginLeft="8dp"
-                    android:fontFamily="@font/roboto_bold"
                     android:text="Sign in with Google"
+                    android:textStyle="bold"
                     android:textColor="@color/black"
                     android:textSize="16sp" />
             </LinearLayout>

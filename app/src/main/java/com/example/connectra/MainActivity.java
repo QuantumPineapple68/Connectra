@@ -49,9 +49,6 @@ public class MainActivity extends AppCompatActivity {
         // Initialize UI
         initializeUI();
 
-        // Set up state listener
-        setupStateListener();
-
         // Set default fragment
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, new HomeFragment())
@@ -68,24 +65,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         checkAppState();
-    }
-
-    private void setupStateListener() {
-        stateListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Boolean isActive = snapshot.child("isActive_1,0").getValue(Boolean.class);
-                if (isActive != null && !isActive) {
-                    showExitDialog();
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e(TAG, "Database error: " + error.getMessage());
-            }
-        };
-        detonatorRef.addValueEventListener(stateListener);
     }
 
     private void checkAppState() {
