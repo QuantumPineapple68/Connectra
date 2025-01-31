@@ -83,7 +83,7 @@ public class ProfileFragment extends Fragment {
 
         // Firebase initialization
         auth = FirebaseAuth.getInstance();
-        storage = FirebaseStorage.getInstance(FirebaseApp.getInstance("secondary"));
+        initializeStorage();
 
         if (auth.getCurrentUser() != null) {
             String userId = auth.getCurrentUser().getUid();
@@ -125,6 +125,19 @@ public class ProfileFragment extends Fragment {
         });
 
         return view;
+    }
+
+    private void initializeStorage() {
+        try {
+            // Clean up existing instances first
+            MyApplication.cleanupFirebaseInstances();
+            // Initialize a fresh secondary instance
+            FirebaseApp secondaryApp = MyApplication.initializeSecondaryApp();
+            storage = FirebaseStorage.getInstance(secondaryApp);
+        } catch (Exception e) {
+            Log.e("ProfileFragment", "Error initializing storage: " + e.getMessage());
+            Toast.makeText(getContext(), "Error initializing storage. Please try again.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void setupUserValueEventListener() {
@@ -216,31 +229,44 @@ public class ProfileFragment extends Fragment {
     private void uploadImage() {
         if (imageUri == null) return;
 
+        if (storage == null) {
+            Toast.makeText(getActivity(), "Storage not initialized. Please try again.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         ProgressDialog pd = new ProgressDialog(getActivity());
         pd.setMessage("Uploading...");
         pd.show();
 
-        StorageReference fireRef = storage.getReference().child("connectra")
-                .child(System.currentTimeMillis() + "." + getFileExtension(imageUri));
+        try {
+            StorageReference fireRef = storage.getReference().child("connectra")
+                    .child(System.currentTimeMillis() + "." + getFileExtension(imageUri));
 
-        fireRef.putFile(imageUri).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                fireRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                    String url = uri.toString();
-                    userRef.child("profileImage").setValue(url).addOnCompleteListener(task1 -> {
+            fireRef.putFile(imageUri)
+                    .addOnSuccessListener(taskSnapshot -> {
+                        fireRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                            String url = uri.toString();
+                            userRef.child("profileImage").setValue(url)
+                                    .addOnSuccessListener(aVoid -> {
+                                        pd.dismiss();
+                                        Toast.makeText(getActivity(), "Image Upload Successful!", Toast.LENGTH_SHORT).show();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        pd.dismiss();
+                                        Toast.makeText(getActivity(), "Failed to update profile: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    });
+                        });
+                    })
+                    .addOnFailureListener(e -> {
                         pd.dismiss();
-                        if (task1.isSuccessful()) {
-                            Toast.makeText(getActivity(), "Image Upload Successful!", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(getActivity(), "Error updating profile image URL.", Toast.LENGTH_SHORT).show();
-                        }
+                        Toast.makeText(getActivity(), "Upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Log.e("ProfileFragment", "Upload failed: " + e.getMessage());
                     });
-                });
-            } else {
-                pd.dismiss();
-                Toast.makeText(getActivity(), "Image upload failed", Toast.LENGTH_SHORT).show();
-            }
-        });
+        } catch (Exception e) {
+            pd.dismiss();
+            Toast.makeText(getActivity(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Log.e("ProfileFragment", "Error in uploadImage: " + e.getMessage());
+        }
     }
 
     private String getFileExtension(Uri uri) {
