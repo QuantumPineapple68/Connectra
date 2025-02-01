@@ -45,12 +45,13 @@ public class HomeFragment extends Fragment {
     private DatabaseReference databaseRef;
     private TextView hi;
     private ProgressBar loadingProgressBar;
-    String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+    private FirebaseAuth auth;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
+        auth = FirebaseAuth.getInstance();
         hi = view.findViewById(R.id.welcome_name);
 
         // Initialize Realtime Database and RecyclerView
@@ -95,9 +96,8 @@ public class HomeFragment extends Fragment {
 
 
     private void fetchUserData() {
-        FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
-            Toast.makeText(getContext(), "User not logged in", Toast.LENGTH_SHORT).show();
+            toast("User not logged in");
             return;
         }
 
@@ -111,7 +111,7 @@ public class HomeFragment extends Fragment {
                         hi.setText("Hi, " + fullName);
                     }
                 } else {
-                    Toast.makeText(getContext(), "User data not found", Toast.LENGTH_SHORT).show();
+                    toast("User data not found");
                 }
             }
 
@@ -119,14 +119,14 @@ public class HomeFragment extends Fragment {
             public void onCancelled(@NonNull DatabaseError error) {
                 Context context = getContext(); // Get context safely
                 if (context != null) { // Ensure it's not null
-                    Toast.makeText(context, "Database error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    toast("Database error: " + error.getMessage());
                 }
             }
         });
     }
 
     private void fetchUsersFromDatabase() {
-        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String currentUserId = auth.getCurrentUser().getUid();
         DatabaseReference messagesRef = FirebaseDatabase.getInstance().getReference("Messages");
 
         messagesRef.addValueEventListener(new ValueEventListener() {
@@ -223,12 +223,12 @@ public class HomeFragment extends Fragment {
                     public void onCancelled(@NonNull DatabaseError error) {
                         Context context = getContext(); // Get context safely
                         if (context != null) { // Ensure it's not null
-                            Toast.makeText(context, "Database error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                            toast("Database error: " + error.getMessage());
                         }
                         if (getActivity() != null) {
                             getActivity().runOnUiThread(() -> {
                                 loadingProgressBar.setVisibility(View.GONE);
-                                Toast.makeText(getContext(), "Database error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                                toast("Database error: " + error.getMessage());
                             });
                         }
                     }
@@ -239,12 +239,12 @@ public class HomeFragment extends Fragment {
             public void onCancelled(@NonNull DatabaseError error) {
                 Context context = getContext(); // Get context safely
                 if (context != null) { // Ensure it's not null
-                    Toast.makeText(context, "Database error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    toast("Database error: " + error.getMessage());
                 }
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         loadingProgressBar.setVisibility(View.GONE);
-                        Toast.makeText(getContext(), "Database error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                        toast("Database error: " + error.getMessage());
                     });
                 }
             }
@@ -304,5 +304,9 @@ public class HomeFragment extends Fragment {
                     requireActivity().finish(); // Exit the app
                 })
                 .show();
+    }
+
+    private void toast(String msg){
+        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
     }
 }
