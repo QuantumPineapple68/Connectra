@@ -51,6 +51,10 @@ public class HomeFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
+        if (!isInternetAvailable()) {
+            showNoInternetDialog();
+        }
+
         auth = FirebaseAuth.getInstance();
         hi = view.findViewById(R.id.welcome_name);
 
@@ -58,6 +62,10 @@ public class HomeFragment extends Fragment {
         databaseRef = FirebaseDatabase.getInstance().getReference("Users");
         recyclerView = view.findViewById(R.id.recycler_view_home);
         loadingProgressBar = view.findViewById(R.id.loading_progress_bar);
+        // Initialize user list and adapter
+        userList = new ArrayList<>();
+        tileAdapter = new TileAdapter(getContext(), userList);
+        recyclerView.setAdapter(tileAdapter);
 
         // Dynamically set the span count
         int spanCount = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 4 : 2;
@@ -65,19 +73,9 @@ public class HomeFragment extends Fragment {
         recyclerView.setLayoutManager(gridLayoutManager);
         recyclerView.addItemDecoration(new GridSpacingItemDecoration(8)); // 16dp spacing
 
-        // Initialize user list and adapter
-        userList = new ArrayList<>();
-        tileAdapter = new TileAdapter(getContext(), userList);
-        recyclerView.setAdapter(tileAdapter);
-
         loadingProgressBar.setVisibility(View.VISIBLE);
-
         fetchUserData();
         fetchUsersFromDatabase();
-
-        if (!isInternetAvailable()) {
-            showNoInternetDialog();
-        }
 
         return view;
     }
