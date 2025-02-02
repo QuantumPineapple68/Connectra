@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.EditText;
@@ -19,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
@@ -112,7 +115,7 @@ public class ChangeSkillActivity extends AppCompatActivity {
             userRef.child("myskill").setValue(mySkill)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            Toast.makeText(ChangeSkillActivity.this, "Your Skill has been Updated", Toast.LENGTH_SHORT).show();
+                            snackbar("Your Skill has been Updated");
                         } else {
                             showError(task);
                         }
@@ -125,7 +128,7 @@ public class ChangeSkillActivity extends AppCompatActivity {
             userRef.child("goalskill").setValue(goalSkill)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            Toast.makeText(ChangeSkillActivity.this, "Your Interest has been Updated", Toast.LENGTH_SHORT).show();
+                            snackbar("Your Interest has been Updated");
                         } else {
                             showError(task);
                         }
@@ -138,7 +141,7 @@ public class ChangeSkillActivity extends AppCompatActivity {
             userRef.child("bio").setValue(bio)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            Toast.makeText(ChangeSkillActivity.this, "Bio Updated", Toast.LENGTH_SHORT).show();
+                            snackbar("Your Bio has been Updated");
                         } else {
                             showError(task);
                         }
@@ -201,7 +204,7 @@ public class ChangeSkillActivity extends AppCompatActivity {
                                     .error(R.drawable.default_certificate)
                                     .into(certificate);
 
-                            Toast.makeText(this, "Certificate uploaded and updated successfully!", Toast.LENGTH_SHORT).show();
+                            snackbar("Certificate uploaded and updated successfully!");
                         } else {
                             // Handle failure to update database
                             showError(task1);
@@ -231,14 +234,15 @@ public class ChangeSkillActivity extends AppCompatActivity {
         return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri));
     }
 
-
-
-
     private void showError(@NonNull Task<Void> task) {
         String message = "Error updating skills.";
         if (task.getException() != null) {
             message = task.getException().getMessage();
         }
         Toast.makeText(ChangeSkillActivity.this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    private void snackbar(String msg) {
+        Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_SHORT).show();
     }
 }

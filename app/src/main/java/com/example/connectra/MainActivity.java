@@ -37,10 +37,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialize detonator reference and check app state
-        detonatorRef = FirebaseDatabase.getInstance().getReference("Detonator");
-        checkAppState();
-
         setContentView(R.layout.activity_main);
 
         // Initialize Firebase Apps
@@ -64,47 +60,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        checkAppState();
-    }
-
-    private void checkAppState() {
-        detonatorRef.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful() && task.getResult() != null) {
-                Boolean isActive = task.getResult().child("isActive_1,0").getValue(Boolean.class);
-                if (isActive != null && !isActive) {
-                    showExitDialog();
-                }
-            }
-        });
-    }
-
-    private void showExitDialog() {
-        // Check if activity is finishing or destroyed
-        if (isFinishing() || isDestroyed()) {
-            return;
-        }
-
-        try {
-            runOnUiThread(() -> {
-                try {
-                    new AlertDialog.Builder(MainActivity.this)
-                            .setTitle("App Unavailable")
-                            .setMessage("This application is currently under maintenance. Please try again later.")
-                            .setCancelable(false)
-                            .setPositiveButton("Exit", (dialog, which) -> {
-                                finishAffinity();
-                            })
-                            .create()
-                            .show();
-                } catch (Exception e) {
-                    Log.e(TAG, "Error showing dialog: " + e.getMessage());
-                    finishAffinity(); // Safely exit if we can't show the dialog
-                }
-            });
-        } catch (Exception e) {
-            Log.e(TAG, "Error in showExitDialog: " + e.getMessage());
-            finishAffinity(); // Safely exit if we can't show the dialog
-        }
     }
 
     private void checkLoginStatus() {

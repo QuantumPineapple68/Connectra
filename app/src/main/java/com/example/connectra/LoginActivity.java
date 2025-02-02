@@ -81,8 +81,8 @@ public class LoginActivity extends AppCompatActivity {
         int nightModeFlags = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
         if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
             new AlertDialog.Builder(this)
-                    .setTitle("Suggestion")
-                    .setMessage("Please use this app without Dark mode for the best experience.")
+                    .setTitle("Suggestion!!")
+                    .setMessage("Please Turn off the Dark mode for the best experience.")
                     .setCancelable(true) // User can dismiss the dialog by tapping outside
                     .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
                     .show();
@@ -99,12 +99,6 @@ public class LoginActivity extends AppCompatActivity {
 
         auth=FirebaseAuth.getInstance();
 
-        detonatorRef = FirebaseDatabase.getInstance().getReference("Detonator");
-        checkAppState();
-
-        if (!isInternetAvailable()) {
-            showNoInternetDialog();
-        }
 
         forgotPass.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -194,40 +188,6 @@ public class LoginActivity extends AppCompatActivity {
         passwordEditText.setSelection(passwordEditText.getText().length());
     }
 
-    private boolean isInternetAvailable() {
-        ConnectivityManager connectivityManager =
-                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        if (connectivityManager != null) {
-            NetworkCapabilities capabilities =
-                    connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
-            if (capabilities != null) {
-                return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
-                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR);
-            }
-        }
-        return false;
-    }
-
-    // Show a popup dialog when there is no internet
-    private void showNoInternetDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle("No Internet Connection")
-                .setMessage("Please check your internet connection and try again.")
-                .setCancelable(false) // User can't dismiss the dialog by tapping outside
-                .setPositiveButton("Retry", (dialog, which) -> {
-                    // Retry logic: Check for internet again
-                    if (!isInternetAvailable()) {
-                        showNoInternetDialog(); // Show the dialog again if still no internet
-                    } else {
-                        dialog.dismiss(); // Dismiss if internet is available
-                    }
-                })
-                .setNegativeButton("Exit", (dialog, which) -> {
-                    finish(); // Exit the app
-                })
-                .show();
-    }
 
     private void initializeGoogleSignIn() {
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -296,46 +256,6 @@ public class LoginActivity extends AppCompatActivity {
                 toast("Database error: " + error.getMessage());
             }
         });
-    }
-
-    private void checkAppState() {
-        detonatorRef.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful() && task.getResult() != null) {
-                Boolean isActive = task.getResult().child("isActive_1,0").getValue(Boolean.class);
-                if (isActive != null && !isActive) {
-                    showExitDialog();
-                }
-            }
-        });
-    }
-
-    private void showExitDialog() {
-        // Check if activity is finishing or destroyed
-        if (isFinishing() || isDestroyed()) {
-            return;
-        }
-
-        try {
-            runOnUiThread(() -> {
-                try {
-                    new AlertDialog.Builder(LoginActivity.this)
-                            .setTitle("App Unavailable")
-                            .setMessage("This application is currently under maintenance. Please try again later.")
-                            .setCancelable(false)
-                            .setPositiveButton("Exit", (dialog, which) -> {
-                                finishAffinity();
-                            })
-                            .create()
-                            .show();
-                } catch (Exception e) {
-                    Log.e(TAG, "Error showing dialog: " + e.getMessage());
-                    finishAffinity(); // Safely exit if we can't show the dialog
-                }
-            });
-        } catch (Exception e) {
-            Log.e(TAG, "Error in showExitDialog: " + e.getMessage());
-            finishAffinity(); // Safely exit if we can't show the dialog
-        }
     }
 
     private void toast(String msg){

@@ -35,6 +35,7 @@ import com.example.connectra.R;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuth.AuthStateListener;
@@ -90,11 +91,7 @@ public class ProfileFragment extends Fragment {
             userRef = FirebaseDatabase.getInstance().getReference("Users").child(userId);
             setupUserValueEventListener();
         } else {
-            Toast.makeText(getContext(), "User is not authenticated", Toast.LENGTH_SHORT).show();
-        }
-
-        if (!isInternetAvailable()) {
-            showNoInternetDialog();
+            toast("User is not authenticated");
         }
 
         // Logout functionality
@@ -136,7 +133,7 @@ public class ProfileFragment extends Fragment {
             storage = FirebaseStorage.getInstance(secondaryApp);
         } catch (Exception e) {
             Log.e("ProfileFragment", "Error initializing storage: " + e.getMessage());
-            Toast.makeText(getContext(), "Error initializing storage. Please try again.", Toast.LENGTH_SHORT).show();
+            toast("Error initializing storage. Please try again.");
         }
     }
 
@@ -176,14 +173,14 @@ public class ProfileFragment extends Fragment {
                         });
                     }
                 } else {
-                    Toast.makeText(getContext(), "User data not found", Toast.LENGTH_SHORT).show();
+                    toast("User data not found");
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e("DatabaseError", databaseError.getMessage());
-                Toast.makeText(getContext(), "Failed to load user data", Toast.LENGTH_SHORT).show();
+                toast("Failed to load user data");
             }
         };
 
@@ -230,7 +227,7 @@ public class ProfileFragment extends Fragment {
         if (imageUri == null) return;
 
         if (storage == null) {
-            Toast.makeText(getActivity(), "Storage not initialized. Please try again.", Toast.LENGTH_SHORT).show();
+            toast("Storage not initialized. Please try again.");
             return;
         }
 
@@ -249,23 +246,22 @@ public class ProfileFragment extends Fragment {
                             userRef.child("profileImage").setValue(url)
                                     .addOnSuccessListener(aVoid -> {
                                         pd.dismiss();
-                                        Toast.makeText(getActivity(), "Image Upload Successful!", Toast.LENGTH_SHORT).show();
+                                        snackbar("Image Upload Successful!");
                                     })
                                     .addOnFailureListener(e -> {
                                         pd.dismiss();
-                                        Toast.makeText(getActivity(), "Failed to update profile: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        toast("Failed to update profile: " + e.getMessage());
                                     });
                         });
                     })
                     .addOnFailureListener(e -> {
                         pd.dismiss();
-                        Toast.makeText(getActivity(), "Upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        toast("Upload failed: " + e.getMessage());
                         Log.e("ProfileFragment", "Upload failed: " + e.getMessage());
                     });
         } catch (Exception e) {
             pd.dismiss();
-            Toast.makeText(getActivity(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            Log.e("ProfileFragment", "Error in uploadImage: " + e.getMessage());
+            toast("Error: " + e.getMessage());
         }
     }
 
@@ -283,38 +279,18 @@ public class ProfileFragment extends Fragment {
         }
     }
 
-    private boolean isInternetAvailable() {
-        ConnectivityManager connectivityManager =
-                (ConnectivityManager) requireContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 
-        if (connectivityManager != null) {
-            NetworkCapabilities capabilities =
-                    connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
-            if (capabilities != null) {
-                return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
-                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR);
-            }
-        }
-        return false;
+
+    private void snackbar(String msg){
+        Snackbar snackbar = Snackbar.make(requireView(), msg, Snackbar.LENGTH_SHORT);
+        View snackbarView = snackbar.getView();
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) snackbarView.getLayoutParams();
+        params.bottomMargin = 180; // Adjust the value as needed
+        snackbarView.setLayoutParams(params);
+        snackbar.show();
     }
 
-    // Show a popup dialog when there is no internet
-    private void showNoInternetDialog() {
-        new AlertDialog.Builder(requireContext())
-                .setTitle("No Internet Connection")
-                .setMessage("Please check your internet connection and try again.")
-                .setCancelable(false) // User can't dismiss the dialog by tapping outside
-                .setPositiveButton("Retry", (dialog, which) -> {
-                    // Retry logic: Check for internet again
-                    if (!isInternetAvailable()) {
-                        showNoInternetDialog(); // Show the dialog again if still no internet
-                    } else {
-                        dialog.dismiss(); // Dismiss if internet is available
-                    }
-                })
-                .setNegativeButton("Exit", (dialog, which) -> {
-                    requireActivity().finish(); // Exit the app
-                })
-                .show();
+    private void toast(String msg){
+        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
     }
 }

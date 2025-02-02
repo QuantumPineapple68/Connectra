@@ -59,9 +59,6 @@ public class SearchFragment extends Fragment {
 
         databaseRef = FirebaseDatabase.getInstance().getReference("Users");
 
-        if (!isInternetAvailable()) {
-            showNoInternetDialog();
-        }
 
         // Fetching data from Firebase Realtime Database
         fetchUsers();
@@ -154,37 +151,4 @@ public class SearchFragment extends Fragment {
         userAdapter.notifyDataSetChanged(); // Notify the adapter
     }
 
-    private boolean isInternetAvailable() {
-        ConnectivityManager connectivityManager =
-                (ConnectivityManager) requireContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        if (connectivityManager != null) {
-            NetworkCapabilities capabilities =
-                    connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
-            if (capabilities != null) {
-                return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
-                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR);
-            }
-        }
-        return false;
-    }
-
-    // Show a popup dialog when there is no internet
-    private void showNoInternetDialog() {
-        new AlertDialog.Builder(requireContext())
-                .setTitle("No Internet Connection")
-                .setMessage("Please check your internet connection and try again.")
-                .setCancelable(false)
-                .setPositiveButton("Retry", (dialog, which) -> {
-                    if (!isInternetAvailable()) {
-                        showNoInternetDialog();
-                    } else {
-                        dialog.dismiss();
-                    }
-                })
-                .setNegativeButton("Exit", (dialog, which) -> {
-                    requireActivity().finish();
-                })
-                .show();
-    }
 }

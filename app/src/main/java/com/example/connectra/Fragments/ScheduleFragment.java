@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.connectra.R;
 import com.example.connectra.adapter.TaskAdapter;
 import com.example.connectra.model.Task;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -89,16 +90,12 @@ public class ScheduleFragment extends Fragment {
 
         btnAddTask.setOnClickListener(v -> showAddTaskDialog());
 
-        if (!isInternetAvailable()) {
-            showNoInternetDialog();
-        }
-
         return view;
     }
 
     private void deleteTask(Task task) {
         if (selectedDate == null || task.getId() == null) {
-            Toast.makeText(getContext(), "Unable to delete task", Toast.LENGTH_SHORT).show();
+            toast("Unable to delete task");
             return;
         }
 
@@ -106,12 +103,12 @@ public class ScheduleFragment extends Fragment {
                 .setTitle("Delete Task")
                 .setMessage("Are you sure you want to delete this task?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    tasksRef.child(selectedDate).child(task.getId())
+                    com.google.android.gms.tasks.Task<Void> voidTask = tasksRef.child(selectedDate).child(task.getId())
                             .removeValue()
                             .addOnSuccessListener(aVoid ->
-                                    Toast.makeText(getContext(), "Task deleted successfully", Toast.LENGTH_SHORT).show())
+                                    snackbar("Task Deleted Successfully"))
                             .addOnFailureListener(e ->
-                                    Toast.makeText(getContext(), "Failed to delete task", Toast.LENGTH_SHORT).show());
+                                    toast("Failed to delete task"));
                 })
                 .setNegativeButton("No", null)
                 .show();
@@ -151,9 +148,7 @@ public class ScheduleFragment extends Fragment {
             public void onCancelled(@NonNull DatabaseError error) {
                 // Check if Fragment is attached before showing Toast
                 if (isAdded() && getContext() != null) {
-                    Toast.makeText(getContext(),
-                            "Failed to fetch tasks: " + error.getMessage(),
-                            Toast.LENGTH_SHORT).show();
+                    toast("Failed to fetch tasks: " + error.getMessage());
                 }
             }
         });
@@ -171,7 +166,7 @@ public class ScheduleFragment extends Fragment {
             if (!TextUtils.isEmpty(title)) {
                 addTaskToFirebase(title);
             } else {
-                Toast.makeText(getContext(), "Task title cannot be empty", Toast.LENGTH_SHORT).show();
+                toast("Task title cannot be empty");
             }
         });
         builder.setNegativeButton("Cancel", null);
@@ -189,8 +184,8 @@ public class ScheduleFragment extends Fragment {
             taskMap.put("title", title);
 
             tasksRef.child(selectedDate).child(taskId).setValue(taskMap)
-                    .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Task added", Toast.LENGTH_SHORT).show())
-                    .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to add task", Toast.LENGTH_SHORT).show());
+                    .addOnSuccessListener(aVoid -> snackbar("Task added"))
+                    .addOnFailureListener(e -> toast("Failed to add task"));
         }
     }
 
@@ -199,38 +194,17 @@ public class ScheduleFragment extends Fragment {
         return dateFormat.format(new Date(calendarView.getDate()));
     }
 
-    private boolean isInternetAvailable() {
-        ConnectivityManager connectivityManager =
-                (ConnectivityManager) requireContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 
-        if (connectivityManager != null) {
-            NetworkCapabilities capabilities =
-                    connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
-            if (capabilities != null) {
-                return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
-                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR);
-            }
-        }
-        return false;
+    private void snackbar(String msg){
+        Snackbar snackbar = Snackbar.make(requireView(), msg, Snackbar.LENGTH_SHORT);
+        View snackbarView = snackbar.getView();
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) snackbarView.getLayoutParams();
+        params.bottomMargin = 180; // Adjust the value as needed
+        snackbarView.setLayoutParams(params);
+        snackbar.show();
     }
 
-    // Show a popup dialog when there is no internet
-    private void showNoInternetDialog() {
-        new AlertDialog.Builder(requireContext())
-                .setTitle("No Internet Connection")
-                .setMessage("Please check your internet connection and try again.")
-                .setCancelable(false) // User can't dismiss the dialog by tapping outside
-                .setPositiveButton("Retry", (dialog, which) -> {
-                    // Retry logic: Check for internet again
-                    if (!isInternetAvailable()) {
-                        showNoInternetDialog(); // Show the dialog again if still no internet
-                    } else {
-                        dialog.dismiss(); // Dismiss if internet is available
-                    }
-                })
-                .setNegativeButton("Exit", (dialog, which) -> {
-                    requireActivity().finish(); // Exit the app
-                })
-                .show();
+    private void toast(String msg){
+        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
     }
 }

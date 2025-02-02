@@ -16,7 +16,6 @@ import java.util.List;
 
 public class MyApplication extends Application {
     private static final String TAG = "FirebaseInit";
-    private AppDetonator appDetonator;
     private static boolean isSecondaryInitialized = false;
     private static final Object initLock = new Object();
     private static MyApplication instance;
@@ -26,8 +25,7 @@ public class MyApplication extends Application {
         super.onCreate();
         instance = this;
 
-        appDetonator = new AppDetonator();
-        registerActivityLifecycleCallbacks(appDetonator);
+        registerActivityLifecycleCallbacks(new AppDetonator());
 
         // Initialize the primary Firebase app (default project)
         FirebaseApp.initializeApp(this);
