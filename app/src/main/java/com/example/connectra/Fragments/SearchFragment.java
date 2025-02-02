@@ -116,7 +116,6 @@ public class SearchFragment extends Fragment {
                             long totalReviews = ratingsSnapshot.getChildrenCount();
                             rating = totalReviews > 0 ? totalRev / totalReviews : 0f;
 
-                            Log.e("rat",rating+"");
                         }
 
                         usersList.add(new NewUser(name, myskill, goalskill, gender, age, userId,
@@ -140,16 +139,18 @@ public class SearchFragment extends Fragment {
 
 
     private void filterUsersBySkill(String query) {
-        filteredList.clear();
+        List<NewUser> tempList = new ArrayList<>();
         if (query.isEmpty()) {
-            filteredList.addAll(usersList); // Show all users when query is empty
+            tempList.addAll(usersList);
         } else {
             for (NewUser user : usersList) {
                 if (user.getMyskill() != null && user.getMyskill().toLowerCase().contains(query.toLowerCase())) {
-                    filteredList.add(user);
+                    tempList.add(user);
                 }
             }
         }
+        filteredList.clear();
+        filteredList.addAll(tempList);
         userAdapter.notifyDataSetChanged(); // Notify the adapter
     }
 
@@ -173,17 +174,16 @@ public class SearchFragment extends Fragment {
         new AlertDialog.Builder(requireContext())
                 .setTitle("No Internet Connection")
                 .setMessage("Please check your internet connection and try again.")
-                .setCancelable(false) // User can't dismiss the dialog by tapping outside
+                .setCancelable(false)
                 .setPositiveButton("Retry", (dialog, which) -> {
-                    // Retry logic: Check for internet again
                     if (!isInternetAvailable()) {
-                        showNoInternetDialog(); // Show the dialog again if still no internet
+                        showNoInternetDialog();
                     } else {
-                        dialog.dismiss(); // Dismiss if internet is available
+                        dialog.dismiss();
                     }
                 })
                 .setNegativeButton("Exit", (dialog, which) -> {
-                    requireActivity().finish(); // Exit the app
+                    requireActivity().finish();
                 })
                 .show();
     }

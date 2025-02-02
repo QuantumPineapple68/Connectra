@@ -2,6 +2,7 @@ package com.example.connectra.adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,7 +48,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
 
         // Set profile image using Glide
         String profileImage = user.getProfileImage();
-        if (profileImage != null && !profileImage.isEmpty()) {
+        if (!TextUtils.isEmpty(profileImage)) {
             Glide.with(context)
                     .load(profileImage)
                     .placeholder(R.drawable.no_profile_pic)
