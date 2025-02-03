@@ -10,7 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.example.connectra.ChatTexts;
+import com.example.connectra.model.ChatTexts;
 import com.example.connectra.R;
 
 import java.util.List;
@@ -42,10 +42,9 @@ public class ChatTextsAdapter extends RecyclerView.Adapter<ChatTextsAdapter.Chat
             // Message sent by the current user
             holder.sentMessage.setVisibility(View.VISIBLE);
             holder.receivedMessage.setVisibility(View.GONE);
+            holder.profileImage.setVisibility(View.GONE);
             holder.sentMessage.setText(chatText.getMessage());
 
-            // Hide profile image for sent messages
-            holder.profileImage.setVisibility(View.GONE);
         } else {
             // Message received from the chat partner
             holder.receivedMessage.setVisibility(View.VISIBLE);

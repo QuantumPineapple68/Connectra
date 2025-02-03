@@ -1,4 +1,4 @@
-package com.example.connectra;
+package com.example.connectra.Authentication;
 
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
@@ -10,9 +10,10 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.activity.ComponentActivity;
-import androidx.annotation.NonNull;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.connectra.R;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class ForgotPassword extends AppCompatActivity {

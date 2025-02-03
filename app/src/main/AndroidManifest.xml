@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
-        android:name=".MyApplication"
+        android:name=".model.MyApplication"
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -40,19 +40,19 @@
             android:name=".ChangeSkillActivity"
             android:exported="false" />
         <activity
-            android:name=".ForgotPassword"
+            android:name=".Authentication.ForgotPassword"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="false" />
         <activity
-            android:name=".RegisterActivity"
+            android:name=".Authentication.RegisterActivity"
             android:exported="false"
             android:theme="@style/Theme.Connectra" />
 
         <!-- Launcher Activity -->
         <activity
-            android:name=".LoginActivity"
+            android:name=".Authentication.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -1,4 +1,4 @@
-package com.example.connectra.Fragments;
+package com.example.connectra.model;
 
 public class NewUser {
     private String name;

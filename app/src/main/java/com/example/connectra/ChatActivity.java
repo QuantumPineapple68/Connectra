@@ -1,6 +1,5 @@
 package com.example.connectra;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -8,6 +7,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,8 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.example.connectra.ChatTexts;
-import com.example.connectra.R;
+import com.example.connectra.model.ChatTexts;
 import com.example.connectra.adapter.ChatTextsAdapter;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -55,7 +54,7 @@ public class ChatActivity extends AppCompatActivity {
         chatPartnerId = getIntent().getStringExtra("chatPartnerId");
         chatPartnerName = getIntent().getStringExtra("chatPartnerName");
         currentUserId = getIntent().getStringExtra("currentUserId");
-        String profileImage = getIntent().getStringExtra("profileImage"); // Get the profile image URL
+        String profileImage = getIntent().getStringExtra("profileImage"); // profile image URL
 
         String conversationId = getConversationId(currentUserId, chatPartnerId);
 
@@ -68,13 +67,13 @@ public class ChatActivity extends AppCompatActivity {
         loadMessages();
 
         // Set profile image using Glide
-        profileImageView = findViewById(R.id.profile_image); // Ensure you have an ImageView in your layout with this ID
+        profileImageView = findViewById(R.id.profile_image);
         if (profileImage != null && !profileImage.isEmpty()) {
             Glide.with(this)
                     .load(profileImage)
-                    .placeholder(R.drawable.no_profile_pic)  // Placeholder image in case of null
-                    .error(R.drawable.no_profile_pic)      // Error image
-                    .into(profileImageView);  // Set the profile image into the ImageView
+                    .placeholder(R.drawable.no_profile_pic)
+                    .error(R.drawable.no_profile_pic)
+                    .into(profileImageView);
         } else {
             profileImageView.setImageResource(R.drawable.no_profile_pic); // Default image if no profile image URL
         }
@@ -94,12 +93,7 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
-        backButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+        backButton.setOnClickListener(v -> finish());
     }
 
     private void initializeFields() {
@@ -152,7 +146,7 @@ public class ChatActivity extends AppCompatActivity {
                     Log.e("namaiwa", chatPartnerId);
                     if (myName != null) {
                         String messageId = messagesRef.push().getKey();
-                        long timestamp = System.currentTimeMillis();
+                        long timestamp = System.currentTimeMillis(); // added for future use in updates
 
                         HashMap<String, Object> messageMap = new HashMap<>();
                         messageMap.put("messageId", messageId);
@@ -213,10 +207,9 @@ public class ChatActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                // Handle error
+                Toast.makeText(ChatActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
-
 
 }

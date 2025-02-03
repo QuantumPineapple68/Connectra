@@ -1,11 +1,11 @@
-package com.example.connectra;
+package com.example.connectra.model;
 
 public class ChatTexts {
     private String senderId;
     private String receiverId;
     private String message;
     private long timestamp;
-    private boolean read;  // New field
+    private boolean read;
 
     // Default constructor for Firebase
     public ChatTexts() {

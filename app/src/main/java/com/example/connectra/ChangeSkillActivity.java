@@ -29,6 +29,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public class ChangeSkillActivity extends AppCompatActivity {
@@ -49,7 +51,6 @@ public class ChangeSkillActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_change_skill);
 
-        // Initialize Views
         mySkillEditText = findViewById(R.id.new_myskill);
         goalSkillEditText = findViewById(R.id.new_goalskill);
         saveButton = findViewById(R.id.save);
@@ -57,7 +58,6 @@ public class ChangeSkillActivity extends AppCompatActivity {
         uploadBtn = findViewById(R.id.cerf_btn);
         certificate = findViewById(R.id.reg_cerf);
 
-        // Initialize Firebase
         auth = FirebaseAuth.getInstance();
         storage = FirebaseStorage.getInstance(FirebaseApp.getInstance("secondary"));
 
@@ -65,17 +65,14 @@ public class ChangeSkillActivity extends AppCompatActivity {
             String userId = auth.getCurrentUser().getUid();
             userRef = FirebaseDatabase.getInstance().getReference("Users").child(userId);
         } else {
-            Toast.makeText(this, "User not logged in!", Toast.LENGTH_SHORT).show();
-            finish(); // End the activity if user is not authenticated
+            toast("User not logged in!");
+            finish();
         }
 
-        // Save button functionality
         saveButton.setOnClickListener(v -> saveSkills());
 
-        // Certificate upload button functionality
         uploadBtn.setOnClickListener(v -> openCertificatePicker());
 
-        // Initialize the ActivityResultLauncher for picking a certificate
         certificatePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -94,7 +91,7 @@ public class ChangeSkillActivity extends AppCompatActivity {
                         .error(R.drawable.default_certificate)
                         .into(certificate);
             } else {
-                Toast.makeText(this, "Failed to load certificate.", Toast.LENGTH_SHORT).show();
+                toast("Failed to load certificate.");
             }
         });
     }
@@ -103,60 +100,40 @@ public class ChangeSkillActivity extends AppCompatActivity {
         String mySkill = mySkillEditText.getText().toString().trim();
         String goalSkill = goalSkillEditText.getText().toString().trim();
         String bio = bioEditText.getText().toString().trim();
-        boolean hasUpdates = false;
 
-        if (userRef == null) {
-            Toast.makeText(this, "Unable to save skills. User reference is null.", Toast.LENGTH_SHORT).show();
+        Map<String, Object> updates = new HashMap<>();
+
+        if (!mySkill.isEmpty()) {
+            updates.put("myskill", mySkill);
+        }
+        if (!goalSkill.isEmpty()) {
+            updates.put("goalskill", goalSkill);
+        }
+        if (!bio.isEmpty()) {
+            updates.put("bio", bio);
+        }
+
+        if (updates.isEmpty()) {
+            snackbar("No changes to update");
             return;
         }
 
-        // Update myskill if not empty
-        if (!mySkill.isEmpty()) {
-            userRef.child("myskill").setValue(mySkill)
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            snackbar("Your Skill has been Updated");
-                        } else {
-                            showError(task);
-                        }
-                    });
-            hasUpdates = true;
-        }
-
-        // Update goalskill if not empty
-        if (!goalSkill.isEmpty()) {
-            userRef.child("goalskill").setValue(goalSkill)
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            snackbar("Your Interest has been Updated");
-                        } else {
-                            showError(task);
-                        }
-                    });
-            hasUpdates = true;
-        }
-
-        // Update bio if not empty
-        if (!bio.isEmpty()) {
-            userRef.child("bio").setValue(bio)
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            snackbar("Your Bio has been Updated");
-                        } else {
-                            showError(task);
-                        }
-                    });
-            hasUpdates = true;
-        }
-
-        if (!hasUpdates) {
-            Toast.makeText(this, "No changes to update", Toast.LENGTH_SHORT).show();
-        }
-
-        Intent intent = new Intent(ChangeSkillActivity.this, MainActivity.class);
-        intent.putExtra("refreshProfile", true);
-        startActivity(intent);
-        finish();
+        userRef.updateChildren(updates).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                snackbar("Information has been updated!");
+            } else {
+                String message = "Error updating skills.";
+                if (task.getException() != null) {
+                    message = task.getException().getMessage();
+                }
+                toast(message);
+            }
+            // Navigate back to MainActivity
+            Intent intent = new Intent(ChangeSkillActivity.this, MainActivity.class);
+            intent.putExtra("refreshProfile", true);
+            startActivity(intent);
+            finish();
+        });
     }
 
     private void openCertificatePicker() {
@@ -168,12 +145,7 @@ public class ChangeSkillActivity extends AppCompatActivity {
 
     private void uploadCertificate() {
         if (certificateUri == null) {
-            Toast.makeText(this, "No certificate selected.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (userRef == null) {
-            Toast.makeText(this, "User reference is null.", Toast.LENGTH_SHORT).show();
+            toast("No certificate selected.");
             return;
         }
 
@@ -213,15 +185,15 @@ public class ChangeSkillActivity extends AppCompatActivity {
                 }).addOnFailureListener(e -> {
                     pd.dismiss();
                     // Handle failure to get the download URL
-                    Toast.makeText(this, "Failed to retrieve certificate URL: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    toast("Failed to retrieve certificate URL: " + e.getMessage());
                 });
             } else {
                 pd.dismiss();
                 // Handle failure to upload file
                 if (task.getException() != null) {
-                    Toast.makeText(this, "Certificate upload failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    toast("Certificate upload failed: " + task.getException().getMessage());
                 } else {
-                    Toast.makeText(this, "Certificate upload failed.", Toast.LENGTH_SHORT).show();
+                    toast("Certificate upload failed.");
                 }
             }
         });
@@ -235,14 +207,18 @@ public class ChangeSkillActivity extends AppCompatActivity {
     }
 
     private void showError(@NonNull Task<Void> task) {
-        String message = "Error updating skills.";
+        String message = "Error occurred";
         if (task.getException() != null) {
             message = task.getException().getMessage();
         }
-        Toast.makeText(ChangeSkillActivity.this, message, Toast.LENGTH_SHORT).show();
+        toast(message);
     }
 
     private void snackbar(String msg) {
         Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_SHORT).show();
+    }
+
+    private void toast(String msg){
+        Toast.makeText(ChangeSkillActivity.this, msg, Toast.LENGTH_SHORT).show();
     }
 }

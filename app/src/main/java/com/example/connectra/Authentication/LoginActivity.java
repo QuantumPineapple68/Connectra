@@ -1,20 +1,16 @@
-package com.example.connectra;
-
-import static android.content.ContentValues.TAG;
-import static androidx.core.content.ContentProviderCompat.requireContext;
+package com.example.connectra.Authentication;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.net.ConnectivityManager;
-import android.net.NetworkCapabilities;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.text.method.PasswordTransformationMethod;
-import android.util.Log;
+
+import com.example.connectra.ExtraDetailsActivity;
+import com.example.connectra.MainActivity;
 import com.example.connectra.R;
 import android.view.View;
 import android.widget.Button;

@@ -1,10 +1,6 @@
 // Updated SearchFragment.java using Firebase Realtime Database
 package com.example.connectra.Fragments;
 
-import android.app.AlertDialog;
-import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkCapabilities;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -22,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.connectra.R;
 import com.example.connectra.adapter.UserAdapter;
+import com.example.connectra.model.NewUser;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;

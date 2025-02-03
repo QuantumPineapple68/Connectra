@@ -12,7 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.example.connectra.Fragments.NewUser;
+import com.example.connectra.model.NewUser;
 import com.example.connectra.R;
 import com.example.connectra.RecyclerProfileMainActivity;
 

@@ -1,4 +1,4 @@
-package com.example.connectra;
+package com.example.connectra.model;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -11,7 +11,6 @@ import android.net.NetworkRequest;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Process;
 import android.util.Log;
 
 import androidx.annotation.NonNull;

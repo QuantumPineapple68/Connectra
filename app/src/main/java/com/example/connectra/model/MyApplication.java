@@ -1,16 +1,10 @@
-package com.example.connectra;
+package com.example.connectra.model;
 
 import android.app.Application;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import com.google.firebase.storage.FirebaseStorage;
 
 import java.util.List;
 

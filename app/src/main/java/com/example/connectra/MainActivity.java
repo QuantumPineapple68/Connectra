@@ -4,12 +4,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
-import android.app.AlertDialog;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+
+import com.example.connectra.Authentication.LoginActivity;
 import com.example.connectra.Fragments.HomeFragment;
 import com.example.connectra.Fragments.ProfileFragment;
 import com.example.connectra.Fragments.ScheduleFragment;
