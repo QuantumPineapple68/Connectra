@@ -5,7 +5,10 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.text.method.PasswordTransformationMethod;
 
@@ -19,6 +22,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.content.SharedPreferences;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -57,11 +61,17 @@ public class LoginActivity extends AppCompatActivity {
     private DatabaseReference detonatorRef;
 
 
+
     FirebaseAuth auth;
     private LinearLayout googleSignInBtn;
     private GoogleSignInClient mGoogleSignInClient;
     private static final int RC_SIGN_IN = 123;
     private DatabaseReference usersRef;
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private boolean terms;
+    private SharedPreferences sharedPreferences;
+    private static final String PREFS_NAME = "ConnectraPrefs";
+    private static final String TERMS_ACCEPTED_KEY = "TermsAccepted";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,6 +105,8 @@ public class LoginActivity extends AppCompatActivity {
 
         auth=FirebaseAuth.getInstance();
 
+        sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        terms = sharedPreferences.getBoolean(TERMS_ACCEPTED_KEY, false);
 
         forgotPass.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -126,7 +138,36 @@ public class LoginActivity extends AppCompatActivity {
         usersRef = FirebaseDatabase.getInstance().getReference("Users");
         initializeGoogleSignIn();
 
-        googleSignInBtn.setOnClickListener(v -> signIn());
+        googleSignInBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (terms){
+                    signIn();
+                }
+                else {
+                    AlertDialog termsDialog = new AlertDialog.Builder(LoginActivity.this)
+                            .setTitle("Terms & Conditions")
+                            .setMessage("By continuing, you agree to our Terms & Conditions")
+                            .setCancelable(false)
+                            .setPositiveButton("I agree", (dialog, which) -> {
+                                terms = true;
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putBoolean(TERMS_ACCEPTED_KEY, true);
+                                editor.apply();
+                                signIn();
+                            })
+                            .setNegativeButton("Exit", (dialog, which) -> forceAppExit())
+                            .setNeutralButton("Read T&C", (dialog, which) -> {
+                                String url = "https://sites.google.com/view/connectra-usage-terms/home";
+                                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                                startActivity(browserIntent);
+                            })
+                            .create();
+
+                    termsDialog.show();
+                }
+            }
+        });
 
     }
 
@@ -252,6 +293,15 @@ public class LoginActivity extends AppCompatActivity {
                 toast("Database error: " + error.getMessage());
             }
         });
+    }
+
+    private void forceAppExit() {
+        this.finishAffinity();
+
+        handler.postDelayed(() -> {
+            android.os.Process.killProcess(android.os.Process.myPid());
+            System.exit(0);
+        }, 100);
     }
 
     private void toast(String msg){

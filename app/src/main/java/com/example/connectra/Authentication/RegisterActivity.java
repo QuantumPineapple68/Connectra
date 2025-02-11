@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.text.method.PasswordTransformationMethod;
 import android.widget.Button;
@@ -49,6 +50,8 @@ public class RegisterActivity extends AppCompatActivity {
     DatabaseReference databaseRef;
     ProgressDialog pd;
     ImageView togglePassword, cerf;
+    AlertDialog termsDialog;
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
     FirebaseStorage storage;
     Uri certificateUri;
@@ -116,7 +119,23 @@ public class RegisterActivity extends AppCompatActivity {
                     if (ageValue < 0 || ageValue > 150) {
                         toast("Age must be a valid number");
                     } else {
-                        registerUser(txt_email,txt_password,txt_name, txt_username, txt_myskill, txt_goalskill, txt_age, txt_gender);
+                        termsDialog = new AlertDialog.Builder(this)
+                                .setTitle("Terms & Conditions")
+                                .setMessage("By continuing, you agree to our Terms & Conditions")
+                                .setCancelable(false)
+                                .setPositiveButton("I agree", (dialog, which) -> {
+                                    registerUser(txt_email, txt_password, txt_name, txt_username, txt_myskill, txt_goalskill, txt_age, txt_gender);
+                                })
+                                .setNegativeButton("Exit", (dialog, which) -> forceAppExit())
+                                .setNeutralButton("Read T&C", (dialog, which) -> {
+                                    String url = "https://sites.google.com/view/connectra-usage-terms/home";
+                                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                                    startActivity(browserIntent);
+                                })
+                                .create();
+
+                        termsDialog.show();
+
                     }
                 } catch (NumberFormatException e) {
                     toast("Please enter a valid age");
@@ -145,6 +164,7 @@ public class RegisterActivity extends AppCompatActivity {
         );
 
     }
+
 
     private void registerUser(String Email, String Password, String name, String username, String myskill, String goalskill, String age, String gender) {
         pd.setMessage("Please Wait ...");
@@ -326,6 +346,15 @@ public class RegisterActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void forceAppExit() {
+        this.finishAffinity();
+
+        handler.postDelayed(() -> {
+            android.os.Process.killProcess(android.os.Process.myPid());
+            System.exit(0);
+            }, 100);
     }
 
     private void toast(String msg){

@@ -89,11 +89,10 @@ public class ProfileFragment extends Fragment {
         // Logout functionality
         logoutButton.setOnClickListener(v -> logout());
 
+        bioTextView.setOnClickListener(v -> navigateToChangeSkill());
+
         // Change Skill functionality
-        changeSkill.setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), ChangeSkillActivity.class);
-            startActivity(intent);
-        });
+        changeSkill.setOnClickListener(v -> navigateToChangeSkill());
 
         // Image upload functionality
         profileImageView.setOnClickListener(v -> openImage());
@@ -271,7 +270,10 @@ public class ProfileFragment extends Fragment {
         }
     }
 
-
+    private void navigateToChangeSkill(){
+        Intent intent = new Intent(getActivity(), ChangeSkillActivity.class);
+        startActivity(intent);
+    }
 
     private void snackbar(String msg){
         Snackbar snackbar = Snackbar.make(requireView(), msg, Snackbar.LENGTH_SHORT);
