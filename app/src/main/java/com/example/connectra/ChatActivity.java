@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.connectra.model.ChatTexts;
 import com.example.connectra.adapter.ChatTextsAdapter;
+import com.example.connectra.utility.MessageFilter;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
@@ -134,9 +135,18 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void sendMessage(String messageText) {
+
+        if (MessageFilter.containsInappropriateContent(messageText)) {
+            Toast.makeText(ChatActivity.this,
+                    "Please keep the conversation appropriate.",
+                    Toast.LENGTH_SHORT).show();
+            messageText = MessageFilter.filterMessage(messageText);
+        }
+
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUserId);
         Log.e("namaiwa", currentUserId);
 
+        String finalMessageText = messageText;
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -150,7 +160,7 @@ public class ChatActivity extends AppCompatActivity {
 
                         HashMap<String, Object> messageMap = new HashMap<>();
                         messageMap.put("messageId", messageId);
-                        messageMap.put("message", messageText);
+                        messageMap.put("message", finalMessageText);
                         messageMap.put("senderId", currentUserId);
                         messageMap.put("receiverId", chatPartnerId);
                         messageMap.put("timestamp", timestamp);

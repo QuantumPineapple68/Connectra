@@ -25,9 +25,11 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.bumptech.glide.Glide;
+import com.example.connectra.ChatActivity;
 import com.example.connectra.MainActivity;
 import com.example.connectra.model.MyApplication;
 import com.example.connectra.R;
+import com.example.connectra.utility.MessageFilter;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
@@ -113,6 +115,9 @@ public class RegisterActivity extends AppCompatActivity {
                 toast("Please enter your full name with space in between");
             } else if (!txt_gender.equals("male") && !txt_gender.equals("female")) {
                 toast("Gender must be either male or female");
+            }
+            else if (MessageFilter.containsInappropriateContent(txt_myskill + txt_goalskill + txt_username + txt_name)) {
+                toast("Can't use inappropriate words");
             } else {
                 try {
                     int ageValue = Integer.parseInt(txt_age);

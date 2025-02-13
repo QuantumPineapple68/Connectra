@@ -20,6 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.example.connectra.utility.MessageFilter;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.FirebaseApp;
@@ -101,6 +102,11 @@ public class ChangeSkillActivity extends AppCompatActivity {
         String goalSkill = goalSkillEditText.getText().toString().trim();
         String bio = bioEditText.getText().toString().trim();
 
+        if (MessageFilter.containsInappropriateContent(mySkill + goalSkill + bio)) {
+            toast("Can't use inappropriate words");
+            return;
+        }
+
         Map<String, Object> updates = new HashMap<>();
 
         if (!mySkill.isEmpty()) {
@@ -112,6 +118,7 @@ public class ChangeSkillActivity extends AppCompatActivity {
         if (!bio.isEmpty()) {
             updates.put("bio", bio);
         }
+
 
         if (updates.isEmpty()) {
             snackbar("No changes to update");
