@@ -129,7 +129,7 @@ public class ProfileFragment extends Fragment {
     }
 
     private void setupUserValueEventListener() {
-        userValueEventListener = new ValueEventListener() {
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
@@ -176,9 +176,7 @@ public class ProfileFragment extends Fragment {
                 Log.e("DatabaseError", databaseError.getMessage());
                 toast("Failed to load user data");
             }
-        };
-
-        userRef.addValueEventListener(userValueEventListener);
+        });
     }
 
     private void logout() {
