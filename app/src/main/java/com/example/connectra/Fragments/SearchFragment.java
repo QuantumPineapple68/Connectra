@@ -100,6 +100,12 @@ public class SearchFragment extends Fragment {
                         String userName = userSnapshot.child("username").getValue(String.class);
                         String profileImage = userSnapshot.child("profileImage").getValue(String.class);
                         String certificate = userSnapshot.child("certificateUrl").getValue(String.class);
+                        boolean profileApproved = userSnapshot.child("profileApproved").getValue(Boolean.class) != null
+                                ? userSnapshot.child("profileApproved").getValue(Boolean.class)
+                                : false;
+                        boolean cerfApproved = userSnapshot.child("cerfApproved").getValue(Boolean.class) != null
+                                ? userSnapshot.child("cerfApproved").getValue(Boolean.class)
+                                : false;
 
                         float rating = 0f;
                         DataSnapshot ratingsSnapshot = userSnapshot.child("ratings");
@@ -113,7 +119,7 @@ public class SearchFragment extends Fragment {
                         }
 
                         usersList.add(new NewUser(name, myskill, goalskill, gender, age, userId,
-                                userName, bio, profileImage, rating, certificate));
+                                userName, bio, profileImage, rating, certificate, profileApproved, cerfApproved));
                     }
                 }
                 // Update filtered list and adapter

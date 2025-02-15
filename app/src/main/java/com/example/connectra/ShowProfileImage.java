@@ -36,9 +36,10 @@ public class ShowProfileImage extends AppCompatActivity {
         });
 
         String profileImage = getIntent().getStringExtra("profileImage");
+        boolean profileApproved = getIntent().getBooleanExtra("profileApproved", false);
 
         // Load image using Glide
-        if (profileImage != null && !profileImage.isEmpty()) {
+        if (profileImage != null && !profileImage.isEmpty() && profileApproved) {
             Glide.with(this)
                     .load(profileImage)
                     .placeholder(R.drawable.no_profile_pic)

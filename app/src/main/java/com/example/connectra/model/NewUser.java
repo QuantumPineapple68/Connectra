@@ -14,8 +14,10 @@ public class NewUser {
     private String cerf;
     private boolean hasUnreadMessages;
     private long lastMessageTimestamp;
+    private boolean profileAprooved;
+    private boolean cerfApproved;
 
-    public NewUser(String name, String myskill, String goalskill, String gender, String age, String id, String userName, String bio, String profileImage, float rating, String cerf) {
+    public NewUser(String name, String myskill, String goalskill, String gender, String age, String id, String userName, String bio, String profileImage, float rating, String cerf, boolean profileAprooved, boolean cerfApproved) {
         this.name = name;
         this.myskill = myskill;
         this.goalskill = goalskill;
@@ -29,6 +31,8 @@ public class NewUser {
         this.cerf = cerf;
         this.hasUnreadMessages = false;
         this.lastMessageTimestamp = 0;
+        this.profileAprooved = profileAprooved;
+        this.cerfApproved = cerfApproved;
     }
 
     // Default constructor for Firebase
@@ -137,6 +141,22 @@ public class NewUser {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public boolean isProfileAprooved() {
+        return profileAprooved;
+    }
+
+    public void setProfileAprooved(boolean profileAprooved) {
+        this.profileAprooved = profileAprooved;
+    }
+
+    public boolean isCerfApproved() {
+        return cerfApproved;
+    }
+
+    public void setCerfApproved(boolean cerfApproved) {
+        this.cerfApproved = cerfApproved;
     }
 
 }

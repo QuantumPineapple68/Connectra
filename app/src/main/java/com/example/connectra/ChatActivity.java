@@ -55,7 +55,8 @@ public class ChatActivity extends AppCompatActivity {
         chatPartnerId = getIntent().getStringExtra("chatPartnerId");
         chatPartnerName = getIntent().getStringExtra("chatPartnerName");
         currentUserId = getIntent().getStringExtra("currentUserId");
-        String profileImage = getIntent().getStringExtra("profileImage"); // profile image URL
+        String profileImage = getIntent().getStringExtra("profileImage");
+        boolean profileApproved = getIntent().getBooleanExtra("profileApproved", false);
 
         String conversationId = getConversationId(currentUserId, chatPartnerId);
 
@@ -69,7 +70,7 @@ public class ChatActivity extends AppCompatActivity {
 
         // Set profile image using Glide
         profileImageView = findViewById(R.id.profile_image);
-        if (profileImage != null && !profileImage.isEmpty()) {
+        if (profileImage != null && !profileImage.isEmpty() && profileApproved) {
             Glide.with(this)
                     .load(profileImage)
                     .placeholder(R.drawable.no_profile_pic)
@@ -109,7 +110,8 @@ public class ChatActivity extends AppCompatActivity {
     private void setupRecyclerView() {
         messageRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         String profileImageUrl = getIntent().getStringExtra("profileImage"); // Get the profile image URL
-        messageAdapter = new ChatTextsAdapter(messageList, currentUserId, profileImageUrl);
+        boolean profileApproved = getIntent().getBooleanExtra("profileApproved", false);
+        messageAdapter = new ChatTextsAdapter(messageList, currentUserId, profileImageUrl, profileApproved);
         messageRecyclerView.setAdapter(messageAdapter);
     }
 

@@ -20,11 +20,13 @@ public class ChatTextsAdapter extends RecyclerView.Adapter<ChatTextsAdapter.Chat
     private List<ChatTexts> chatTextsList;
     private String currentUserId;
     private String profileImageUrl; // URL for the profile image of the opposite user
+    private boolean profileApproved;
 
-    public ChatTextsAdapter(List<ChatTexts> chatTextsList, String currentUserId, String profileImageUrl) {
+    public ChatTextsAdapter(List<ChatTexts> chatTextsList, String currentUserId, String profileImageUrl, boolean profileApproved) {
         this.chatTextsList = chatTextsList;
         this.currentUserId = currentUserId;
         this.profileImageUrl = profileImageUrl;
+        this.profileApproved = profileApproved;
     }
 
     @NonNull
@@ -54,13 +56,16 @@ public class ChatTextsAdapter extends RecyclerView.Adapter<ChatTextsAdapter.Chat
             // Show profile image only at the start of a group
             if (position == 0 || !chatTextsList.get(position - 1).getSenderId().equals(chatText.getSenderId())) {
                 holder.profileImage.setVisibility(View.VISIBLE);
-
                 // Load the profile image using Glide
-                Glide.with(holder.itemView.getContext())
-                        .load(profileImageUrl)
-                        .placeholder(R.drawable.no_profile_pic)
-                        .error(R.drawable.no_profile_pic)
-                        .into(holder.profileImage);
+                if (profileApproved) {
+                    Glide.with(holder.itemView.getContext())
+                            .load(profileImageUrl)
+                            .placeholder(R.drawable.no_profile_pic)
+                            .error(R.drawable.no_profile_pic)
+                            .into(holder.profileImage);
+                }else {
+                    holder.profileImage.setImageResource(R.drawable.no_profile_pic);
+                }
             } else {
                 // Hide profile image for subsequent messages in the group
                 holder.profileImage.setVisibility(View.INVISIBLE);

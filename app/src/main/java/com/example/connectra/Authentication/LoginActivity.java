@@ -126,8 +126,8 @@ public class LoginActivity extends AppCompatActivity {
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String txt_email=email.getText().toString();
-                String txt_password=password.getText().toString();
+                String txt_email=email.getText().toString().trim();
+                String txt_password=password.getText().toString().trim();
                 loginUser(txt_email,txt_password);
             }
         });

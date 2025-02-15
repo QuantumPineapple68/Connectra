@@ -162,6 +162,12 @@ public class HomeFragment extends Fragment {
                                 String userName = userSnapshot.child("username").getValue(String.class);
                                 String profileImage = userSnapshot.child("profileImage").getValue(String.class);
                                 String certificate = userSnapshot.child("certificateUrl").getValue(String.class);
+                                boolean profileApproved = userSnapshot.child("profileApproved").getValue(Boolean.class) != null
+                                        ? userSnapshot.child("profileApproved").getValue(Boolean.class)
+                                        : false;
+                                boolean cerfApproved = userSnapshot.child("cerfApproved").getValue(Boolean.class) != null
+                                        ? userSnapshot.child("cerfApproved").getValue(Boolean.class)
+                                        : false;
 
                                 // Calculate rating
                                 float rating = 0f;
@@ -176,7 +182,7 @@ public class HomeFragment extends Fragment {
 
                                 // Create user object
                                 NewUser user = new NewUser(name, myskill, goalskill, gender, age, userId,
-                                        userName, bio, profileImage, rating, certificate);
+                                        userName, bio, profileImage, rating, certificate, profileApproved, cerfApproved);
 
                                 // Add to appropriate list based on message status
                                 if (unreadMessages.containsKey(userId)) {

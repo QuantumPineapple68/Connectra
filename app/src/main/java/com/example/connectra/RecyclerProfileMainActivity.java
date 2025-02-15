@@ -55,6 +55,8 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
         String profileImage = getIntent().getStringExtra("profileImage");
         profileUserId = getIntent().getStringExtra("userId");
         String certificate = getIntent().getStringExtra("certificate");
+        boolean profileApproved = getIntent().getBooleanExtra("profileApproved", false);
+        boolean cerfApproved = getIntent().getBooleanExtra("cerfApproved", false);
 
         // Set data to UI elements
         TextView nameTextView = findViewById(R.id.text_name);
@@ -81,7 +83,7 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
         });
 
         // Set profile image using Glide
-        if (profileImage != null && !profileImage.isEmpty()) {
+        if (profileImage != null && !profileImage.isEmpty() && profileApproved) {
             Glide.with(this)
                     .load(profileImage)
                     .placeholder(R.drawable.no_profile_pic)
@@ -91,7 +93,7 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
             ((ImageView) findViewById(R.id.profile_image)).setImageResource(R.drawable.no_profile_pic);
         }
 
-        if (certificate != null && !certificate.isEmpty()) {
+        if (certificate != null && !certificate.isEmpty() && cerfApproved) {
             Glide.with(this)
                     .load(certificate)
                     .placeholder(R.drawable.default_certificate)
@@ -120,6 +122,7 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
             intent.putExtra("chatPartnerId", chatPartnerId);
             intent.putExtra("chatPartnerName", chatPartnerName);
             intent.putExtra("profileImage", profileImage);
+            intent.putExtra("profileApproved", profileApproved);
             startActivity(intent);
         });
 
@@ -130,6 +133,7 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(RecyclerProfileMainActivity.this, ShowProfileImage.class);
                 intent.putExtra("profileImage", profileImage);
+                intent.putExtra("profileApproved", profileApproved);
                 startActivity(intent);
             }
         });

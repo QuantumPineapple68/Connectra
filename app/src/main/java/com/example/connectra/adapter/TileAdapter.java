@@ -65,7 +65,7 @@ public class TileAdapter extends RecyclerView.Adapter<TileAdapter.TileViewHolder
 
         // Set profile image using Glide
         String profileImage = user.getProfileImage();
-        if (profileImage != null && !profileImage.isEmpty()) {
+        if (profileImage != null && !profileImage.isEmpty() && user.isProfileAprooved()) {
             Glide.with(context)
                     .load(profileImage)
                     .placeholder(R.drawable.no_profile_pic)
@@ -90,6 +90,8 @@ public class TileAdapter extends RecyclerView.Adapter<TileAdapter.TileViewHolder
             intent.putExtra("userId", user.getId());
             intent.putExtra("profileImage", user.getProfileImage());
             intent.putExtra("certificate", user.getCerf());
+            intent.putExtra("profileApproved", user.isProfileAprooved());
+            intent.putExtra("cerfApproved", user.isCerfApproved());
 
             context.startActivity(intent);
         });

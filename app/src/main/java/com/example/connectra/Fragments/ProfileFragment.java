@@ -141,6 +141,9 @@ public class ProfileFragment extends Fragment {
                     String goalSkill = dataSnapshot.child("goalskill").getValue(String.class);
                     String bio = dataSnapshot.child("bio").getValue(String.class);
                     String profileImage = dataSnapshot.child("profileImage").getValue(String.class);
+                    boolean profileApproved = dataSnapshot.child("profileApproved").getValue(Boolean.class) != null
+                            ? dataSnapshot.child("profileApproved").getValue(Boolean.class)
+                            : false;
 
                     if (getActivity() != null) {
                         getActivity().runOnUiThread(() -> {
@@ -152,7 +155,7 @@ public class ProfileFragment extends Fragment {
                             if (goalSkill != null) goalSkillTextView.setText("I want to learn " + goalSkill);
                             if (bio != null) bioTextView.setText(bio);
 
-                            if (profileImage != null && !profileImage.isEmpty()) {
+                            if (profileImage != null && !profileImage.isEmpty() && profileApproved) {
                                 Glide.with(requireContext())
                                         .load(profileImage)
                                         .placeholder(R.drawable.no_profile_pic)
