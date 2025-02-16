@@ -87,10 +87,18 @@ public class SearchFragment extends Fragment {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 usersList.clear();
+                filteredList.clear(); // Clear both lists before adding users
+
                 for (DataSnapshot userSnapshot : snapshot.getChildren()) {
-                    // Fetch each field explicitly like in HomeFragment
                     String userId = userSnapshot.getKey();
                     if (!userId.equals(currentUserId)) {
+                        boolean isBanned = userSnapshot.child("banned").getValue(Boolean.class) != null
+                                ? userSnapshot.child("banned").getValue(Boolean.class)
+                                : false;
+
+                        // Skip banned users
+                        if (isBanned) continue;
+
                         String name = userSnapshot.child("name").getValue(String.class);
                         String myskill = userSnapshot.child("myskill").getValue(String.class);
                         String goalskill = userSnapshot.child("goalskill").getValue(String.class);
@@ -115,15 +123,15 @@ public class SearchFragment extends Fragment {
                             float totalRev = revSnapshot.getValue(Float.class);
                             long totalReviews = ratingsSnapshot.getChildrenCount();
                             rating = totalReviews > 0 ? totalRev / totalReviews : 0f;
-
                         }
 
-                        usersList.add(new NewUser(name, myskill, goalskill, gender, age, userId,
-                                userName, bio, profileImage, rating, certificate, profileApproved, cerfApproved));
+                        NewUser newUser = new NewUser(name, myskill, goalskill, gender, age, userId,
+                                userName, bio, profileImage, rating, certificate, profileApproved, cerfApproved, false);
+
+                        usersList.add(newUser);
                     }
                 }
                 // Update filtered list and adapter
-                filteredList.clear();
                 filteredList.addAll(usersList);
                 userAdapter.notifyDataSetChanged();
                 progressBar.setVisibility(View.GONE);
@@ -136,6 +144,7 @@ public class SearchFragment extends Fragment {
             }
         });
     }
+
 
 
     private void filterUsersBySkill(String query) {

@@ -16,8 +16,9 @@ public class NewUser {
     private long lastMessageTimestamp;
     private boolean profileAprooved;
     private boolean cerfApproved;
+    boolean isBanned = false;
 
-    public NewUser(String name, String myskill, String goalskill, String gender, String age, String id, String userName, String bio, String profileImage, float rating, String cerf, boolean profileAprooved, boolean cerfApproved) {
+    public NewUser(String name, String myskill, String goalskill, String gender, String age, String id, String userName, String bio, String profileImage, float rating, String cerf, boolean profileAprooved, boolean cerfApproved, boolean isBanned) {
         this.name = name;
         this.myskill = myskill;
         this.goalskill = goalskill;
@@ -33,6 +34,7 @@ public class NewUser {
         this.lastMessageTimestamp = 0;
         this.profileAprooved = profileAprooved;
         this.cerfApproved = cerfApproved;
+        this.isBanned = isBanned;
     }
 
     // Default constructor for Firebase
@@ -158,5 +160,13 @@ public class NewUser {
     public void setCerfApproved(boolean cerfApproved) {
         this.cerfApproved = cerfApproved;
     }
+
+    public boolean isBanned() {
+        return isBanned;
+    }
+    public void setBanned(boolean banned) {
+        isBanned = banned;
+    }
+
 
 }

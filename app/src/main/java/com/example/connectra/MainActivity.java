@@ -78,7 +78,10 @@ public class MainActivity extends AppCompatActivity {
                     .addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            if (!snapshot.exists()) {
+                            boolean isBanned = snapshot.child("banned").getValue(Boolean.class) != null
+                                    ? snapshot.child("banned").getValue(Boolean.class)
+                                    : false;
+                            if (!snapshot.exists() && isBanned) {
                                 // User hasn't completed profile, redirect to ExtraDetailsActivity
                                 Intent intent = new Intent(MainActivity.this, ExtraDetailsActivity.class);
                                 intent.putExtra("email", currentUser.getEmail());

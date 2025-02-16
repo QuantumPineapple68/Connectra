@@ -14,7 +14,6 @@ import android.text.method.PasswordTransformationMethod;
 
 import com.example.connectra.ExtraDetailsActivity;
 import com.example.connectra.MainActivity;
-import com.example.connectra.R;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -31,6 +30,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.connectra.R;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.AuthResult;

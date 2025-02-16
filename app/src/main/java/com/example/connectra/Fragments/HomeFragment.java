@@ -1,9 +1,12 @@
 package com.example.connectra.Fragments;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,6 +44,7 @@ public class HomeFragment extends Fragment {
     private TextView hi;
     private ProgressBar loadingProgressBar;
     private FirebaseAuth auth;
+    private AlertDialog DeletionDialog;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -95,12 +99,48 @@ public class HomeFragment extends Fragment {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    String fullName = snapshot.child("name").getValue(String.class);
-                    if (getActivity() != null && fullName != null) {
-                        hi.setText("Hi, " + fullName);
+                    boolean isBanned = snapshot.child("banned").getValue(Boolean.class) != null
+                            ? snapshot.child("banned").getValue(Boolean.class)
+                            : false;
+                    boolean hasOtherData = snapshot.getChildrenCount() > 1;
+
+                    if (isBanned && hasOtherData){
+                        loadingProgressBar.setVisibility(View.GONE);
+                        DeletionDialog = new AlertDialog.Builder(getContext())
+                                .setTitle("Account Suspended")
+                                .setMessage("Your account has been Suspended by admin for violating terms of use")
+                                .setCancelable(false)
+                                .setNegativeButton("Exit", (dialog, which) -> forceAppExit())
+                                .create();
+                        DeletionDialog.show();
                     }
+                    else if(isBanned && !hasOtherData){
+                        loadingProgressBar.setVisibility(View.GONE);
+                        DeletionDialog = new AlertDialog.Builder(getContext())
+                                .setTitle("Account Banned Permanently")
+                                .setMessage("Your account has been Banned by admin for violating terms of use")
+                                .setCancelable(false)
+                                .setNegativeButton("Exit", (dialog, which) -> forceAppExit())
+                                .create();
+                        DeletionDialog.show();
+                    }
+                    else {
+                        String fullName = snapshot.child("name").getValue(String.class);
+                        if (getActivity() != null && fullName != null) {
+                            hi.setText("Hi, " + fullName);
+                        }
+                    }
+
                 } else {
-                    toast("User data not found");
+                    toast("user data not found");
+                    DeletionDialog = new AlertDialog.Builder(getContext())
+                            .setTitle("Account Banned")
+                            .setMessage("Your account has been banned by admin for violating terms of use")
+                            .setCancelable(false)
+                            .setNegativeButton("Exit", (dialog, which) -> forceAppExit())
+                            .create();
+
+                    DeletionDialog.show();
                 }
             }
 
@@ -168,6 +208,9 @@ public class HomeFragment extends Fragment {
                                 boolean cerfApproved = userSnapshot.child("cerfApproved").getValue(Boolean.class) != null
                                         ? userSnapshot.child("cerfApproved").getValue(Boolean.class)
                                         : false;
+                                boolean isBanned = userSnapshot.child("banned").getValue(Boolean.class) != null
+                                        ? userSnapshot.child("banned").getValue(Boolean.class)
+                                        : false;
 
                                 // Calculate rating
                                 float rating = 0f;
@@ -182,15 +225,19 @@ public class HomeFragment extends Fragment {
 
                                 // Create user object
                                 NewUser user = new NewUser(name, myskill, goalskill, gender, age, userId,
-                                        userName, bio, profileImage, rating, certificate, profileApproved, cerfApproved);
+                                        userName, bio, profileImage, rating, certificate, profileApproved, cerfApproved, isBanned);
 
                                 // Add to appropriate list based on message status
                                 if (unreadMessages.containsKey(userId)) {
                                     user.setHasUnreadMessages(true);
                                     user.setLastMessageTimestamp(lastMessageTimes.get(userId));
-                                    usersWithMessages.add(user);
+                                    if (!isBanned) {
+                                        usersWithMessages.add(user);
+                                    }
                                 } else {
-                                    usersWithoutMessages.add(user);
+                                    if (!isBanned) {
+                                        usersWithoutMessages.add(user);
+                                    }
                                 }
                             }
                         }
@@ -265,6 +312,18 @@ public class HomeFragment extends Fragment {
             }
         }
     }
+
+    private void forceAppExit() {
+        if (isAdded() && getActivity() != null) {  // Check if Fragment is attached
+            requireActivity().finishAffinity();  // Close all activities
+
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                android.os.Process.killProcess(android.os.Process.myPid());
+                System.exit(0);
+            }, 100);
+        }
+    }
+
 
     private void toast(String msg){
         Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();

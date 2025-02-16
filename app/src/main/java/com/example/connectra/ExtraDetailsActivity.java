@@ -128,6 +128,9 @@ public class ExtraDetailsActivity extends AppCompatActivity {
         map.put("goalskill", goalskill);
         map.put("age", age);
         map.put("gender", gender);
+        map.put("profileApproved", false);
+        map.put("cerfApproved", false);
+        map.put("banned", false);
 
         databaseRef.child(userId).setValue(map).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
