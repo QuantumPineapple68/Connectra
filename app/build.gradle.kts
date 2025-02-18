@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.connectra"
+    namespace = "com.nachiket.connectra"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.connectra"
+        applicationId = "com.nachiket.connectra"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

@@ -1,0 +1,207 @@
+package com.nachiket.connectra.Fragments;
+
+import android.app.AlertDialog;
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CalendarView;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.nachiket.connectra.R;
+import com.nachiket.connectra.adapter.TaskAdapter;
+import com.nachiket.connectra.model.Task;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+
+public class ScheduleFragment extends Fragment {
+
+    private CalendarView calendarView;
+    private RecyclerView rvTasks;
+    private TextView tvNoTasks;
+    private Button btnAddTask;
+
+    private DatabaseReference tasksRef;
+    private String selectedDate;
+
+    private TaskAdapter taskAdapter;
+    private List<Task> taskList;
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_schedule, container, false);
+
+        // Initialize Views
+        calendarView = view.findViewById(R.id.calendar_view);
+        rvTasks = view.findViewById(R.id.rv_tasks);
+        tvNoTasks = view.findViewById(R.id.tv_no_tasks);
+        btnAddTask = view.findViewById(R.id.btn_add_task);
+
+        // Initialize Firebase Database
+        tasksRef = FirebaseDatabase.getInstance().getReference("Tasks").child(FirebaseAuth.getInstance().getUid());
+
+        // Initialize RecyclerView
+        rvTasks.setLayoutManager(new LinearLayoutManager(getContext()));
+        taskList = new ArrayList<>();
+        taskAdapter = new TaskAdapter(taskList);
+        rvTasks.setAdapter(taskAdapter);
+
+        // Set default date to today
+        selectedDate = getCurrentDate();
+        calendarView.setDate(System.currentTimeMillis(), false, true); // Ensure today is set in the CalendarView
+        fetchTasks(); // Fetch tasks for today immediately
+
+        // Listen for date changes
+        calendarView.setOnDateChangeListener((view1, year, month, dayOfMonth) -> {
+            // Format month and day to ensure 2 digits
+            String formattedMonth = String.format(Locale.getDefault(), "%02d", month + 1);
+            String formattedDay = String.format(Locale.getDefault(), "%02d", dayOfMonth);
+            selectedDate = year + "-" + formattedMonth + "-" + formattedDay;
+            fetchTasks();
+        });
+
+        taskAdapter = new TaskAdapter(taskList);
+        taskAdapter.setOnDeleteClickListener(task -> deleteTask(task));
+        rvTasks.setAdapter(taskAdapter);
+
+        btnAddTask.setOnClickListener(v -> showAddTaskDialog());
+
+        return view;
+    }
+
+    private void deleteTask(Task task) {
+        if (selectedDate == null || task.getId() == null) {
+            toast("Unable to delete task");
+            return;
+        }
+
+        new AlertDialog.Builder(getContext())
+                .setTitle("Delete Task")
+                .setMessage("Are you sure you want to delete this task?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    com.google.android.gms.tasks.Task<Void> voidTask = tasksRef.child(selectedDate).child(task.getId())
+                            .removeValue()
+                            .addOnSuccessListener(aVoid ->
+                                    snackbar("Task Deleted Successfully"))
+                            .addOnFailureListener(e ->
+                                    toast("Failed to delete task"));
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+
+    private void fetchTasks() {
+        if (selectedDate == null) {
+            selectedDate = getCurrentDate();
+        }
+
+        tasksRef.child(selectedDate).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!isAdded()) return;
+
+                taskList.clear();
+                if (snapshot.exists()) {
+                    for (DataSnapshot taskSnapshot : snapshot.getChildren()) {
+                        String id = taskSnapshot.getKey(); // Get the key as ID
+                        String title = taskSnapshot.child("title").getValue(String.class);
+                        if (id != null && title != null) {
+                            Task task = new Task(id, title);
+                            taskList.add(task);
+                        }
+                    }
+                    taskAdapter.notifyDataSetChanged();
+                    rvTasks.setVisibility(View.VISIBLE);
+                    tvNoTasks.setVisibility(View.GONE);
+                } else {
+                    rvTasks.setVisibility(View.GONE);
+                    tvNoTasks.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Check if Fragment is attached before showing Toast
+                if (isAdded() && getContext() != null) {
+                    toast("Failed to fetch tasks: " + error.getMessage());
+                }
+            }
+        });
+    }
+
+    private void showAddTaskDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_task, null, false);
+        EditText etTitle = dialogView.findViewById(R.id.tv_task_title);
+
+        builder.setView(dialogView);
+        builder.setPositiveButton("Add", (dialog, which) -> {
+            String title = etTitle.getText().toString().trim();
+
+            if (!TextUtils.isEmpty(title)) {
+                addTaskToFirebase(title);
+            } else {
+                toast("Task title cannot be empty");
+            }
+        });
+        builder.setNegativeButton("Cancel", null);
+        builder.create().show();
+    }
+
+    private void addTaskToFirebase(String title) {
+        if (selectedDate == null) {
+            selectedDate = getCurrentDate();
+        }
+
+        String taskId = tasksRef.child(selectedDate).push().getKey();
+        if (taskId != null) {
+            HashMap<String, Object> taskMap = new HashMap<>();
+            taskMap.put("title", title);
+
+            tasksRef.child(selectedDate).child(taskId).setValue(taskMap)
+                    .addOnSuccessListener(aVoid -> snackbar("Task added"))
+                    .addOnFailureListener(e -> toast("Failed to add task"));
+        }
+    }
+
+    private String getCurrentDate() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        return dateFormat.format(new Date(calendarView.getDate()));
+    }
+
+
+    private void snackbar(String msg){
+        Snackbar snackbar = Snackbar.make(requireView(), msg, Snackbar.LENGTH_SHORT);
+        View snackbarView = snackbar.getView();
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) snackbarView.getLayoutParams();
+        params.bottomMargin = 180; // Adjust the value as needed
+        snackbarView.setLayoutParams(params);
+        snackbar.show();
+    }
+
+    private void toast(String msg){
+        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+    }
+}

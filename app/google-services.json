@@ -8,17 +8,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:404492716071:android:b39cd54688519c34e0a602",
+        "mobilesdk_app_id": "1:404492716071:android:11807f1121c26b7be0a602",
         "android_client_info": {
-          "package_name": "com.example.connectra"
+          "package_name": "com.nachiket.connectra"
         }
       },
       "oauth_client": [
         {
-          "client_id": "404492716071-thiat994bnhl6b3tqueje26uqn815n1j.apps.googleusercontent.com",
+          "client_id": "404492716071-m6otfs309g3k067sbne9lppptibc5l53.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.connectra",
+            "package_name": "com.nachiket.connectra",
             "certificate_hash": "03201830c3d3382852a22cbf4bb50598f98782f9"
           }
         },
