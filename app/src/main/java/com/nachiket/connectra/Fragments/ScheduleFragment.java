@@ -267,16 +267,22 @@ public class ScheduleFragment extends Fragment {
     }
 
     private void deleteTask(Task task) {
-        tasksRef.child(selectedDate).child(task.getId()).removeValue()
-                .addOnSuccessListener(aVoid -> {
-                    for (String userId : connectedUserIds) {
-                        FirebaseDatabase.getInstance().getReference("Tasks")
-                                .child(userId)
-                                .child(selectedDate)
-                                .child(task.getId())
-                                .removeValue();
-                    }
-                });
+        String currentUserId = FirebaseAuth.getInstance().getUid();
+        if (currentUserId.equals(task.getOwnerId())) {
+            tasksRef.child(selectedDate).child(task.getId()).removeValue()
+                    .addOnSuccessListener(aVoid -> {
+                        for (String userId : connectedUserIds) {
+                            FirebaseDatabase.getInstance().getReference("Tasks")
+                                    .child(userId)
+                                    .child(selectedDate)
+                                    .child(task.getId())
+                                    .removeValue();
+                        }
+                        snackbar("Task deleted");
+                    });
+        } else {
+            toast("Only the owner can delete this task");
+        }
     }
 
 

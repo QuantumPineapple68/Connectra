@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -184,7 +185,7 @@ public class ConnectionActivity extends AppCompatActivity {
                         FirebaseDatabase.getInstance().getReference().updateChildren(updates)
                                 .addOnSuccessListener(aVoid -> {
                                     progressBar.setVisibility(View.GONE);
-                                    Toast.makeText(ConnectionActivity.this, "Connection request sent", Toast.LENGTH_SHORT).show();
+                                    Snackbar.make(findViewById(android.R.id.content), "Connection request sent", Snackbar.LENGTH_SHORT).show();
                                     user.setConnectionStatus("sent");
                                     userAdapter.notifyDataSetChanged();
                                 })
