@@ -33,6 +33,7 @@
             android:layout_marginEnd="8dp"
             android:src="@drawable/no_profile_pic" />
 
+
         <TextView
             android:id="@+id/profile_name"
             android:layout_width="wrap_content"

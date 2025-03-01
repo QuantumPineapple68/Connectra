@@ -17,7 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.nachiket.connectra.R;
-import com.nachiket.connectra.adapter.UserAdapter;
+import com.nachiket.connectra.adapter.NewUserAdapter;
 import com.nachiket.connectra.model.NewUser;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -32,7 +32,7 @@ import java.util.List;
 public class SearchFragment extends Fragment {
 
     private RecyclerView recyclerView;
-    private UserAdapter userAdapter;
+    private NewUserAdapter newUserAdapter;
     private List<NewUser> usersList, filteredList;
     private DatabaseReference databaseRef;
     private AutoCompleteTextView searchBar;
@@ -51,8 +51,8 @@ public class SearchFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         usersList = new ArrayList<>();
         filteredList = new ArrayList<>();
-        userAdapter = new UserAdapter(filteredList);
-        recyclerView.setAdapter(userAdapter);
+        newUserAdapter = new NewUserAdapter(filteredList);
+        recyclerView.setAdapter(newUserAdapter);
 
         databaseRef = FirebaseDatabase.getInstance().getReference("Users");
 
@@ -133,7 +133,7 @@ public class SearchFragment extends Fragment {
                 }
                 // Update filtered list and adapter
                 filteredList.addAll(usersList);
-                userAdapter.notifyDataSetChanged();
+                newUserAdapter.notifyDataSetChanged();
                 progressBar.setVisibility(View.GONE);
             }
 
@@ -160,7 +160,7 @@ public class SearchFragment extends Fragment {
         }
         filteredList.clear();
         filteredList.addAll(tempList);
-        userAdapter.notifyDataSetChanged(); // Notify the adapter
+        newUserAdapter.notifyDataSetChanged(); // Notify the adapter
     }
 
 }

@@ -1,11 +1,9 @@
 package com.nachiket.connectra.adapter;
 
-import android.content.Context;
-import android.content.Intent;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -13,129 +11,140 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.database.FirebaseDatabase;
 import com.nachiket.connectra.R;
-import com.nachiket.connectra.model.NewUser;
-import com.nachiket.connectra.RecyclerProfileMainActivity;
+import com.nachiket.connectra.model.User;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import de.hdodenhof.circleimageview.CircleImageView;
+public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder> {
 
-public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
+    private final List<User> userList;
+    private final String currentUserId; // Added member variable
+    private OnConnectClickListener connectClickListener;
 
-    private List<NewUser> users;
-    private Context context;  // Added context
+    public interface OnConnectClickListener {
+        void onConnectClick(User user);
+    }
 
+    public UserAdapter(List<User> userList, String currentUserId) {
+        this.userList = userList;
+        this.currentUserId = currentUserId;
+    }
 
-    public UserAdapter(List<NewUser> users) {
-        this.users = users;
+    public void setOnConnectClickListener(OnConnectClickListener listener) {
+        this.connectClickListener = listener;
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        context = parent.getContext();  // Initialize context
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recycler_item, parent, false);
-        return new ViewHolder(view);
+    public UserViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_user, parent, false);
+        return new UserViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        NewUser user = users.get(position);
-        holder.name.setText(user.getName());
-        holder.offeredSkill.setText("Offered: " + user.getMyskill());
-        holder.wishSkill.setText("Wants to learn: " + user.getGoalskill());
+    public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
+        User user = userList.get(position);
 
-        // Set profile image using Glide
-        String profileImage = user.getProfileImage();
-        if (!TextUtils.isEmpty(profileImage) && user.isProfileAprooved()) {
-            Glide.with(context)
-                    .load(profileImage)
+        // Check if user object is null
+        if (user == null) {
+            return;
+        }
+
+        // Handle null name and username safely
+        holder.tvName.setText(user.getName() != null ? user.getName() : "Unknown");
+        holder.tvUsername.setText(user.getUsername() != null ? "@" + user.getUsername() : "@unknown");
+
+        // Load profile image safely
+        if (user.getProfileImage() != null && !user.getProfileImage().isEmpty()) {
+            Glide.with(holder.itemView.getContext())
+                    .load(user.getProfileImage())
                     .placeholder(R.drawable.no_profile_pic)
                     .error(R.drawable.no_profile_pic)
-                    .into(holder.profileImage);
+                    .circleCrop()
+                    .into(holder.ivProfile);
         } else {
-            holder.profileImage.setImageResource(R.drawable.no_profile_pic);
+            holder.ivProfile.setImageResource(R.drawable.no_profile_pic);
         }
 
-        float rating = user.getRating();
-        if (holder.ratingImage != null) {
-            int ratingResource = getRatingImageResource(rating);
-            holder.ratingImage.setImageResource(ratingResource);
+        // Set button text and state based on connection status
+        String status = user.getConnectionStatus() != null ? user.getConnectionStatus() : "none";
+
+        switch (status) {
+            case "none":
+                if(hasExistingConnection()) {
+                    holder.btnConnect.setText("Connect");
+                    holder.btnConnect.setEnabled(false);
+                } else {
+                    holder.btnConnect.setText("Connect");
+                    holder.btnConnect.setEnabled(true);
+                }
+                break;
+            case "pending":
+                holder.btnConnect.setText("Accept");
+                holder.btnConnect.setEnabled(true);
+                break;
+            case "sent":
+                holder.btnConnect.setText("Requested");
+                holder.btnConnect.setEnabled(false);
+                break;
+            case "connected":
+                holder.btnConnect.setText("Disconnect");
+                holder.btnConnect.setEnabled(true);
+                break;
         }
 
-        // Gender logic
-        if (holder.genderImageView != null) {
-            String gender = user.getGender() == null ? "" : user.getGender().toLowerCase();
-            switch (gender) {
-                case "male":
-                    holder.genderImageView.setImageResource(R.drawable.icon_male);
-                    break;
-                case "female":
-                    holder.genderImageView.setImageResource(R.drawable.icon_female);
-                    break;
-                default:
-                    holder.genderImageView.setImageResource(R.drawable.icon_default);
-                    break;
+        holder.btnConnect.setOnClickListener(v -> {
+            if(status.equals("connected")) {
+                disconnectUser(user);
+            } else {
+                if (connectClickListener != null) {
+                    connectClickListener.onConnectClick(user);
+                }
             }
-        }
-
-        // Add click listener matching TileAdapter
-        holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, RecyclerProfileMainActivity.class);
-
-            // Pass the same user data as TileAdapter
-            intent.putExtra("name", user.getName());
-            intent.putExtra("userAge", user.getAge());
-            intent.putExtra("userMySkill", user.getMyskill());
-            intent.putExtra("userGoalSkill", user.getGoalskill());
-            intent.putExtra("userGender", user.getGender());
-            intent.putExtra("userName", user.getUsername());
-            intent.putExtra("bio", user.getBio());
-            intent.putExtra("userId", user.getId());
-            intent.putExtra("profileImage", user.getProfileImage());
-            intent.putExtra("certificate", user.getCerf());
-            intent.putExtra("profileApproved", user.isProfileAprooved());
-            intent.putExtra("cerfApproved", user.isCerfApproved());
-
-            context.startActivity(intent);
         });
     }
 
+    private boolean hasExistingConnection() {
+        for(User u : userList) {
+            if("connected".equals(u.getConnectionStatus())) return true;
+        }
+        return false;
+    }
+
+    private void disconnectUser(User user) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("/Connections/" + currentUserId + "/" + user.getId(), null);
+        updates.put("/Connections/" + user.getId() + "/" + currentUserId, null);
+
+        FirebaseDatabase.getInstance().getReference().updateChildren(updates)
+                .addOnSuccessListener(aVoid -> {
+                    user.setConnectionStatus("none");
+                    notifyDataSetChanged();
+                });
+    }
+
+
     @Override
     public int getItemCount() {
-        return users.size();
+        return userList.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView genderImageView, ratingImage;
+    public static class UserViewHolder extends RecyclerView.ViewHolder {
+        ImageView ivProfile;
+        TextView tvName, tvUsername;
+        Button btnConnect;
 
-        TextView name, offeredSkill, wishSkill;
-        CircleImageView profileImage;
-
-        public ViewHolder(@NonNull View itemView) {
+        public UserViewHolder(@NonNull View itemView) {
             super(itemView);
-            name = itemView.findViewById(R.id.profile_name);
-            offeredSkill = itemView.findViewById(R.id.offered_skill);
-            wishSkill = itemView.findViewById(R.id.wish_skill);
-            genderImageView = itemView.findViewById(R.id.gender_icon);
-            profileImage = itemView.findViewById(R.id.profile_image);
-            ratingImage = itemView.findViewById(R.id.recy_rev);
-
+            ivProfile = itemView.findViewById(R.id.iv_profile);
+            tvName = itemView.findViewById(R.id.tv_name);
+            tvUsername = itemView.findViewById(R.id.tv_username);
+            btnConnect = itemView.findViewById(R.id.btn_connect);
         }
-    }
-
-    private int getRatingImageResource(float average) {
-        if (average <= 0) return R.drawable.r0;
-        else if (average <= 0.5) return R.drawable.r0_5;
-        else if (average <= 1) return R.drawable.r1;
-        else if (average <= 1.5) return R.drawable.r1_5;
-        else if (average <= 2) return R.drawable.r2;
-        else if (average <= 2.5) return R.drawable.r2_5;
-        else if (average <= 3) return R.drawable.r3;
-        else if (average <= 3.5) return R.drawable.r3_5;
-        else if (average <= 4) return R.drawable.r4;
-        else if (average <= 4.5) return R.drawable.r4_5;
-        else return R.drawable.r5;
     }
 }

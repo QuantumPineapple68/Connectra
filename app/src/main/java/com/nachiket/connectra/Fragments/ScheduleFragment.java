@@ -1,6 +1,7 @@
 package com.nachiket.connectra.Fragments;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -9,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CalendarView;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,6 +19,9 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.nachiket.connectra.ConnectionActivity;
+import com.nachiket.connectra.ConnectionRequestsActivity;
 import com.nachiket.connectra.R;
 import com.nachiket.connectra.adapter.TaskAdapter;
 import com.nachiket.connectra.model.Task;
@@ -34,13 +39,20 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class ScheduleFragment extends Fragment {
 
     private CalendarView calendarView;
     private RecyclerView rvTasks;
-    private TextView tvNoTasks;
-    private Button btnAddTask;
+    private TextView tvNoTasks, tvConnectedPartner;
+    private FloatingActionButton btnAddTask;
+    private ProgressBar progressBar;
+    private List<String> connectedUserIds = new ArrayList<>();
+    private Map<DatabaseReference, ValueEventListener> taskListeners = new HashMap<>();
+    private Map<String, List<Task>> userTasksMap = new HashMap<>();
+    private Button btnManageConnections;
+    private Button test;
 
     private DatabaseReference tasksRef;
     private String selectedDate;
@@ -52,11 +64,20 @@ public class ScheduleFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_schedule, container, false);
 
+        btnManageConnections = view.findViewById(R.id.btn_manage_connections);
+        btnManageConnections.setOnClickListener(v ->
+                startActivity(new Intent(getActivity(), ConnectionActivity.class))
+        );
+
         // Initialize Views
         calendarView = view.findViewById(R.id.calendar_view);
         rvTasks = view.findViewById(R.id.rv_tasks);
         tvNoTasks = view.findViewById(R.id.tv_no_tasks);
         btnAddTask = view.findViewById(R.id.btn_add_task);
+        progressBar = view.findViewById(R.id.pgBar);
+        test = view.findViewById(R.id.test);
+        tvConnectedPartner = view.findViewById(R.id.tv_connected_partner);
+        updateConnectedPartnerUI();
 
         // Initialize Firebase Database
         tasksRef = FirebaseDatabase.getInstance().getReference("Tasks").child(FirebaseAuth.getInstance().getUid());
@@ -69,16 +90,24 @@ public class ScheduleFragment extends Fragment {
 
         // Set default date to today
         selectedDate = getCurrentDate();
-        calendarView.setDate(System.currentTimeMillis(), false, true); // Ensure today is set in the CalendarView
-        fetchTasks(); // Fetch tasks for today immediately
+        calendarView.setDate(System.currentTimeMillis(), false, true);
+        progressBar.setVisibility(View.VISIBLE);
 
         // Listen for date changes
         calendarView.setOnDateChangeListener((view1, year, month, dayOfMonth) -> {
-            // Format month and day to ensure 2 digits
             String formattedMonth = String.format(Locale.getDefault(), "%02d", month + 1);
             String formattedDay = String.format(Locale.getDefault(), "%02d", dayOfMonth);
             selectedDate = year + "-" + formattedMonth + "-" + formattedDay;
-            fetchTasks();
+            progressBar.setVisibility(View.VISIBLE);
+            setupTaskListeners(); // Refresh listeners for new date
+        });
+
+        test.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), ConnectionRequestsActivity.class);
+                startActivity(intent);
+            }
         });
 
         taskAdapter = new TaskAdapter(taskList);
@@ -87,69 +116,169 @@ public class ScheduleFragment extends Fragment {
 
         btnAddTask.setOnClickListener(v -> showAddTaskDialog());
 
+        taskAdapter.setOnCheckListener((task, isChecked) -> {
+            final String taskOwnerId = (task.getOwnerId() != null) ? task.getOwnerId() : FirebaseAuth.getInstance().getUid();
+
+            DatabaseReference ownerTaskRef = FirebaseDatabase.getInstance().getReference("Tasks")
+                    .child(taskOwnerId)
+                    .child(selectedDate)
+                    .child(task.getId())
+                    .child("checked");
+
+            ownerTaskRef.setValue(isChecked)
+                    .addOnSuccessListener(aVoid -> {
+                        for (String userId : connectedUserIds) {
+                            if (!userId.equals(taskOwnerId)) {
+                                FirebaseDatabase.getInstance().getReference("Tasks")
+                                        .child(userId)
+                                        .child(selectedDate)
+                                        .child(task.getId())
+                                        .child("checked")
+                                        .setValue(isChecked);
+                            }
+                        }
+                    });
+        });
+
+        // Add in onCreateView()
+        DatabaseReference connRef = FirebaseDatabase.getInstance().getReference("Connections")
+                .child(FirebaseAuth.getInstance().getUid());
+        connRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                updateConnectedPartnerUI();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+
+
+        fetchConnectedUsers();
+
         return view;
     }
 
-    private void deleteTask(Task task) {
-        if (selectedDate == null || task.getId() == null) {
-            toast("Unable to delete task");
-            return;
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Remove all task listeners
+        for (Map.Entry<DatabaseReference, ValueEventListener> entry : taskListeners.entrySet()) {
+            entry.getKey().removeEventListener(entry.getValue());
         }
-
-        new AlertDialog.Builder(getContext())
-                .setTitle("Delete Task")
-                .setMessage("Are you sure you want to delete this task?")
-                .setPositiveButton("Yes", (dialog, which) -> {
-                    com.google.android.gms.tasks.Task<Void> voidTask = tasksRef.child(selectedDate).child(task.getId())
-                            .removeValue()
-                            .addOnSuccessListener(aVoid ->
-                                    snackbar("Task Deleted Successfully"))
-                            .addOnFailureListener(e ->
-                                    toast("Failed to delete task"));
-                })
-                .setNegativeButton("No", null)
-                .show();
+        taskListeners.clear();
     }
 
+    private void fetchConnectedUsers() {
+        DatabaseReference connectionsRef = FirebaseDatabase.getInstance().getReference("Connections")
+                .child(FirebaseAuth.getInstance().getUid());
 
-    private void fetchTasks() {
-        if (selectedDate == null) {
-            selectedDate = getCurrentDate();
-        }
-
-        tasksRef.child(selectedDate).addValueEventListener(new ValueEventListener() {
+        connectionsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!isAdded()) return;
-
-                taskList.clear();
-                if (snapshot.exists()) {
-                    for (DataSnapshot taskSnapshot : snapshot.getChildren()) {
-                        String id = taskSnapshot.getKey(); // Get the key as ID
-                        String title = taskSnapshot.child("title").getValue(String.class);
-                        if (id != null && title != null) {
-                            Task task = new Task(id, title);
-                            taskList.add(task);
-                        }
+                connectedUserIds.clear();
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    if ("connected".equals(ds.child("status").getValue(String.class))) {
+                        connectedUserIds.add(ds.getKey());
                     }
-                    taskAdapter.notifyDataSetChanged();
-                    rvTasks.setVisibility(View.VISIBLE);
-                    tvNoTasks.setVisibility(View.GONE);
-                } else {
-                    rvTasks.setVisibility(View.GONE);
-                    tvNoTasks.setVisibility(View.VISIBLE);
                 }
+                setupTaskListeners();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                // Check if Fragment is attached before showing Toast
-                if (isAdded() && getContext() != null) {
-                    toast("Failed to fetch tasks: " + error.getMessage());
-                }
+                toast("Connection error: " + error.getMessage());
             }
         });
     }
+
+    private void setupTaskListeners() {
+        for (DatabaseReference ref : taskListeners.keySet()) {
+            ref.removeEventListener(taskListeners.get(ref));
+        }
+        taskListeners.clear();
+        userTasksMap.clear();
+
+        // Add listener for current user
+        addUserTaskListener(FirebaseAuth.getInstance().getUid());
+
+        // Add listeners for connected users
+        for (String userId : connectedUserIds) {
+            addUserTaskListener(userId);
+        }
+    }
+    private void addUserTaskListener(String userId) {
+        DatabaseReference userTaskRef = FirebaseDatabase.getInstance().getReference("Tasks")
+                .child(userId)
+                .child(selectedDate);
+
+        ValueEventListener listener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                processTasks(userId, snapshot);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                toast("Task load error: " + error.getMessage());
+            }
+        };
+
+        userTaskRef.addValueEventListener(listener);
+        taskListeners.put(userTaskRef, listener);
+    }
+
+    private void processTasks(String userId, DataSnapshot snapshot) {
+        List<Task> tasks = new ArrayList<>();
+        for (DataSnapshot taskSnap : snapshot.getChildren()) {
+            Task task = taskSnap.getValue(Task.class);
+            if (task != null) {
+                task.setId(taskSnap.getKey());
+                tasks.add(task); // OwnerId is already set from task data
+            }
+        }
+        userTasksMap.put(userId, tasks);
+        aggregateTasks();
+    }
+
+    private void aggregateTasks() {
+        Map<String, Task> taskMap = new HashMap<>();
+        for (List<Task> tasks : userTasksMap.values()) {
+            for (Task task : tasks) {
+                // Use task ID as key to avoid duplicates
+                taskMap.put(task.getId(), task);
+            }
+        }
+        taskList.clear();
+        taskList.addAll(taskMap.values());
+        taskAdapter.notifyDataSetChanged();
+        updateUI();
+    }
+
+    private void updateUI() {
+        if (taskList.isEmpty()) {
+            tvNoTasks.setVisibility(View.VISIBLE);
+            rvTasks.setVisibility(View.GONE);
+        } else {
+            tvNoTasks.setVisibility(View.GONE);
+            rvTasks.setVisibility(View.VISIBLE);
+        }
+        progressBar.setVisibility(View.GONE);
+    }
+
+    private void deleteTask(Task task) {
+        tasksRef.child(selectedDate).child(task.getId()).removeValue()
+                .addOnSuccessListener(aVoid -> {
+                    for (String userId : connectedUserIds) {
+                        FirebaseDatabase.getInstance().getReference("Tasks")
+                                .child(userId)
+                                .child(selectedDate)
+                                .child(task.getId())
+                                .removeValue();
+                    }
+                });
+    }
+
 
     private void showAddTaskDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
@@ -171,19 +300,57 @@ public class ScheduleFragment extends Fragment {
     }
 
     private void addTaskToFirebase(String title) {
-        if (selectedDate == null) {
-            selectedDate = getCurrentDate();
-        }
+        String taskId = FirebaseDatabase.getInstance().getReference().push().getKey();
+        HashMap<String, Object> taskMap = new HashMap<>();
+        taskMap.put("title", title);
+        taskMap.put("checked", false);
+        taskMap.put("ownerId", FirebaseAuth.getInstance().getUid());
 
-        String taskId = tasksRef.child(selectedDate).push().getKey();
-        if (taskId != null) {
-            HashMap<String, Object> taskMap = new HashMap<>();
-            taskMap.put("title", title);
+        // Save to current user
+        tasksRef.child(selectedDate).child(taskId).setValue(taskMap)
+                .addOnSuccessListener(aVoid -> {
+                    // Propagate to connected users
+                    for (String userId : connectedUserIds) {
+                        FirebaseDatabase.getInstance().getReference("Tasks")
+                                .child(userId)
+                                .child(selectedDate)
+                                .child(taskId)
+                                .setValue(taskMap);
+                    }
+                    snackbar("Task added");
+                });
+    }
 
-            tasksRef.child(selectedDate).child(taskId).setValue(taskMap)
-                    .addOnSuccessListener(aVoid -> snackbar("Task added"))
-                    .addOnFailureListener(e -> toast("Failed to add task"));
-        }
+    private void updateConnectedPartnerUI() {
+        DatabaseReference connRef = FirebaseDatabase.getInstance().getReference("Connections")
+                .child(FirebaseAuth.getInstance().getUid());
+
+        connRef.orderByChild("status").equalTo("connected").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if(snapshot.exists()) {
+                    for(DataSnapshot ds : snapshot.getChildren()) {
+                        String partnerId = ds.getKey();
+                        FirebaseDatabase.getInstance().getReference("Users").child(partnerId)
+                                .addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot userSnapshot) {
+                                        String username = userSnapshot.child("username").getValue(String.class);
+                                        tvConnectedPartner.setText("Connected: @" + username);
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {}
+                                });
+                        return;
+                    }
+                }
+                tvConnectedPartner.setText("No connected partner");
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 
     private String getCurrentDate() {
@@ -202,6 +369,8 @@ public class ScheduleFragment extends Fragment {
     }
 
     private void toast(String msg){
-        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+        if (isAdded() && getContext() != null) {
+            Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
+        }
     }
 }

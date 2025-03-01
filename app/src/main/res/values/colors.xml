@@ -6,5 +6,8 @@
     <color name="theme_light">#a86cff</color>
     <color name="theme_extra_light">#c39aff</color>
     <color name="theme_dark">#771bff</color>
+    <color name="red">#c10620</color>
+    <color name="green">#10c106</color>
+    <color name="text">#f873a0</color>
 
 </resources>
