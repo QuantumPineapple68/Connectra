@@ -1,6 +1,7 @@
 package com.nachiket.connectra.Fragments;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Intent;
@@ -48,6 +49,7 @@ public class ProfileFragment extends Fragment {
     private TextView welcome;
     private Button changeSkill;
     private TextView mySkillTextView, goalSkillTextView, credit;
+    private AlertDialog verificationDialog;
 
     private FirebaseAuth auth;
     private DatabaseReference userRef;
@@ -239,6 +241,16 @@ public class ProfileFragment extends Fragment {
                                     .addOnSuccessListener(aVoid -> {
                                         pd.dismiss();
                                         snackbar("Image Upload Successful!");
+                                        verificationDialog = new AlertDialog.Builder(getContext())
+                                                .setTitle("Image sent for Verification")
+                                                .setMessage("Your Profile picture has been sent to the admin for NSFW verification to check for mature content. It will appear to everyone once verified.")
+                                                .setCancelable(true)
+                                                .setPositiveButton("OK", (dialog, which) -> {
+                                                    dialog.dismiss();
+                                                })
+                                                .create();
+
+                                        verificationDialog.show();
                                     })
                                     .addOnFailureListener(e -> {
                                         pd.dismiss();

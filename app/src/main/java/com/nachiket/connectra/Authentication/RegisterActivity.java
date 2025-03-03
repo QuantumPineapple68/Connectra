@@ -51,7 +51,7 @@ public class RegisterActivity extends AppCompatActivity {
     DatabaseReference databaseRef;
     ProgressDialog pd;
     ImageView togglePassword, cerf;
-    AlertDialog termsDialog;
+    AlertDialog termsDialog, verificationDialog;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     FirebaseStorage storage;
@@ -289,10 +289,20 @@ public class RegisterActivity extends AppCompatActivity {
     private void handleRegistrationCompletion(boolean isSuccessful) {
         if (isSuccessful) {
             toast("Registration Successful!");
-            Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
-            finish();
+            verificationDialog = new AlertDialog.Builder(this)
+                    .setTitle("Image sent for Verification")
+                    .setMessage("Your certificatee has been sent to the admin for NSFW verification to check for mature content. It will appear to everyone once verified.")
+                    .setCancelable(false)
+                    .setPositiveButton("OK", (dialog, which) -> {
+                        dialog.dismiss();
+                        Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                        finish();
+                    })
+                    .create();
+
+            verificationDialog.show();
         } else {
             toast("Error completing registration.");
         }

@@ -1,5 +1,6 @@
 package com.nachiket.connectra;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Intent;
@@ -40,6 +41,7 @@ public class ChangeSkillActivity extends AppCompatActivity {
     private DatabaseReference userRef;
     private FirebaseStorage storage;
     private Uri certificateUri;
+    private AlertDialog verificationDialog;
 
     private ActivityResultLauncher<Intent> certificatePickerLauncher;
 
@@ -123,7 +125,7 @@ public class ChangeSkillActivity extends AppCompatActivity {
 
         userRef.updateChildren(updates).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                snackbar("Information has been updated!");
+                toast("Information has been updated!");
             } else {
                 String message = "Error updating skills.";
                 if (task.getException() != null) {
@@ -172,6 +174,7 @@ public class ChangeSkillActivity extends AppCompatActivity {
                     userRef.child("certificateUrl").setValue(url).addOnCompleteListener(task1 -> {
                         pd.dismiss();
                         if (task1.isSuccessful()) {
+                            userRef.child("cerfApproved").setValue(false);
                             // Display the uploaded certificate using Glide
                             Glide.with(this)
                                     .load(url)
@@ -180,6 +183,16 @@ public class ChangeSkillActivity extends AppCompatActivity {
                                     .into(certificate);
 
                             snackbar("Certificate uploaded and updated successfully!");
+                            verificationDialog = new AlertDialog.Builder(this)
+                                    .setTitle("Image sent for Verification")
+                                    .setMessage("Your certificate has been sent to the admin for NSFW verification to check for mature content. It will appear to everyone once verified.")
+                                    .setCancelable(true)
+                                    .setPositiveButton("OK", (dialog, which) -> {
+                                        dialog.dismiss();
+                                    })
+                                    .create();
+
+                            verificationDialog.show();
                         } else {
                             // Handle failure to update database
                             showError(task1);
