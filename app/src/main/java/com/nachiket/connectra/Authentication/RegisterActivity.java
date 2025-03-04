@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.text.method.PasswordTransformationMethod;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -23,8 +24,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.color.MaterialColors;
 import com.nachiket.connectra.MainActivity;
 import com.nachiket.connectra.model.MyApplication;
 import com.nachiket.connectra.R;
@@ -63,6 +66,13 @@ public class RegisterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register2);
+
+        Window window = getWindow();
+        int statusBarColor = getResources().getColor(R.color.login_bar, getTheme());
+        window.setStatusBarColor(statusBarColor);
+        WindowInsetsControllerCompat windowInsetsController = new WindowInsetsControllerCompat(window, window.getDecorView());
+        boolean isLightBackground = MaterialColors.isColorLight(statusBarColor);
+        windowInsetsController.setAppearanceLightStatusBars(isLightBackground);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());

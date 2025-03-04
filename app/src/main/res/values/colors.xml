@@ -9,5 +9,7 @@
     <color name="red">#c10620</color>
     <color name="green">#10c106</color>
     <color name="text">#f873a0</color>
+    <color name="inverted_top">#eaeaea</color>
+    <color name="login_bar">#c28dd5</color>
 
 </resources>

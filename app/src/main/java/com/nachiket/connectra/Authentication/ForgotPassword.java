@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -12,7 +13,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowInsetsControllerCompat;
 
+import com.google.android.material.color.MaterialColors;
 import com.nachiket.connectra.R;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -35,6 +38,14 @@ public class ForgotPassword extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Window window = getWindow();
+        int statusBarColor = getResources().getColor(R.color.theme_extra_light, getTheme());
+        window.setStatusBarColor(statusBarColor);
+        WindowInsetsControllerCompat windowInsetsController = new WindowInsetsControllerCompat(window, window.getDecorView());
+        boolean isLightBackground = MaterialColors.isColorLight(statusBarColor);
+        windowInsetsController.setAppearanceLightStatusBars(isLightBackground);
+
         // enableEdgeToEdge() is a Kotlin extension function; you may need to implement similar functionality if required in Java
         setContentView(R.layout.activity_forgot_password);
 

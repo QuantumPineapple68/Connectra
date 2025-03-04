@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -12,10 +13,12 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.color.MaterialColors;
 import com.nachiket.connectra.model.ChatTexts;
 import com.nachiket.connectra.adapter.ChatTextsAdapter;
 import com.nachiket.connectra.utility.MessageFilter;
@@ -52,8 +55,15 @@ public class ChatActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
-        backButton=findViewById(R.id.backBtn);
 
+        Window window = getWindow();
+        int statusBarColor = getResources().getColor(R.color.inverted_top, getTheme());
+        window.setStatusBarColor(statusBarColor);
+        WindowInsetsControllerCompat windowInsetsController = new WindowInsetsControllerCompat(window, window.getDecorView());
+        boolean isLightBackground = MaterialColors.isColorLight(statusBarColor);
+        windowInsetsController.setAppearanceLightStatusBars(isLightBackground);
+
+        backButton=findViewById(R.id.backBtn);
         chatPartnerId = getIntent().getStringExtra("chatPartnerId");
         chatPartnerName = getIntent().getStringExtra("chatPartnerName");
         currentUserId = getIntent().getStringExtra("currentUserId");
@@ -92,6 +102,7 @@ public class ChatActivity extends AppCompatActivity {
                 String messageText = messageInput.getText().toString().trim();
 
                 if (!TextUtils.isEmpty(messageText)) {
+                    sentSound.start();
                     sendMessage(messageText);
                     messageInput.setText(""); // Clear the input field
                 }
@@ -152,7 +163,6 @@ public class ChatActivity extends AppCompatActivity {
         Log.e("namaiwa", currentUserId);
 
         String finalMessageText = messageText;
-        sentSound.start();
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {

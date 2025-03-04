@@ -1,9 +1,9 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!-- Base theme (light mode) -->
     <style name="Base.Theme.Connectra" parent="Theme.Material3.Light.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <!-- Define your primary color (used for status bar) -->
+        <item name="colorPrimary">@color/theme</item>
+        <!-- Disable auto-dark mode -->
+        <item name="android:forceDarkAllowed">false</item>
     </style>
-
-    <style name="Theme.Connectra" parent="Base.Theme.Connectra" />
 </resources>

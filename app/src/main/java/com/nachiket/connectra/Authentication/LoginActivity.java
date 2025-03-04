@@ -12,9 +12,11 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.text.method.PasswordTransformationMethod;
 
+import com.google.android.material.color.MaterialColors;
 import com.nachiket.connectra.ExtraDetailsActivity;
 import com.nachiket.connectra.MainActivity;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -29,6 +31,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.nachiket.connectra.R;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -81,6 +84,13 @@ public class LoginActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        Window window = getWindow();
+        int statusBarColor = getResources().getColor(R.color.login_bar, getTheme());
+        window.setStatusBarColor(statusBarColor);
+        WindowInsetsControllerCompat windowInsetsController = new WindowInsetsControllerCompat(window, window.getDecorView());
+        boolean isLightBackground = MaterialColors.isColorLight(statusBarColor);
+        windowInsetsController.setAppearanceLightStatusBars(isLightBackground);
 
         banned = getIntent().getBooleanExtra("banned", false);
         suspended = getIntent().getBooleanExtra("suspended", false);

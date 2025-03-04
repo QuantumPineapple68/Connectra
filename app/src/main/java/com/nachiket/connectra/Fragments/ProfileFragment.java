@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -20,9 +21,11 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.color.MaterialColors;
 import com.nachiket.connectra.ChangeSkillActivity;
 import com.nachiket.connectra.Authentication.LoginActivity;
 import com.nachiket.connectra.model.MyApplication;
@@ -62,6 +65,13 @@ public class ProfileFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
+
+        Window window = requireActivity().getWindow();
+        int statusBarColor = getResources().getColor(R.color.white, requireContext().getTheme());
+        window.setStatusBarColor(statusBarColor);
+        WindowInsetsControllerCompat windowInsetsController = new WindowInsetsControllerCompat(window, window.getDecorView());
+        boolean isLightBackground = MaterialColors.isColorLight(statusBarColor);
+        windowInsetsController.setAppearanceLightStatusBars(isLightBackground);
 
         // Initialize Views
         fullNameTextView = view.findViewById(R.id.full_name);

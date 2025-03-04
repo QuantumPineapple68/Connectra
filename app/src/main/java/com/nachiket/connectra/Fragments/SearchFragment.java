@@ -1,6 +1,7 @@
 // Updated SearchFragment.java using Firebase Realtime Database
 package com.nachiket.connectra.Fragments;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -8,14 +9,17 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.AutoCompleteTextView;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.color.MaterialColors;
 import com.nachiket.connectra.R;
 import com.nachiket.connectra.adapter.NewUserAdapter;
 import com.nachiket.connectra.model.NewUser;
@@ -41,6 +45,13 @@ public class SearchFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_search, container, false);
+
+        Window window = requireActivity().getWindow();
+        int statusBarColor = getResources().getColor(R.color.inverted_top, requireContext().getTheme());
+        window.setStatusBarColor(statusBarColor);
+        WindowInsetsControllerCompat windowInsetsController = new WindowInsetsControllerCompat(window, window.getDecorView());
+        boolean isLightBackground = MaterialColors.isColorLight(statusBarColor);
+        windowInsetsController.setAppearanceLightStatusBars(isLightBackground);
 
         // Initialize components
         recyclerView = view.findViewById(R.id.recycler_view);
