@@ -64,6 +64,7 @@
             android:textColor="@color/black"
             android:textSize="25sp"
             android:hint="Loading..."
+            android:textAlignment="center"
             android:textStyle="italic"
             android:shadowColor="#4D000000"
             android:shadowDx="3"

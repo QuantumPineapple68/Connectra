@@ -1,5 +1,6 @@
 package com.nachiket.connectra;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
@@ -29,6 +30,7 @@ public class ExtraDetailsActivity extends AppCompatActivity {
     EditText name, username, myskill, goalskill, age, gender;
     Button register, cerfbtn;
     ImageView cerf;
+    AlertDialog verificationDialog;
 
     FirebaseAuth auth;
     DatabaseReference databaseRef;
@@ -200,7 +202,17 @@ public class ExtraDetailsActivity extends AppCompatActivity {
                             .addOnCompleteListener(task1 -> {
                                 pd.dismiss();
                                 if (task1.isSuccessful()) {
-                                    proceedToMainActivity();
+                                    verificationDialog = new AlertDialog.Builder(this)
+                                            .setTitle("Image sent for Verification")
+                                            .setMessage("Your certificate has been sent to the admin for NSFW verification to check for mature content. It will appear to everyone once verified.")
+                                            .setCancelable(true)
+                                            .setPositiveButton("OK", (dialog, which) -> {
+                                                dialog.dismiss();
+                                                proceedToMainActivity();
+                                            })
+                                            .create();
+
+                                    verificationDialog.show();
                                 } else {
                                     Toast.makeText(ExtraDetailsActivity.this,
                                             "Error saving certificate URL.", Toast.LENGTH_SHORT).show();

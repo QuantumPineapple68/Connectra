@@ -1,5 +1,6 @@
 package com.nachiket.connectra;
 
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -37,6 +38,7 @@ public class ChatActivity extends AppCompatActivity {
     private ChatTextsAdapter messageAdapter;
     private List<ChatTexts> messageList;
     private ImageView backButton;
+    MediaPlayer sentSound;
 
     private String currentUserId;
     private String chatPartnerId;
@@ -59,6 +61,7 @@ public class ChatActivity extends AppCompatActivity {
         boolean profileApproved = getIntent().getBooleanExtra("profileApproved", false);
 
         String conversationId = getConversationId(currentUserId, chatPartnerId);
+        sentSound = MediaPlayer.create(this, R.raw.send);
 
         messagesRef = FirebaseDatabase.getInstance().getReference("Messages").child(conversationId);
 
@@ -174,6 +177,8 @@ public class ChatActivity extends AppCompatActivity {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
                                     if (task.isSuccessful()) {
+                                        sentSound.setVolume(0.75f, 0.75f);
+                                        sentSound.start();
                                         Log.e("namaiwa", "Message sent successfully");
                                     } else {
                                         Log.e("namaiwa", "Failed to send message");
