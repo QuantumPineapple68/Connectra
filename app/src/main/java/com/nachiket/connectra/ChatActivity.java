@@ -152,6 +152,7 @@ public class ChatActivity extends AppCompatActivity {
         Log.e("namaiwa", currentUserId);
 
         String finalMessageText = messageText;
+        sentSound.start();
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -177,8 +178,6 @@ public class ChatActivity extends AppCompatActivity {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
                                     if (task.isSuccessful()) {
-                                        sentSound.setVolume(0.75f, 0.75f);
-                                        sentSound.start();
                                         Log.e("namaiwa", "Message sent successfully");
                                     } else {
                                         Log.e("namaiwa", "Failed to send message");

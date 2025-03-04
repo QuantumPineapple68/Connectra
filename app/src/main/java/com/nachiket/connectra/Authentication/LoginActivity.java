@@ -58,9 +58,7 @@ public class LoginActivity extends AppCompatActivity {
     TextView forgotPass;
     ImageView togglePassword;
     ProgressDialog pd;
-    private DatabaseReference detonatorRef;
-
-
+    private AlertDialog DeletionDialog;
 
     FirebaseAuth auth;
     private LinearLayout googleSignInBtn;
@@ -68,7 +66,7 @@ public class LoginActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 123;
     private DatabaseReference usersRef;
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private boolean terms;
+    private boolean terms, banned, suspended;
     private SharedPreferences sharedPreferences;
     private static final String PREFS_NAME = "ConnectraPrefs";
     private static final String TERMS_ACCEPTED_KEY = "TermsAccepted";
@@ -84,14 +82,26 @@ public class LoginActivity extends AppCompatActivity {
             return insets;
         });
 
-        int nightModeFlags = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
-        if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
-            new AlertDialog.Builder(this)
-                    .setTitle("Suggestion!!")
-                    .setMessage("Please Turn off the Dark mode for the best experience.")
-                    .setCancelable(true) // User can dismiss the dialog by tapping outside
-                    .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
-                    .show();
+        banned = getIntent().getBooleanExtra("banned", false);
+        suspended = getIntent().getBooleanExtra("suspended", false);
+
+        if (suspended){
+            DeletionDialog = new AlertDialog.Builder(this)
+                    .setTitle("Account Suspended")
+                    .setMessage("Your account has been Suspended by admin for violating terms of use")
+                    .setCancelable(false)
+                    .setNegativeButton("Exit", (dialog, which) -> forceAppExit())
+                    .create();
+            DeletionDialog.show();
+        }
+        else if (banned){
+            DeletionDialog = new AlertDialog.Builder(this)
+                    .setTitle("Account Banned Permanently")
+                    .setMessage("Your account has been Banned by admin for violating terms of use")
+                    .setCancelable(false)
+                    .setNegativeButton("Exit", (dialog, which) -> forceAppExit())
+                    .create();
+            DeletionDialog.show();
         }
 
 

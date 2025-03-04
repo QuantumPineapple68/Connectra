@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.EditText;
@@ -21,6 +22,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.nachiket.connectra.Authentication.RegisterActivity;
+import com.nachiket.connectra.model.MyApplication;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -47,6 +51,8 @@ public class ExtraDetailsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_extra_details);
 
+        initializeStorage();
+
         // Initialize views
         name = findViewById(R.id.fulltxtname);
         username = findViewById(R.id.fulltxtusername);
@@ -64,7 +70,6 @@ public class ExtraDetailsActivity extends AppCompatActivity {
         // Initialize Firebase
         auth = FirebaseAuth.getInstance();
         databaseRef = FirebaseDatabase.getInstance().getReference("Users");
-        storage = FirebaseStorage.getInstance(FirebaseApp.getInstance("secondary"));
         pd = new ProgressDialog(this);
 
         register.setOnClickListener(v -> {
@@ -113,6 +118,43 @@ public class ExtraDetailsActivity extends AppCompatActivity {
                     }
                 }
         );
+    }
+
+    private void initializeStorage() {
+        ProgressDialog initDialog = new ProgressDialog(this);
+        initDialog.setMessage("Initializing...");
+        initDialog.setCancelable(false);
+        initDialog.show();
+
+        new Handler().post(new Runnable() {
+            private int attempts = 0;
+
+            @Override
+            public void run() {
+                try {
+                    // First ensure we clean up any existing instances
+                    MyApplication.cleanupFirebaseInstances();
+                    // Then initialize a fresh instance
+                    FirebaseApp secondaryApp = MyApplication.initializeSecondaryApp();
+                    storage = FirebaseStorage.getInstance(secondaryApp);
+                    initDialog.dismiss();
+                } catch (Exception e) {
+                    attempts++;
+                    if (attempts < 3) {
+                        // Retry after 1 second
+                        new Handler().postDelayed(this, 1000);
+                    } else {
+                        initDialog.dismiss();
+                        new AlertDialog.Builder(ExtraDetailsActivity.this)
+                                .setTitle("Initialization Error")
+                                .setMessage("Failed to initialize storage. Please restart the app.")
+                                .setPositiveButton("OK", (dialog, which) -> finish())
+                                .setCancelable(false)
+                                .show();
+                    }
+                }
+            }
+        });
     }
 
     private void registerUser(String name, String username, String myskill, String goalskill, String age, String gender) {

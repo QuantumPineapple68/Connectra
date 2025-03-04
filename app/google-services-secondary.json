@@ -1,111 +1,46 @@
 {
   "project_info": {
-    "project_number": "371842266437",
-    "firebase_url": "https://genzcrop-c72a2-default-rtdb.firebaseio.com",
-    "project_id": "genzcrop-c72a2",
-    "storage_bucket": "genzcrop-c72a2.appspot.com"
+    "project_number": "372911637561",
+    "firebase_url": "https://lean-58efd-default-rtdb.firebaseio.com",
+    "project_id": "lean-58efd",
+    "storage_bucket": "lean-58efd.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:371842266437:android:cbdf5cd0f890f851647a2c",
+        "mobilesdk_app_id": "1:372911637561:android:7129c56090bd6f0b0cf9e8",
         "android_client_info": {
           "package_name": "com.nachiket.connectra"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "371842266437-h7so7cbhs3477ol887d9jm01d7sqd73u.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAWrork2SzWDZSovFD1W5CSS5dvoOvOZaQ"
+          "current_key": "AIzaSyB__SU0eSAYtHObFVw7jIpMNpjyNtRzkHA"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "371842266437-h7so7cbhs3477ol887d9jm01d7sqd73u.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:371842266437:android:aaddda7a5c8e8b71647a2c",
+        "mobilesdk_app_id": "1:372911637561:android:0d58892cf5a62ed00cf9e8",
         "android_client_info": {
-          "package_name": "com.genzopia.genzcrop"
+          "package_name": "com.nachiket.connectra_admin"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "371842266437-brujqqhm9otch576c5j5g2c0f81sju6p.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.genzopia.genzcrop",
-            "certificate_hash": "ad3074dacd2d38beb7e87d2b10085cc38d091577"
-          }
-        },
-        {
-          "client_id": "371842266437-h7so7cbhs3477ol887d9jm01d7sqd73u.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAWrork2SzWDZSovFD1W5CSS5dvoOvOZaQ"
+          "current_key": "AIzaSyB__SU0eSAYtHObFVw7jIpMNpjyNtRzkHA"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "371842266437-h7so7cbhs3477ol887d9jm01d7sqd73u.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:371842266437:android:319d8846a973af65647a2c",
-        "android_client_info": {
-          "package_name": "com.genzopia.genzcropfarmer"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "371842266437-m0j7iffl73ihank10ehseaj8bojufok7.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.genzopia.genzcropfarmer",
-            "certificate_hash": "ad3074dacd2d38beb7e87d2b10085cc38d091577"
-          }
-        },
-        {
-          "client_id": "371842266437-h7so7cbhs3477ol887d9jm01d7sqd73u.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAWrork2SzWDZSovFD1W5CSS5dvoOvOZaQ"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "371842266437-h7so7cbhs3477ol887d9jm01d7sqd73u.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

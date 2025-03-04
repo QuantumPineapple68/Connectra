@@ -21,12 +21,6 @@
             android:name=".ConnectionRequestsActivity"
             android:exported="false" />
         <activity
-            android:name=".ConnectionrequestActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ConnectionRequestActivity"
-            android:exported="false" />
-        <activity
             android:name=".ConnectionActivity"
             android:exported="false" /> <!-- Metadata for Google services -->
         <meta-data

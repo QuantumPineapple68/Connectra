@@ -235,6 +235,7 @@ public class ProfileFragment extends Fragment {
 
             fireRef.putFile(imageUri)
                     .addOnSuccessListener(taskSnapshot -> {
+                        userRef.child("profileApproved").setValue(false);
                         fireRef.getDownloadUrl().addOnSuccessListener(uri -> {
                             String url = uri.toString();
                             userRef.child("profileImage").setValue(url)

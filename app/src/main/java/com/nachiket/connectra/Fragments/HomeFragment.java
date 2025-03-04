@@ -2,11 +2,13 @@ package com.nachiket.connectra.Fragments;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +21,9 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.nachiket.connectra.Authentication.LoginActivity;
+import com.nachiket.connectra.ExtraDetailsActivity;
+import com.nachiket.connectra.MainActivity;
 import com.nachiket.connectra.model.ChatTexts;
 import com.nachiket.connectra.R;
 import com.nachiket.connectra.adapter.TileAdapter;
@@ -40,11 +45,10 @@ public class HomeFragment extends Fragment {
     private RecyclerView recyclerView;
     private TileAdapter tileAdapter;
     private List<NewUser> userList;
-    private DatabaseReference databaseRef;
+    private DatabaseReference databaseRef, detonatorRef;
     private TextView hi;
     private ProgressBar loadingProgressBar;
     private FirebaseAuth auth;
-    private AlertDialog DeletionDialog;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -55,6 +59,8 @@ public class HomeFragment extends Fragment {
 
         // Initialize Realtime Database and RecyclerView
         databaseRef = FirebaseDatabase.getInstance().getReference("Users");
+        detonatorRef = FirebaseDatabase.getInstance().getReference("Detonator");
+
         recyclerView = view.findViewById(R.id.recycler_view_home);
         loadingProgressBar = view.findViewById(R.id.loading_progress_bar);
         // Initialize user list and adapter
@@ -72,6 +78,9 @@ public class HomeFragment extends Fragment {
         fetchUserData();
         fetchUsersFromDatabase();
 
+        // extra check to fix clear data bug
+        setupDetonatorListener();
+
         return view;
     }
 
@@ -86,6 +95,24 @@ public class HomeFragment extends Fragment {
         tileAdapter.notifyDataSetChanged();
     }
 
+    private void setupDetonatorListener() {
+        detonatorRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Boolean isActive = snapshot.child("isActive_1,0").getValue(Boolean.class);
+                if (isActive != null) {
+                    if (!isActive) {
+                        showExitDialog();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("AppDetonator", "Database error: " + error.getMessage());
+            }
+        });
+    }
 
 
     private void fetchUserData() {
@@ -105,24 +132,18 @@ public class HomeFragment extends Fragment {
                     boolean hasOtherData = snapshot.getChildrenCount() > 1;
 
                     if (isBanned && hasOtherData){
-                        loadingProgressBar.setVisibility(View.GONE);
-                        DeletionDialog = new AlertDialog.Builder(getContext())
-                                .setTitle("Account Suspended")
-                                .setMessage("Your account has been Suspended by admin for violating terms of use")
-                                .setCancelable(false)
-                                .setNegativeButton("Exit", (dialog, which) -> forceAppExit())
-                                .create();
-                        DeletionDialog.show();
+                        auth.signOut();
+                        Intent loginIntent = new Intent(getContext(), LoginActivity.class);
+                        loginIntent.putExtra("suspended", true);
+                        startActivity(loginIntent);
+                        getActivity().finish();
                     }
                     else if(isBanned && !hasOtherData){
-                        loadingProgressBar.setVisibility(View.GONE);
-                        DeletionDialog = new AlertDialog.Builder(getContext())
-                                .setTitle("Account Banned Permanently")
-                                .setMessage("Your account has been Banned by admin for violating terms of use")
-                                .setCancelable(false)
-                                .setNegativeButton("Exit", (dialog, which) -> forceAppExit())
-                                .create();
-                        DeletionDialog.show();
+                        auth.signOut();
+                        Intent loginIntent = new Intent(getContext(), LoginActivity.class);
+                        loginIntent.putExtra("banned", true);
+                        startActivity(loginIntent);
+                        getActivity().finish();
                     }
                     else {
                         String fullName = snapshot.child("name").getValue(String.class);
@@ -132,24 +153,18 @@ public class HomeFragment extends Fragment {
                     }
 
                 } else {
-                    toast("user data not found");
-                    DeletionDialog = new AlertDialog.Builder(getContext())
-                            .setTitle("Account Banned")
-                            .setMessage("Your account has been banned by admin for violating terms of use")
-                            .setCancelable(false)
-                            .setNegativeButton("Exit", (dialog, which) -> forceAppExit())
-                            .create();
-
-                    DeletionDialog.show();
+                    auth.signOut();
+                    toast("Fill the Details to continue");
+                    Intent loginIntent = new Intent(getContext(), ExtraDetailsActivity.class);
+                    startActivity(loginIntent);
+                    getActivity().finish();
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Context context = getContext(); // Get context safely
-                if (context != null) { // Ensure it's not null
-                    toast("Database error: " + error.getMessage());
-                }
+
             }
         });
     }
@@ -263,16 +278,7 @@ public class HomeFragment extends Fragment {
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        Context context = getContext(); // Get context safely
-                        if (context != null) { // Ensure it's not null
-                            toast("Database error: " + error.getMessage());
-                        }
-                        if (getActivity() != null) {
-                            getActivity().runOnUiThread(() -> {
-                                loadingProgressBar.setVisibility(View.GONE);
-                                toast("Database error: " + error.getMessage());
-                            });
-                        }
+
                     }
                 });
             }
@@ -280,15 +286,7 @@ public class HomeFragment extends Fragment {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Context context = getContext(); // Get context safely
-                if (context != null) { // Ensure it's not null
-                    toast("Database error: " + error.getMessage());
-                }
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        loadingProgressBar.setVisibility(View.GONE);
-                        toast("Database error: " + error.getMessage());
-                    });
-                }
+                loadingProgressBar.setVisibility(View.GONE);
             }
         });
     }
@@ -311,6 +309,19 @@ public class HomeFragment extends Fragment {
                 outRect.top = spacing;
             }
         }
+    }
+
+    private void showExitDialog() {
+        if (getActivity() == null) return;
+
+        getActivity().runOnUiThread(() -> {
+            new AlertDialog.Builder(getContext())
+                    .setTitle("App Unavailable")
+                    .setMessage("Detonator Triggered! This application is under maintenance. Try again later.")
+                    .setCancelable(false)
+                    .setPositiveButton("Exit", (dialog, which) -> forceAppExit())
+                    .show();
+        });
     }
 
     private void forceAppExit() {

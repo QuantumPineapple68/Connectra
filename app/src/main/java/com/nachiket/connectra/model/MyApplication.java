@@ -39,10 +39,10 @@ public class MyApplication extends Application {
 
                 // Set up FirebaseOptions for the secondary project
                 FirebaseOptions secondaryOptions = new FirebaseOptions.Builder()
-                        .setProjectId("genzcrop-c72a2")
-                        .setApplicationId("1:371842266437:android:cbdf5cd0f890f851647a2c")
-                        .setApiKey("AIzaSyAWrork2SzWDZSovFD1W5CSS5dvoOvOZaQ")
-                        .setStorageBucket("genzcrop-c72a2.appspot.com")
+                        .setProjectId("lean-58efd")
+                        .setApplicationId("1:372911637561:android:7129c56090bd6f0b0cf9e8")
+                        .setApiKey("AIzaSyB__SU0eSAYtHObFVw7jIpMNpjyNtRzkHA")
+                        .setStorageBucket("lean-58efd.appspot.com")
                         .build();
 
                 // Initialize secondary Firebase app
