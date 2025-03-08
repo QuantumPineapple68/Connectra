@@ -124,18 +124,39 @@
                 android:textColor="@color/black"
                 android:textSize="16sp" />
 
-            <Button
-                android:id="@+id/btnLoginNow"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/btnLoginContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="21dp"
-                android:layout_marginBottom="8dp"
-                android:backgroundTint="@color/theme_light"
-                android:padding="16dp"
-                android:text="Login"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
-                app:cornerRadius="10dp" />
+                android:layout_marginBottom="8dp">
+
+                <Button
+                    android:id="@+id/btnLoginNow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/theme_light"
+                    android:padding="16dp"
+                    android:text="Login"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    app:cornerRadius="10dp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"/>
+
+                <ProgressBar
+                    android:id="@+id/loginProgress"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:indeterminateTint="@android:color/white"
+                    android:visibility="gone"
+                    app:layout_constraintTop_toTopOf="@id/btnLoginNow"
+                    app:layout_constraintBottom_toBottomOf="@id/btnLoginNow"
+                    app:layout_constraintStart_toStartOf="@id/btnLoginNow"
+                    app:layout_constraintEnd_toEndOf="@id/btnLoginNow"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <TextView
                 android:id="@+id/txtSignUpNow"

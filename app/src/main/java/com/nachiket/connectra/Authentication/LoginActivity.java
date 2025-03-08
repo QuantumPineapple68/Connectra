@@ -3,12 +3,15 @@ package com.nachiket.connectra.Authentication;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.text.TextUtils;
 import android.text.method.PasswordTransformationMethod;
 
@@ -21,6 +24,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.content.SharedPreferences;
@@ -70,6 +74,7 @@ public class LoginActivity extends AppCompatActivity {
     private DatabaseReference usersRef;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean terms, banned, suspended;
+    private ProgressBar loginProgress;
     private SharedPreferences sharedPreferences;
     private static final String PREFS_NAME = "ConnectraPrefs";
     private static final String TERMS_ACCEPTED_KEY = "TermsAccepted";
@@ -122,6 +127,7 @@ public class LoginActivity extends AppCompatActivity {
         forgotPass=findViewById(R.id.txtForgotPassword);
         togglePassword=findViewById(R.id.togglePassword);
         credits=findViewById(R.id.toLinkedIn);
+        loginProgress = findViewById(R.id.loginProgress);
         pd = new ProgressDialog(this);
 
         auth=FirebaseAuth.getInstance();
@@ -224,11 +230,18 @@ public class LoginActivity extends AppCompatActivity {
             toast("Password must be atleast 6 Digits");
         }
         else{
+            loginProgress.setVisibility(View.VISIBLE);
+            login.setText("");
+            login.setEnabled(false);
             auth.signInWithEmailAndPassword(txtEmail,txtPassword)
                     .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                         @Override
                         public void onSuccess(AuthResult authResult) {
+                            Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                             toast("Login Successful");
+                            if (vibrator != null && vibrator.hasVibrator()) {
+                                vibrator.vibrate(VibrationEffect.createOneShot(20, 110));
+                            }
                             startActivity(new Intent(LoginActivity.this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
                             finish();
                         }
@@ -236,6 +249,9 @@ public class LoginActivity extends AppCompatActivity {
                         @Override
                         public void onFailure(@NonNull Exception e) {
                             toast("Invalid Credentials");
+                            loginProgress.setVisibility(View.GONE);
+                            login.setText("Login");
+                            login.setEnabled(true);
                         }
                     });
         }

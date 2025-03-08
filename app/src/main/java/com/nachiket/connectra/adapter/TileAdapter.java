@@ -1,7 +1,12 @@
 package com.nachiket.connectra.adapter;
 
+import static androidx.core.content.ContextCompat.getSystemService;
+
 import android.content.Context;
 import android.content.Intent;
+import android.media.MediaPlayer;
+import android.os.Vibrator;
+import android.os.VibrationEffect;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +29,7 @@ public class TileAdapter extends RecyclerView.Adapter<TileAdapter.TileViewHolder
 
     private Context context;
     private List<NewUser> userList;
+
 
     public TileAdapter(Context context, List<NewUser> userList) {
         this.context = context;
