@@ -4,6 +4,8 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.EditText;
@@ -13,12 +15,17 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import android.view.MenuItem;
+import android.view.Menu;
+import androidx.appcompat.widget.Toolbar;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.color.MaterialColors;
+import com.nachiket.connectra.model.BlockedUser;
 import com.nachiket.connectra.model.ChatTexts;
 import com.nachiket.connectra.adapter.ChatTextsAdapter;
 import com.nachiket.connectra.utility.MessageFilter;
@@ -46,6 +53,9 @@ public class ChatActivity extends AppCompatActivity {
     private String currentUserId;
     private String chatPartnerId;
     private String chatPartnerName;
+    private DatabaseReference blockedUsersRef;
+    private boolean isUserBlocked = false;
+    private MenuItem blockMenuItem;
 
     private DatabaseReference messagesRef;
 
@@ -74,10 +84,13 @@ public class ChatActivity extends AppCompatActivity {
         sentSound = MediaPlayer.create(this, R.raw.send);
 
         messagesRef = FirebaseDatabase.getInstance().getReference("Messages").child(conversationId);
+        blockedUsersRef = FirebaseDatabase.getInstance().getReference("BlockedUsers");
 
         markMessagesAsRead();
 
         initializeFields();
+        setupToolbar();
+
         setupRecyclerView();
         loadMessages();
 
@@ -119,7 +132,11 @@ public class ChatActivity extends AppCompatActivity {
         nameTextView.setText(chatPartnerName);
     }
 
-
+    private void setupToolbar() {
+        Toolbar toolbar = findViewById(R.id.chat_toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+    }
 
     private void setupRecyclerView() {
         messageRecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -238,4 +255,94 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.chat_menu, menu);
+        blockMenuItem = menu.findItem(R.id.action_block);
+        checkIfUserBlocked();
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_block) {
+            if (isUserBlocked) {
+                unblockUser();
+            } else {
+                blockUser();
+            }
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+
+    private void updateBlockMenuItem() {
+        if (blockMenuItem != null) {
+            blockMenuItem.setTitle(isUserBlocked ? "\uD83D\uDD13  Unblock User" : "\uD83D\uDEAB  Block User");
+        }
+    }
+
+    private void checkIfUserBlocked() {
+        DatabaseReference blockedUsersRef = FirebaseDatabase.getInstance().getReference("BlockedUsers");
+
+        // Check if current user is blocked by chat partner
+        blockedUsersRef.child(chatPartnerId).child(currentUserId).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                boolean blockedByPartner = snapshot.exists();
+                updateMessageInput(blockedByPartner);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+            }
+        });
+
+        // Check if chat partner is blocked by current user
+        blockedUsersRef.child(currentUserId).child(chatPartnerId).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                isUserBlocked = snapshot.exists();
+                updateBlockMenuItem();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+            }
+        });
+    }
+
+    private void updateMessageInput(boolean blockedByPartner) {
+        EditText messageInput = findViewById(R.id.message_input);
+        ImageView sendButton = findViewById(R.id.send_button);
+
+        messageInput.setEnabled(!blockedByPartner);
+        sendButton.setEnabled(!blockedByPartner);
+
+        if (blockedByPartner) {
+            messageInput.setHint("You have been blocked");
+        } else {
+            messageInput.setHint("Type a message");
+        }
+    }
+
+    private void blockUser() {
+        BlockedUser blockedUser = new BlockedUser(chatPartnerId);
+        blockedUsersRef.child(currentUserId).child(chatPartnerId).setValue(blockedUser)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(ChatActivity.this, "User blocked", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void unblockUser() {
+        blockedUsersRef.child(currentUserId).child(chatPartnerId).removeValue()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(ChatActivity.this, "User unblocked", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
 }

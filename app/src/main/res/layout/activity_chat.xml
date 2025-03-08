@@ -28,27 +28,36 @@
                 android:layout_marginTop="18dp"
                 android:layout_marginStart="18dp"/>
 
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/profile_image"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_marginStart="56dp"
+                android:layout_marginTop="7dp"
+                android:src="@drawable/no_profile_pic"/>
 
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/profile_image"
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:layout_marginStart="56dp"
-            android:layout_marginTop="7dp"
-            android:src="@drawable/no_profile_pic"/>
-        <TextView
-            android:id="@+id/full_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="Loading .. "
-            android:layout_toEndOf="@+id/profile_image"
-            android:layout_alignParentTop="true"
-            android:layout_marginStart="15dp"
-            android:layout_marginTop="15dp"
-            android:textSize="20sp"
-            android:textColor="@color/black"
-            android:textStyle="bold"
-            android:fontFamily="@font/roboto_bold"/>
+            <TextView
+                android:id="@+id/full_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="Loading .. "
+                android:layout_toEndOf="@+id/profile_image"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="15dp"
+                android:layout_marginTop="15dp"
+                android:textSize="20sp"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                android:fontFamily="@font/roboto_bold"/>
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/chat_toolbar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="@android:color/transparent"
+                android:minHeight="?attr/actionBarSize" />
 
         </RelativeLayout>
     </LinearLayout>
