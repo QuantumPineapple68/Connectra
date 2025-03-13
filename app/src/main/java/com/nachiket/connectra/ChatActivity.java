@@ -299,7 +299,6 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
-        // Check if chat partner is blocked by current user
         blockedUsersRef.child(currentUserId).child(chatPartnerId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {

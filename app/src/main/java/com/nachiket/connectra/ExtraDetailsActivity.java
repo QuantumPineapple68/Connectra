@@ -24,6 +24,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.nachiket.connectra.Authentication.RegisterActivity;
 import com.nachiket.connectra.model.MyApplication;
+import com.nachiket.connectra.utility.MessageFilter;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -91,6 +92,9 @@ public class ExtraDetailsActivity extends AppCompatActivity {
             }
             else if (!txt_gender.equals("male") && !txt_gender.equals("female")) {
                 Toast.makeText(ExtraDetailsActivity.this, "Gender must be either male or female", Toast.LENGTH_SHORT).show();
+            }
+            else if (MessageFilter.containsInappropriateContent(txt_myskill + txt_goalskill + txt_username + txt_name)) {
+                Toast.makeText(ExtraDetailsActivity.this,"Can't use inappropriate words", Toast.LENGTH_SHORT).show();
             }
             else {
                 try {

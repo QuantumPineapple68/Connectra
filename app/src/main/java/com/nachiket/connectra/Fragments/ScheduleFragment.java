@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.color.MaterialColors;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.nachiket.connectra.ChatActivity;
 import com.nachiket.connectra.ConnectionActivity;
 import com.nachiket.connectra.ConnectionRequestsActivity;
 import com.nachiket.connectra.R;
@@ -35,6 +36,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.nachiket.connectra.utility.MessageFilter;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -306,6 +308,12 @@ public class ScheduleFragment extends Fragment {
             String title = etTitle.getText().toString().trim();
 
             if (!TextUtils.isEmpty(title)) {
+                if (MessageFilter.containsInappropriateContent(title)) {
+                    Toast.makeText(getContext(),
+                            "Can't use inappropriate words",
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 addTaskToFirebase(title);
             } else {
                 toast("Task title cannot be empty");

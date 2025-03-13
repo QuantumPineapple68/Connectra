@@ -108,12 +108,30 @@ public class ChangeSkillActivity extends AppCompatActivity {
         Map<String, Object> updates = new HashMap<>();
 
         if (!mySkill.isEmpty()) {
+            if (MessageFilter.containsInappropriateContent(mySkill)) {
+                Toast.makeText(ChangeSkillActivity.this,
+                        "Can't use inappropriate words",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
             updates.put("myskill", mySkill);
         }
         if (!goalSkill.isEmpty()) {
+            if (MessageFilter.containsInappropriateContent(goalSkill)) {
+                Toast.makeText(ChangeSkillActivity.this,
+                        "Can't use inappropriate words",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
             updates.put("goalskill", goalSkill);
         }
         if (!bio.isEmpty()) {
+            if (MessageFilter.containsInappropriateContent(bio)) {
+                Toast.makeText(ChangeSkillActivity.this,
+                        "Can't use inappropriate words",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
             updates.put("bio", bio);
         }
 
