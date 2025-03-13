@@ -55,7 +55,7 @@ public class ConnectionActivity extends AppCompatActivity {
         setContentView(R.layout.activity_connection);
 
         Window window = getWindow();
-        int statusBarColor = getResources().getColor(R.color.inverted_top, getTheme());
+        int statusBarColor = getResources().getColor(R.color.white, getTheme());
         window.setStatusBarColor(statusBarColor);
         WindowInsetsControllerCompat windowInsetsController = new WindowInsetsControllerCompat(window, window.getDecorView());
         boolean isLightBackground = MaterialColors.isColorLight(statusBarColor);

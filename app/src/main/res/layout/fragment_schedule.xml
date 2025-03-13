@@ -2,7 +2,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/home_frag_background">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/schedule_back">
 
     <TextView
         android:id="@+id/title"
@@ -21,7 +22,7 @@
         android:text="No Partener is connected"
         android:layout_marginStart="16dp"
         android:layout_below="@id/title"
-        android:textColor="#AC1B2F"
+        android:textColor="@color/theme"
         android:textSize="16sp"
         android:textStyle="bold"/>
 
@@ -80,7 +81,8 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="100dp"
+        android:layout_marginBottom="110dp"
+        app:backgroundTint="@color/theme_extra_light"
         android:src="@android:drawable/ic_input_add"/>
 
     <ProgressBar

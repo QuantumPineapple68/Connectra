@@ -40,10 +40,10 @@
 
     <Button
         android:id="@+id/btn_connect"
-        android:layout_width="wrap_content"
+        android:layout_width="130dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:backgroundTint="@color/text"
+        android:backgroundTint="@color/theme_extra_light"
         android:minWidth="96dp"/>
 
 </LinearLayout>

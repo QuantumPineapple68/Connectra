@@ -68,7 +68,7 @@ public class ScheduleFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_schedule, container, false);
 
         Window window = requireActivity().getWindow();
-        int statusBarColor = getResources().getColor(R.color.theme_extra_light, requireContext().getTheme());
+        int statusBarColor = getResources().getColor(R.color.white, requireContext().getTheme());
         window.setStatusBarColor(statusBarColor);
         WindowInsetsControllerCompat windowInsetsController = new WindowInsetsControllerCompat(window, window.getDecorView());
         boolean isLightBackground = MaterialColors.isColorLight(statusBarColor);
