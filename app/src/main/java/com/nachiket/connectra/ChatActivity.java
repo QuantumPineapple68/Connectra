@@ -54,8 +54,10 @@ public class ChatActivity extends AppCompatActivity {
     private String chatPartnerId;
     private String chatPartnerName;
     private DatabaseReference blockedUsersRef;
+    private DatabaseReference reportedUsersRef;
     private boolean isUserBlocked = false;
-    private MenuItem blockMenuItem;
+    private boolean isUserReported = false;
+    private MenuItem blockMenuItem, reportMenuItem;
 
     private DatabaseReference messagesRef;
 
@@ -85,6 +87,7 @@ public class ChatActivity extends AppCompatActivity {
 
         messagesRef = FirebaseDatabase.getInstance().getReference("Messages").child(conversationId);
         blockedUsersRef = FirebaseDatabase.getInstance().getReference("BlockedUsers");
+        reportedUsersRef = FirebaseDatabase.getInstance().getReference("ReportedUsers");
 
         markMessagesAsRead();
 
@@ -259,27 +262,43 @@ public class ChatActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.chat_menu, menu);
         blockMenuItem = menu.findItem(R.id.action_block);
+        reportMenuItem = menu.findItem(R.id.action_report);
         checkIfUserBlocked();
+        checkIfUserReported();
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_block) {
+        int itemId = item.getItemId();
+        if (itemId == R.id.action_block) {
             if (isUserBlocked) {
                 unblockUser();
             } else {
                 blockUser();
             }
             return true;
+        } else if (itemId == R.id.action_report) {
+            if (!isUserReported) {
+                reportUser();
+            } else {
+                Toast.makeText(ChatActivity.this, "You have already reported this user", Toast.LENGTH_SHORT).show();
+            }
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-
     private void updateBlockMenuItem() {
         if (blockMenuItem != null) {
             blockMenuItem.setTitle(isUserBlocked ? "\uD83D\uDD13  Unblock User" : "\uD83D\uDEAB  Block User");
+        }
+    }
+
+    private void updateReportMenuItem() {
+        if (reportMenuItem != null) {
+            reportMenuItem.setTitle(isUserReported ? "✓  Reported" : "\uD83D\uDEA8  Report User");
+            reportMenuItem.setEnabled(!isUserReported);
         }
     }
 
@@ -304,6 +323,20 @@ public class ChatActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 isUserBlocked = snapshot.exists();
                 updateBlockMenuItem();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+            }
+        });
+    }
+
+    private void checkIfUserReported() {
+        reportedUsersRef.child(currentUserId).child(chatPartnerId).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                isUserReported = snapshot.exists();
+                updateReportMenuItem();
             }
 
             @Override
@@ -343,5 +376,60 @@ public class ChatActivity extends AppCompatActivity {
                         Toast.makeText(ChatActivity.this, "User unblocked", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void reportUser() {
+        // First check if user has already reported this user
+        reportedUsersRef.child(currentUserId).child(chatPartnerId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    // User has already reported this person
+                    Toast.makeText(ChatActivity.this, "You have already reported this user", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Add to reported users to prevent multiple reports from same user
+                HashMap<String, Object> reportMap = new HashMap<>();
+                reportMap.put("reportedAt", System.currentTimeMillis());
+                reportedUsersRef.child(currentUserId).child(chatPartnerId).setValue(reportMap);
+
+                // Increment the reportedCount under the reported user's profile
+                DatabaseReference userReportRef = FirebaseDatabase.getInstance().getReference("Users").child(chatPartnerId).child("reportedCount");
+
+                userReportRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        int currentReportCount = 0;
+                        if (snapshot.exists()) {
+                            Long value = snapshot.getValue(Long.class);
+                            if (value != null) {
+                                currentReportCount = value.intValue();
+                            }
+                        }
+
+                        userReportRef.setValue(currentReportCount + 1).addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(ChatActivity.this, "User reported successfully", Toast.LENGTH_SHORT).show();
+                                isUserReported = true;
+                                updateReportMenuItem();
+                            } else {
+                                Toast.makeText(ChatActivity.this, "Failed to report user", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(ChatActivity.this, "Failed to report user: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(ChatActivity.this, "Failed to check report status: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

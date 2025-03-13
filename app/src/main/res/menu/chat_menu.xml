@@ -5,4 +5,10 @@
         android:id="@+id/action_block"
         android:title="🚫  Block User"
         app:showAsAction="never"/>
+
+
+    <item
+        android:id="@+id/action_report"
+        android:title="🏴  Report User"
+        app:showAsAction="never"/>
 </menu>
