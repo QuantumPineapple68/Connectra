@@ -200,7 +200,6 @@ public class ChatActivity extends AppCompatActivity {
                         messageMap.put("senderId", currentUserId);
                         messageMap.put("receiverId", chatPartnerId);
                         messageMap.put("timestamp", timestamp);
-                        messageMap.put("senderName", myName);
                         messageMap.put("read", false);
 
                         if (messageId != null) {

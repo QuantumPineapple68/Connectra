@@ -129,25 +129,35 @@ public class ScheduleFragment extends Fragment {
         btnAddTask.setOnClickListener(v -> showAddTaskDialog());
 
         taskAdapter.setOnCheckListener((task, isChecked) -> {
-            final String taskOwnerId = (task.getOwnerId() != null) ? task.getOwnerId() : FirebaseAuth.getInstance().getUid();
+            final String currentUserId = FirebaseAuth.getInstance().getUid();
+            final String taskOwnerId = (task.getOwnerId() != null) ? task.getOwnerId() : currentUserId;
 
-            DatabaseReference ownerTaskRef = FirebaseDatabase.getInstance().getReference("Tasks")
-                    .child(taskOwnerId)
+            // Update the checked status for the current user
+            DatabaseReference currentUserTaskRef = FirebaseDatabase.getInstance().getReference("Tasks")
+                    .child(currentUserId)
                     .child(selectedDate)
                     .child(task.getId())
                     .child("checked");
 
-            ownerTaskRef.setValue(isChecked)
+            currentUserTaskRef.setValue(isChecked)
                     .addOnSuccessListener(aVoid -> {
-                        for (String userId : connectedUserIds) {
-                            if (!userId.equals(taskOwnerId)) {
-                                FirebaseDatabase.getInstance().getReference("Tasks")
-                                        .child(userId)
-                                        .child(selectedDate)
-                                        .child(task.getId())
-                                        .child("checked")
-                                        .setValue(isChecked);
+                        String partnerId = null;
+
+                        if (currentUserId.equals(taskOwnerId)) {
+                            if (!connectedUserIds.isEmpty()) {
+                                partnerId = connectedUserIds.get(0);
                             }
+                        } else {
+                            partnerId = taskOwnerId;
+                        }
+
+                        if (partnerId != null) {
+                            FirebaseDatabase.getInstance().getReference("Tasks")
+                                    .child(partnerId)
+                                    .child(selectedDate)
+                                    .child(task.getId())
+                                    .child("checked")
+                                    .setValue(isChecked);
                         }
                     });
         });
