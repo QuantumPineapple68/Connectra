@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    tools:context=".ReportActivity"
+    android:background="@drawable/report_back">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Report Inappropriate Content"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="#E53935"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Description -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Please provide details about the content you want to report. Your report will be reviewed by our team."
+            android:textSize="14sp"
+            android:textColor="#656565"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Target Username -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_target_username"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Username of reported account"
+                android:inputType="text" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Content Type Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Where did you see inappropriate content? (Select all that apply)"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginBottom="8dp"/>
+
+        <LinearLayout
+            android:id="@+id/checkbox_container_location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="16dp">
+
+            <CheckBox
+                android:id="@+id/check_profile_image"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Profile Image"
+                android:padding="8dp"/>
+
+            <CheckBox
+                android:id="@+id/check_certificate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Certificate"
+                android:padding="8dp"/>
+
+            <CheckBox
+                android:id="@+id/check_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Name"
+                android:padding="8dp"/>
+
+            <CheckBox
+                android:id="@+id/check_username"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Username"
+                android:padding="8dp"/>
+
+            <CheckBox
+                android:id="@+id/check_bio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Bio"
+                android:padding="8dp"/>
+
+            <CheckBox
+                android:id="@+id/check_other_location"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Other"
+                android:padding="8dp"/>
+        </LinearLayout>
+
+        <!-- If Other is selected -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layout_other_location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_other_location"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Please specify where"
+                android:inputType="text" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Content Category -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="What type of inappropriate content are you reporting? (Select all that apply)"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginBottom="8dp"/>
+
+        <LinearLayout
+            android:id="@+id/checkbox_container_type"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="16dp">
+
+            <CheckBox
+                android:id="@+id/check_child_safety"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Child Safety Concern"
+                android:padding="8dp"/>
+
+            <CheckBox
+                android:id="@+id/check_nsfw"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="NSFW Content"
+                android:padding="8dp"/>
+
+            <CheckBox
+                android:id="@+id/check_harassment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Harassment or Bullying"
+                android:padding="8dp"/>
+
+            <CheckBox
+                android:id="@+id/check_other_type"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Other"
+                android:padding="8dp"/>
+        </LinearLayout>
+
+        <!-- If Other is selected -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layout_other_type"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_other_type"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Please specify what type"
+                android:inputType="text" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Description -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Please provide more details"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Please elaborate briefly about the issue"
+                android:inputType="textMultiLine"
+                android:minLines="3"
+                android:maxLines="5"
+                android:gravity="top|start" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Submit Button -->
+        <Button
+            android:id="@+id/button_submit_report"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Submit Report"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#E53935"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Cancel Button -->
+        <Button
+            android:id="@+id/button_cancel"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Cancel"
+            android:textColor="@color/black"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+
+    </LinearLayout>
+</ScrollView>

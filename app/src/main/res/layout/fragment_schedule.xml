@@ -1,96 +1,110 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@drawable/schedule_back">
+    android:fillViewport="true">
 
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:text="Schedule Together"
-        android:padding="16dp"
-        android:textStyle="bold"
-        android:textSize="32sp"/>
-
-    <TextView
-        android:id="@+id/tv_connected_partner"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="No Partener is connected"
-        android:layout_marginStart="16dp"
-        android:layout_below="@id/title"
-        android:textColor="@color/theme"
-        android:textSize="16sp"
-        android:textStyle="bold"/>
-
-    <CalendarView
-        android:id="@+id/calendar_view"
-        android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:layout_below="@id/tv_connected_partner" />
-
-    <Button
-        android:id="@+id/btn_manage_connections"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Add Partner"
-        android:layout_below="@id/calendar_view"
-        android:layout_alignParentEnd="true"
-        android:layout_margin="10dp"
-        android:textColor="@color/black"
-        android:background="@drawable/border"/>
-
-    <Button
-        android:id="@+id/test"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="See Requests"
-        android:layout_below="@id/calendar_view"
-        android:layout_alignParentStart="true"
-        android:layout_margin="10dp"
-        android:textColor="@color/black"
-        android:background="@drawable/border"/>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_tasks"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/btn_manage_connections"
-        android:padding="8dp"
-        android:layout_marginBottom="80dp"
-        android:visibility="gone"/>
-
-    <TextView
-        android:id="@+id/tv_no_tasks"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:gravity="center"
-        android:layout_marginTop="80dp"
-        android:layout_below="@id/calendar_view"
-        android:text="No tasks for this day"
-        android:visibility="gone"/>
+        android:background="@drawable/schedule_back">
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/btn_add_task"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="110dp"
-        app:backgroundTint="@color/theme_extra_light"
-        android:src="@android:drawable/ic_input_add"/>
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:text="Schedule Together"
+            android:padding="16dp"
+            android:textStyle="bold"
+            android:textSize="32sp"/>
 
-    <ProgressBar
-        android:id="@+id/pgBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:layout_below="@id/test"
-        android:visibility="gone"/>
+        <TextView
+            android:id="@+id/tv_connected_partner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No Partner is connected"
+            android:layout_marginStart="16dp"
+            android:layout_below="@id/title"
+            android:textColor="@color/theme"
+            android:textSize="16sp"
+            android:textStyle="bold"/>
 
-</RelativeLayout>
+        <CalendarView
+            android:id="@+id/calendar_view"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_below="@id/tv_connected_partner"
+            android:adjustViewBounds="true"/>
+
+        <LinearLayout
+            android:id="@+id/button_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/calendar_view"
+            android:orientation="horizontal"
+            android:padding="10dp">
+
+            <Button
+                android:id="@+id/test"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="See Requests"
+                android:layout_marginEnd="5dp"
+                android:textColor="@color/black"
+                android:background="@drawable/border"/>
+
+            <Button
+                android:id="@+id/btn_manage_connections"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Add Partner"
+                android:layout_marginStart="5dp"
+                android:textColor="@color/black"
+                android:background="@drawable/border"/>
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_tasks"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/button_container"
+            android:padding="8dp"
+            android:layout_marginBottom="80dp"
+            android:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/tv_no_tasks"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/button_container"
+            android:gravity="center"
+            android:layout_marginTop="40dp"
+            android:text="No tasks for this day"
+            android:visibility="gone"/>
+
+        <ProgressBar
+            android:id="@+id/pgBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/button_container"
+            android:layout_marginTop="40dp"
+            android:visibility="gone"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btn_add_task"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="110dp"
+            app:backgroundTint="@color/theme_extra_light"
+            android:src="@android:drawable/ic_input_add"/>
+
+    </RelativeLayout>
+</ScrollView>

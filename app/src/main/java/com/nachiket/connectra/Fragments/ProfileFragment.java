@@ -28,6 +28,7 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.color.MaterialColors;
 import com.nachiket.connectra.ChangeSkillActivity;
 import com.nachiket.connectra.Authentication.LoginActivity;
+import com.nachiket.connectra.ReportActivity;
 import com.nachiket.connectra.model.MyApplication;
 import com.nachiket.connectra.R;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -48,9 +49,8 @@ public class ProfileFragment extends Fragment {
 
     private TextView fullNameTextView, emailTextView, genderTextView, bioTextView;
     private ImageView profileImageView;
-    private Button logoutButton;
     private TextView welcome;
-    private Button changeSkill;
+    private Button changeSkill, childReport, logoutButton;
     private TextView mySkillTextView, goalSkillTextView, credit;
     private AlertDialog verificationDialog;
 
@@ -85,6 +85,7 @@ public class ProfileFragment extends Fragment {
         logoutButton = view.findViewById(R.id.logout);
         changeSkill = view.findViewById(R.id.skillChange);
         credit = view.findViewById(R.id.credits);
+        childReport = view.findViewById(R.id.report);
 
         // Firebase initialization
         auth = FirebaseAuth.getInstance();
@@ -106,6 +107,13 @@ public class ProfileFragment extends Fragment {
         // Change Skill functionality
         changeSkill.setOnClickListener(v -> navigateToChangeSkill());
 
+        childReport.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), ReportActivity.class);
+                startActivity(intent);
+            }
+        });
         // Image upload functionality
         profileImageView.setOnClickListener(v -> openImage());
 
