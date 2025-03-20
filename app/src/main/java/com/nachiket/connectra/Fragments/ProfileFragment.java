@@ -53,6 +53,9 @@ public class ProfileFragment extends Fragment {
     private Button changeSkill, childReport, logoutButton;
     private TextView mySkillTextView, goalSkillTextView, credit;
     private AlertDialog verificationDialog;
+    private ImageView displayRating;
+    private TextView numbRev;
+    private String userId;
 
     private FirebaseAuth auth;
     private DatabaseReference userRef;
@@ -86,6 +89,8 @@ public class ProfileFragment extends Fragment {
         changeSkill = view.findViewById(R.id.skillChange);
         credit = view.findViewById(R.id.credits);
         childReport = view.findViewById(R.id.report);
+        displayRating = view.findViewById(R.id.display_rating);
+        numbRev = view.findViewById(R.id.numb_revs);
 
         // Firebase initialization
         auth = FirebaseAuth.getInstance();
@@ -95,6 +100,7 @@ public class ProfileFragment extends Fragment {
             String userId = auth.getCurrentUser().getUid();
             userRef = FirebaseDatabase.getInstance().getReference("Users").child(userId);
             setupUserValueEventListener();
+            fetchAndDisplayRating();
         } else {
             toast("User is not authenticated");
         }
@@ -286,6 +292,67 @@ public class ProfileFragment extends Fragment {
             pd.dismiss();
             toast("Error: " + e.getMessage());
         }
+    }
+
+    private void fetchAndDisplayRating() {
+        DatabaseReference revRef = userRef.child("rev");
+        DatabaseReference ratingsRef = userRef.child("ratings");
+
+        ratingsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!isAdded()) return; // Check if fragment is still attached
+
+                long totalReviews = snapshot.getChildrenCount();
+                numbRev.setText("(" + totalReviews + ")");
+
+                if (totalReviews == 0) {
+                    displayRating.setImageResource(R.drawable.r0);
+                    return;
+                }
+
+                revRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (!isAdded()) return;
+
+                        float totalRev = snapshot.exists() ? snapshot.getValue(Float.class) : 0f;
+                        float average = totalRev / totalReviews;
+
+                        int imageResId = getRatingImageResource(average);
+                        displayRating.setImageResource(imageResId);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        if (isAdded()) {
+                            toast("Error fetching rating: " + error.getMessage());
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                if (isAdded()) {
+                    toast("Error: " + error.getMessage());
+                }
+            }
+        });
+    }
+
+    private int getRatingImageResource(float average) {
+        if (average <= 0) return R.drawable.r0;
+        else if (average <= 0.5) return R.drawable.r0_5;
+        else if (average <= 1) return R.drawable.r1;
+        else if (average <= 1.5) return R.drawable.r1_5;
+        else if (average <= 2) return R.drawable.r2;
+        else if (average <= 2.5) return R.drawable.r2_5;
+        else if (average <= 3) return R.drawable.r3;
+        else if (average <= 3.5) return R.drawable.r3_5;
+        else if (average <= 4) return R.drawable.r4;
+        else if (average <= 4.5) return R.drawable.r4_5;
+        else return R.drawable.r5;
     }
 
     private String getFileExtension(Uri uri) {
