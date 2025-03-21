@@ -52,6 +52,7 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.play.services.auth)
     implementation (libs.photoview)
+    implementation (libs.ucrop)
     annotationProcessor(libs.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

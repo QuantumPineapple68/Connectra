@@ -21,6 +21,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 
@@ -44,6 +45,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.yalantis.ucrop.UCrop;
+import com.yalantis.ucrop.UCropActivity;
+
+import java.io.File;
+import java.util.UUID;
 
 public class ProfileFragment extends Fragment {
 
@@ -62,6 +68,7 @@ public class ProfileFragment extends Fragment {
     private FirebaseStorage storage;
     private Uri imageUri;
     private ActivityResultLauncher<Intent> imagePickerLauncher;
+    private ActivityResultLauncher<Intent> cropImageLauncher;
 
     private ValueEventListener userValueEventListener;
 
@@ -120,18 +127,39 @@ public class ProfileFragment extends Fragment {
                 startActivity(intent);
             }
         });
-        // Image upload functionality
-        profileImageView.setOnClickListener(v -> openImage());
 
+        // Initialize Image Picker launcher
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                        imageUri = result.getData().getData();
-                        uploadImage();
+                        Uri selectedImageUri = result.getData().getData();
+                        startCrop(selectedImageUri);
                     }
                 }
         );
+
+        // Initialize UCrop result launcher
+        cropImageLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        final Uri resultUri = UCrop.getOutput(result.getData());
+                        if (resultUri != null) {
+                            imageUri = resultUri;
+                            uploadImage();
+                        } else {
+                            toast("Failed to crop image");
+                        }
+                    } else if (result.getResultCode() == UCrop.RESULT_ERROR) {
+                        final Throwable cropError = UCrop.getError(result.getData());
+                        toast("Image cropping failed: " + (cropError != null ? cropError.getMessage() : "Unknown error"));
+                    }
+                }
+        );
+
+        // Image upload functionality
+        profileImageView.setOnClickListener(v -> openImage());
 
         credit.setOnClickListener(v -> {
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/QuantumPineapple68"));
@@ -139,6 +167,31 @@ public class ProfileFragment extends Fragment {
         });
 
         return view;
+    }
+
+    private void startCrop(Uri sourceUri) {
+        if (sourceUri == null || getContext() == null) return;
+
+        // Create destination URI for the cropped image
+        String destinationFileName = UUID.randomUUID().toString() + ".jpg";
+        Uri destinationUri = Uri.fromFile(new File(requireContext().getCacheDir(), destinationFileName));
+
+        // Configure UCrop options
+        UCrop.Options options = new UCrop.Options();
+        options.setCircleDimmedLayer(true); // Enable circular crop area
+        options.setShowCropFrame(false); // Hide crop frame since we're using circle
+        options.setShowCropGrid(false); // Hide crop grid since we're using circle
+        options.setStatusBarColor(requireContext().getResources().getColor(R.color.white, requireContext().getTheme()));
+        options.setToolbarColor(requireContext().getResources().getColor(R.color.white, requireContext().getTheme()));
+        options.setToolbarTitle("Crop Profile Image");
+        options.setCompressionQuality(85); // Adjust quality as needed
+
+        // Start UCrop activity
+        UCrop uCrop = UCrop.of(sourceUri, destinationUri)
+                .withAspectRatio(1, 1) // Square aspect ratio
+                .withOptions(options);
+
+        cropImageLauncher.launch(uCrop.getIntent(requireContext()));
     }
 
     private void initializeStorage() {
