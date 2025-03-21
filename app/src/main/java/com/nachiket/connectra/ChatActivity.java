@@ -2,6 +2,8 @@ package com.nachiket.connectra;
 
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -36,11 +38,13 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.nachiket.connectra.utility.MessageViolationTracker;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -61,8 +65,29 @@ public class ChatActivity extends AppCompatActivity {
 
     private DatabaseReference messagesRef;
 
+    private MessageViolationTracker violationTracker;
+    private Handler restrictionHandler;
+    private EditText messageInput;
+    private ImageView sendButton;
     private ImageView profileImageView; // Profile image view to show chat partner's profile image
-
+    private final Runnable updateCountdownRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (violationTracker.isRestricted()) {
+                long remainingMillis = violationTracker.getRemainingTime();
+                String timeDisplay = formatTime(remainingMillis);
+                messageInput.setText(timeDisplay);
+                messageInput.setEnabled(false);
+                sendButton.setEnabled(false);
+                restrictionHandler.postDelayed(this, 1000);
+            } else {
+                messageInput.setText("");
+                messageInput.setHint("Type a message");
+                messageInput.setEnabled(true);
+                sendButton.setEnabled(true);
+            }
+        }
+    };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,9 +110,20 @@ public class ChatActivity extends AppCompatActivity {
         String conversationId = getConversationId(currentUserId, chatPartnerId);
         sentSound = MediaPlayer.create(this, R.raw.send);
 
+        violationTracker = new MessageViolationTracker(this);
+        restrictionHandler = new Handler(Looper.getMainLooper());
+        messageInput = findViewById(R.id.message_input);
+        sendButton = findViewById(R.id.send_button);
+
         messagesRef = FirebaseDatabase.getInstance().getReference("Messages").child(conversationId);
         blockedUsersRef = FirebaseDatabase.getInstance().getReference("BlockedUsers");
         reportedUsersRef = FirebaseDatabase.getInstance().getReference("ReportedUsers");
+
+        if (violationTracker.isRestricted()) {
+            messageInput.setEnabled(false);
+            sendButton.setEnabled(false);
+            restrictionHandler.post(updateCountdownRunnable);
+        }
 
         markMessagesAsRead();
 
@@ -112,16 +148,34 @@ public class ChatActivity extends AppCompatActivity {
         ImageView sendButton = findViewById(R.id.send_button);
         EditText messageInput = findViewById(R.id.message_input);
 
-        sendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String messageText = messageInput.getText().toString().trim();
+        sendButton.setOnClickListener(v -> {
+            String messageText = messageInput.getText().toString().trim();
 
-                if (!TextUtils.isEmpty(messageText)) {
-                    sentSound.start();
-                    sendMessage(messageText);
-                    messageInput.setText(""); // Clear the input field
+            if (!TextUtils.isEmpty(messageText)) {
+                if (violationTracker.isRestricted()) {
+                    long remainingMinutes = violationTracker.getRemainingTime() / (60 * 1000);
+                    Toast.makeText(ChatActivity.this,
+                            "You are restricted from sending messages for " + remainingMinutes + " minutes",
+                            Toast.LENGTH_SHORT).show();
+                    return;
                 }
+
+                boolean containsViolation = MessageFilter.containsInappropriateContent(messageText);
+                violationTracker.recordMessage(containsViolation);
+
+                if (violationTracker.isRestricted()) {
+                    messageInput.setEnabled(false);
+                    sendButton.setEnabled(false);
+                    restrictionHandler.post(updateCountdownRunnable);
+                    Toast.makeText(ChatActivity.this,
+                            "You have been restricted from sending messages for 10 minutes due to multiple violations",
+                            Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                sentSound.start();
+                sendMessage(messageText);
+                messageInput.setText("");
             }
         });
 
@@ -147,6 +201,12 @@ public class ChatActivity extends AppCompatActivity {
         boolean profileApproved = getIntent().getBooleanExtra("profileApproved", false);
         messageAdapter = new ChatTextsAdapter(messageList, currentUserId, profileImageUrl, profileApproved);
         messageRecyclerView.setAdapter(messageAdapter);
+    }
+
+    private String formatTime(long millis) {
+        int seconds = (int) (millis / 1000) % 60;
+        int minutes = (int) ((millis / (1000 * 60)) % 60);
+        return String.format(Locale.US, "%d:%02d remaining", minutes, seconds);
     }
 
     private void loadMessages() {
@@ -345,16 +405,18 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void updateMessageInput(boolean blockedByPartner) {
-        EditText messageInput = findViewById(R.id.message_input);
-        ImageView sendButton = findViewById(R.id.send_button);
-
-        messageInput.setEnabled(!blockedByPartner);
-        sendButton.setEnabled(!blockedByPartner);
-
         if (blockedByPartner) {
             messageInput.setHint("You have been blocked");
+            messageInput.setEnabled(false);
+            sendButton.setEnabled(false);
+        } else if (violationTracker.isRestricted()) {
+            messageInput.setEnabled(false);
+            sendButton.setEnabled(false);
+            restrictionHandler.post(updateCountdownRunnable);
         } else {
             messageInput.setHint("Type a message");
+            messageInput.setEnabled(true);
+            sendButton.setEnabled(true);
         }
     }
 
@@ -431,4 +493,27 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (violationTracker.isRestricted()) {
+            messageInput.setEnabled(false);
+            sendButton.setEnabled(false);
+            restrictionHandler.post(updateCountdownRunnable);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        restrictionHandler.removeCallbacks(updateCountdownRunnable);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        restrictionHandler.removeCallbacks(updateCountdownRunnable);
+    }
+
 }
