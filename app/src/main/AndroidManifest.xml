@@ -34,7 +34,7 @@
             android:name=".ExtraDetailsActivity"
             android:exported="false" />
         <activity
-            android:name=".ShowProfileImage"
+            android:name=".ShowImage"
             android:exported="false" />
         <activity
             android:name=".ChatActivity"

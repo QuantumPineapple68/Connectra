@@ -132,6 +132,12 @@ public class ChangeSkillActivity extends AppCompatActivity {
                         Toast.LENGTH_SHORT).show();
                 return;
             }
+            if (bio.length() > 150) {
+                Toast.makeText(ChangeSkillActivity.this,
+                        "Bio can't be more than 150 characters",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
             updates.put("bio", bio);
         }
 

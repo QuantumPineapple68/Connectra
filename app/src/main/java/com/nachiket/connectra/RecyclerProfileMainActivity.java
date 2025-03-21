@@ -3,7 +3,6 @@ package com.nachiket.connectra;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RatingBar;
@@ -12,10 +11,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.bumptech.glide.Glide;
-import com.google.android.material.color.MaterialColors;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -85,6 +82,14 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
             }
         });
 
+        userCerf.setOnClickListener(v -> {
+            Intent intent = new Intent(RecyclerProfileMainActivity.this, ShowImage.class);
+            intent.putExtra("image", certificate);
+            intent.putExtra("imageApproved", cerfApproved);
+            intent.putExtra("isProfilePic", false);
+            startActivity(intent);
+        });
+
         // Set profile image using Glide
         if (profileImage != null && !profileImage.isEmpty() && profileApproved) {
             Glide.with(this)
@@ -131,14 +136,12 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
 
         fetchAndDisplayRating();
 
-        profilImg.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(RecyclerProfileMainActivity.this, ShowProfileImage.class);
-                intent.putExtra("profileImage", profileImage);
-                intent.putExtra("profileApproved", profileApproved);
-                startActivity(intent);
-            }
+        profilImg.setOnClickListener(v -> {
+            Intent intent = new Intent(RecyclerProfileMainActivity.this, ShowImage.class);
+            intent.putExtra("image", profileImage);
+            intent.putExtra("imageApproved", profileApproved);
+            intent.putExtra("isProfilePic", true);
+            startActivity(intent);
         });
     }
 
