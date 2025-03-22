@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.play.services.auth)
     implementation (libs.photoview)
     implementation (libs.ucrop)
+    implementation(libs.swiperefreshlayout)
     annotationProcessor(libs.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

@@ -14,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,7 +27,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.color.MaterialColors;
 import com.nachiket.connectra.Authentication.LoginActivity;
+import com.nachiket.connectra.ChangeSkillActivity;
 import com.nachiket.connectra.ExtraDetailsActivity;
+import com.nachiket.connectra.InboxActivity;
 import com.nachiket.connectra.MainActivity;
 import com.nachiket.connectra.model.ChatTexts;
 import com.nachiket.connectra.R;
@@ -53,6 +56,7 @@ public class HomeFragment extends Fragment {
     private TextView hi;
     private ProgressBar loadingProgressBar;
     private FirebaseAuth auth;
+    private ImageView inbox;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -73,6 +77,7 @@ public class HomeFragment extends Fragment {
         detonatorRef = FirebaseDatabase.getInstance().getReference("Detonator");
 
         recyclerView = view.findViewById(R.id.recycler_view_home);
+        inbox = view.findViewById(R.id.inbox);
         loadingProgressBar = view.findViewById(R.id.loading_progress_bar);
         // Initialize user list and adapter
         userList = new ArrayList<>();
@@ -91,6 +96,14 @@ public class HomeFragment extends Fragment {
 
         // extra check to fix clear data bug
         setupDetonatorListener();
+
+        inbox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), InboxActivity.class);
+                startActivity(intent);
+            }
+        });
 
         return view;
     }
@@ -159,7 +172,9 @@ public class HomeFragment extends Fragment {
                     else {
                         String fullName = snapshot.child("name").getValue(String.class);
                         if (getActivity() != null && fullName != null) {
-                            hi.setText("Hi, " + fullName);
+                            String[] nameParts = fullName.split(" ");
+                            String firstName = nameParts[0];
+                            hi.setText("Hi, " + firstName);
                         }
                     }
 

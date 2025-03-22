@@ -21,8 +21,19 @@
             android:textAppearance="@style/TextAppearance.AppCompat.Headline"
             android:textSize="40dp"
             android:maxLines="2"
+            android:layout_marginEnd="55dp"
             android:layout_marginTop="@dimen/medium_margin"
             android:layout_marginStart="@dimen/medium_margin"/>
+
+        <ImageView
+            android:id="@+id/inbox"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/msg"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="25dp"
+            android:layout_marginEnd="10dp" />
+
 
         <TextView
             android:id="@+id/suggetions"

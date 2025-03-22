@@ -27,6 +27,7 @@ okhttp = "4.12.0"
 photoview = "2.3.0"
 playServicesAuth = "21.3.0"
 ucrop = "2.2.8"
+swiperefreshlayout = "1.1.0"
 
 [libraries]
 android-image-cropper = { module = "com.github.ArthurHub:Android-Image-Cropper", version.ref = "androidImageCropper" }
@@ -56,6 +57,7 @@ photoview = { module = "com.github.chrisbanes:PhotoView", version.ref = "photovi
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 ucrop = { module = "com.github.yalantis:ucrop", version.ref = "ucrop" }
 vanniktech-android-image-cropper = { module = "com.vanniktech:android-image-cropper", version.ref = "androidImageCropperVersion" }
+swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

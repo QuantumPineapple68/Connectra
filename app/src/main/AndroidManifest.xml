@@ -19,8 +19,11 @@
         android:theme="@style/Theme.Connectra"
         tools:targetApi="34">
         <activity
+            android:name=".InboxActivity"
+            android:exported="false" />
+        <activity
             android:name="com.yalantis.ucrop.UCropActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
             android:name=".ReportActivity"
             android:exported="false" />
@@ -30,9 +33,11 @@
         <activity
             android:name=".ConnectionActivity"
             android:exported="false" />
+
         <meta-data
             android:name="com.google.android.gms.client_id"
             android:value="404492716071-h47f0h8m4kmqni2a2jst09kupcisolm0.apps.googleusercontent.com" />
+
         <activity
             android:name=".ExtraDetailsActivity"
             android:exported="false" />
@@ -68,6 +73,5 @@
             </intent-filter>
         </activity>
     </application>
-
 
 </manifest>
