@@ -18,6 +18,7 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.color.MaterialColors;
 import com.nachiket.connectra.R;
@@ -41,6 +42,8 @@ public class SearchFragment extends Fragment {
     private DatabaseReference databaseRef;
     private AutoCompleteTextView searchBar;
     private ProgressBar progressBar;
+    private SwipeRefreshLayout swipeRefreshLayout;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -57,6 +60,11 @@ public class SearchFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recycler_view);
         searchBar = view.findViewById(R.id.search_bar);
         progressBar=view.findViewById(R.id.loading_progress_bar_search);
+        swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayoutSearch);
+        swipeRefreshLayout.setColorSchemeColors(getResources().getColor(R.color.theme));
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            fetchUsers();
+        });
 
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -91,10 +99,14 @@ public class SearchFragment extends Fragment {
 
 
     private void fetchUsers() {
-        progressBar.setVisibility(View.VISIBLE);
+
+        if (!swipeRefreshLayout.isRefreshing()) {
+            progressBar.setVisibility(View.VISIBLE);
+        }
+
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        databaseRef.addValueEventListener(new ValueEventListener() {
+        databaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 usersList.clear();
@@ -146,12 +158,14 @@ public class SearchFragment extends Fragment {
                 filteredList.addAll(usersList);
                 newUserAdapter.notifyDataSetChanged();
                 progressBar.setVisibility(View.GONE);
+                swipeRefreshLayout.setRefreshing(false);
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Log.e("Database Error", error.getMessage());
                 progressBar.setVisibility(View.GONE);
+                swipeRefreshLayout.setRefreshing(false);
             }
         });
     }

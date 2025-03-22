@@ -24,6 +24,7 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.color.MaterialColors;
 import com.nachiket.connectra.Authentication.LoginActivity;
@@ -57,6 +58,8 @@ public class HomeFragment extends Fragment {
     private ProgressBar loadingProgressBar;
     private FirebaseAuth auth;
     private ImageView inbox;
+    private SwipeRefreshLayout swipeRefreshLayout;
+
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -79,6 +82,12 @@ public class HomeFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recycler_view_home);
         inbox = view.findViewById(R.id.inbox);
         loadingProgressBar = view.findViewById(R.id.loading_progress_bar);
+        swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayoutHome);
+        swipeRefreshLayout.setColorSchemeColors(getResources().getColor(R.color.theme));
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            fetchUsersFromDatabase();
+        });
+
         // Initialize user list and adapter
         userList = new ArrayList<>();
         tileAdapter = new TileAdapter(getContext(), userList);
@@ -286,6 +295,7 @@ public class HomeFragment extends Fragment {
                         if (getActivity() != null) {
                             getActivity().runOnUiThread(() -> {
                                 loadingProgressBar.setVisibility(View.GONE);
+                                swipeRefreshLayout.setRefreshing(false);
                                 tileAdapter.notifyDataSetChanged();
                             });
                         }
@@ -313,6 +323,7 @@ public class HomeFragment extends Fragment {
             public void onCancelled(@NonNull DatabaseError error) {
                 Context context = getContext(); // Get context safely
                 loadingProgressBar.setVisibility(View.GONE);
+                swipeRefreshLayout.setRefreshing(false);
             }
         });
     }

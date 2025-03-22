@@ -45,31 +45,37 @@
             android:layout_below="@id/welcome_name"
             android:layout_marginStart="@dimen/medium_margin" />
 
-        <!-- Container for RecyclerView and ProgressBar -->
-        <FrameLayout
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefreshLayoutHome"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_below="@id/suggetions">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler_view_home"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:paddingBottom="85dp"
-                android:clipToPadding="true"
-                android:paddingStart="8dp"
-                android:paddingTop="8dp"
-                android:paddingEnd="8dp" />
+                android:layout_height="match_parent">
 
-            <ProgressBar
-                android:id="@+id/loading_progress_bar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginBottom="50dp"
-                android:visibility="gone"/>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_view_home"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingBottom="85dp"
+                    android:clipToPadding="true"
+                    android:paddingStart="8dp"
+                    android:paddingTop="8dp"
+                    android:paddingEnd="8dp" />
 
-        </FrameLayout>
+                <ProgressBar
+                    android:id="@+id/loading_progress_bar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="50dp"
+                    android:visibility="gone"/>
+
+            </FrameLayout>
+
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     </RelativeLayout>
 </FrameLayout>
