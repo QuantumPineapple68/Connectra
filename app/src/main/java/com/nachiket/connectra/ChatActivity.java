@@ -1,17 +1,22 @@
 package com.nachiket.connectra;
 
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -200,7 +205,71 @@ public class ChatActivity extends AppCompatActivity {
         String profileImageUrl = getIntent().getStringExtra("profileImage"); // Get the profile image URL
         boolean profileApproved = getIntent().getBooleanExtra("profileApproved", false);
         messageAdapter = new ChatTextsAdapter(messageList, currentUserId, profileImageUrl, profileApproved);
+        messageAdapter.setOnMessageLongClickListener((message, view) -> {
+            showReactionDialog(message, view);
+        });
+
         messageRecyclerView.setAdapter(messageAdapter);
+    }
+
+    private void updateMessageReaction(ChatTexts message, String reaction) {
+        if (message == null || message.getMessageId() == null) {
+            Toast.makeText(this, "Cannot update reaction: Invalid message", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String conversationId = getConversationId(currentUserId, chatPartnerId);
+        DatabaseReference messageRef = FirebaseDatabase.getInstance()
+                .getReference("Messages")
+                .child(conversationId)
+                .child(message.getMessageId());
+
+        HashMap<String, Object> updates = new HashMap<>();
+        updates.put("reaction", reaction);
+        updates.put("reactionBy", currentUserId);
+
+        messageRef.updateChildren(updates)
+                .addOnSuccessListener(aVoid ->
+                        Toast.makeText(this, "Reaction added", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to add reaction", Toast.LENGTH_SHORT).show());
+    }
+
+    private void showReactionDialog(ChatTexts message, View anchorView) {
+        View reactionView = getLayoutInflater().inflate(R.layout.message_reaction_layout, null);
+        PopupWindow popupWindow = new PopupWindow(
+                reactionView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true
+        );
+
+        // Set up reaction click listeners
+        TextView heartReaction = reactionView.findViewById(R.id.reaction_heart);
+        TextView laughReaction = reactionView.findViewById(R.id.reaction_laugh);
+        TextView likeReaction = reactionView.findViewById(R.id.reaction_like);
+        TextView wowReaction = reactionView.findViewById(R.id.reaction_wow);
+
+        View.OnClickListener reactionClickListener = v -> {
+            String reaction = ((TextView) v).getText().toString();
+            updateMessageReaction(message, reaction);
+            popupWindow.dismiss();
+        };
+
+        heartReaction.setOnClickListener(reactionClickListener);
+        laughReaction.setOnClickListener(reactionClickListener);
+        likeReaction.setOnClickListener(reactionClickListener);
+        wowReaction.setOnClickListener(reactionClickListener);
+
+        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        popupWindow.setElevation(10);
+
+        // Show popup above the message for sender's messages, below for receiver's
+        int[] location = new int[2];
+        anchorView.getLocationOnScreen(location);
+        boolean isSender = message.getSenderId().equals(currentUserId);
+        int y = isSender ? location[1] - anchorView.getHeight() : location[1] + anchorView.getHeight();
+        popupWindow.showAtLocation(anchorView, Gravity.NO_GRAVITY, location[0], y);
     }
 
     private String formatTime(long millis) {

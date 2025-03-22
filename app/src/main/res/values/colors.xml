@@ -4,6 +4,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="theme">#8634fb</color>
     <color name="theme_light">#a86cff</color>
+    <color name="theme_super_light">#ede1ff</color>
     <color name="theme_extra_light">#c39aff</color>
     <color name="theme_dark">#771bff</color>
     <color name="red">#c10620</color>

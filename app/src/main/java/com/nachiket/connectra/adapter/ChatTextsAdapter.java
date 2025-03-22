@@ -21,6 +21,8 @@ public class ChatTextsAdapter extends RecyclerView.Adapter<ChatTextsAdapter.Chat
     private String currentUserId;
     private String profileImageUrl; // URL for the profile image of the opposite user
     private boolean profileApproved;
+    private OnMessageLongClickListener longClickListener;
+
 
     public ChatTextsAdapter(List<ChatTexts> chatTextsList, String currentUserId, String profileImageUrl, boolean profileApproved) {
         this.chatTextsList = chatTextsList;
@@ -28,6 +30,15 @@ public class ChatTextsAdapter extends RecyclerView.Adapter<ChatTextsAdapter.Chat
         this.profileImageUrl = profileImageUrl;
         this.profileApproved = profileApproved;
     }
+
+    public interface OnMessageLongClickListener {
+        void onMessageLongClick(ChatTexts message, View view);
+    }
+
+    public void setOnMessageLongClickListener(OnMessageLongClickListener listener) {
+        this.longClickListener = listener;
+    }
+
 
     @NonNull
     @Override
@@ -39,41 +50,82 @@ public class ChatTextsAdapter extends RecyclerView.Adapter<ChatTextsAdapter.Chat
     @Override
     public void onBindViewHolder(@NonNull ChatTextsViewHolder holder, int position) {
         ChatTexts chatText = chatTextsList.get(position);
+        boolean isOnlyEmoji = isOnlyEmojis(chatText.getMessage());
+
+        holder.receiverMessageText.setVisibility(View.GONE);
+        holder.receiverEmojiText.setVisibility(View.GONE);
+        holder.senderMessageText.setVisibility(View.GONE);
+        holder.senderEmojiText.setVisibility(View.GONE);
+        holder.senderReaction.setVisibility(View.GONE);
+        holder.receiverReaction.setVisibility(View.GONE);
 
         if (chatText.getSenderId().equals(currentUserId)) {
-            // Message sent by the current user
-            holder.sentMessage.setVisibility(View.VISIBLE);
-            holder.receivedMessage.setVisibility(View.GONE);
+            // Sender message
             holder.profileImage.setVisibility(View.GONE);
-            holder.sentMessage.setText(chatText.getMessage());
+            if (isOnlyEmoji) {
+                holder.senderEmojiText.setVisibility(View.VISIBLE);
+                holder.senderEmojiText.setText(chatText.getMessage());
+            } else {
+                holder.senderMessageText.setVisibility(View.VISIBLE);
+                holder.senderMessageText.setText(chatText.getMessage());
+            }
 
+            // Show reaction if exists
+            if (chatText.getReaction() != null) {
+                holder.senderReaction.setVisibility(View.VISIBLE);
+                holder.senderReaction.setText(chatText.getReaction());
+            }
         } else {
-            // Message received from the chat partner
-            holder.receivedMessage.setVisibility(View.VISIBLE);
-            holder.sentMessage.setVisibility(View.GONE);
-            holder.receivedMessage.setText(chatText.getMessage());
+            // Receiver message
+            if (isOnlyEmoji) {
+                holder.receiverEmojiText.setVisibility(View.VISIBLE);
+                holder.receiverEmojiText.setText(chatText.getMessage());
+            } else {
+                holder.receiverMessageText.setVisibility(View.VISIBLE);
+                holder.receiverMessageText.setText(chatText.getMessage());
+            }
 
-            // Show profile image only at the start of a group
+            // Show reaction if exists
+            if (chatText.getReaction() != null) {
+                holder.receiverReaction.setVisibility(View.VISIBLE);
+                holder.receiverReaction.setText(chatText.getReaction());
+            }
+
+            // Handle profile image visibility
             if (position == 0 || !chatTextsList.get(position - 1).getSenderId().equals(chatText.getSenderId())) {
                 holder.profileImage.setVisibility(View.VISIBLE);
-                // Load the profile image using Glide
                 if (profileApproved) {
                     Glide.with(holder.itemView.getContext())
                             .load(profileImageUrl)
                             .placeholder(R.drawable.no_profile_pic)
                             .error(R.drawable.no_profile_pic)
                             .into(holder.profileImage);
-                }else {
+                } else {
                     holder.profileImage.setImageResource(R.drawable.no_profile_pic);
                 }
             } else {
-                // Hide profile image for subsequent messages in the group
                 holder.profileImage.setVisibility(View.INVISIBLE);
             }
         }
+
+        // Set long click listener on the container
+        View messageContainer = chatText.getSenderId().equals(currentUserId)
+                ? holder.itemView.findViewById(R.id.sender_container)
+                : holder.itemView.findViewById(R.id.receiver_container);
+
+        messageContainer.setOnLongClickListener(v -> {
+            if (longClickListener != null) {
+                longClickListener.onMessageLongClick(chatText, messageContainer);
+                return true;
+            }
+            return false;
+        });
     }
 
-
+    private boolean isOnlyEmojis(String message) {
+        String emojiPattern = "[\\p{Emoji}\\p{Emoji_Presentation}\\p{Emoji_Modifier}\\p{Emoji_Component}&&[^\\p{Alnum}]]+";
+        return message.matches(emojiPattern) && !message.contains("*");
+    }
 
     @Override
     public int getItemCount() {
@@ -81,15 +133,19 @@ public class ChatTextsAdapter extends RecyclerView.Adapter<ChatTextsAdapter.Chat
     }
 
     public static class ChatTextsViewHolder extends RecyclerView.ViewHolder {
-
         public ImageView profileImage;
-        TextView sentMessage, receivedMessage;
+        TextView senderMessageText, receiverMessageText;
+        TextView senderEmojiText, receiverEmojiText, senderReaction, receiverReaction;
 
         public ChatTextsViewHolder(@NonNull View itemView) {
             super(itemView);
-            sentMessage = itemView.findViewById(R.id.sender_message_text);
-            receivedMessage = itemView.findViewById(R.id.receiver_message_text);
+            senderMessageText = itemView.findViewById(R.id.sender_message_text);
+            receiverMessageText = itemView.findViewById(R.id.receiver_message_text);
+            senderEmojiText = itemView.findViewById(R.id.sender_emoji_text);
+            receiverEmojiText = itemView.findViewById(R.id.receiver_emoji_text);
             profileImage = itemView.findViewById(R.id.message_profile_image);
+            senderReaction = itemView.findViewById(R.id.sender_reaction);
+            receiverReaction = itemView.findViewById(R.id.receiver_reaction);
         }
     }
 }
