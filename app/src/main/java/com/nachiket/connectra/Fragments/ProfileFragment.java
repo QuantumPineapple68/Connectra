@@ -58,7 +58,7 @@ public class ProfileFragment extends Fragment {
     private TextView welcome;
     private Button changeSkill, childReport, logoutButton;
     private TextView mySkillTextView, goalSkillTextView, credit;
-    private AlertDialog verificationDialog;
+    private AlertDialog verificationDialog, imageTooLargeDialog;
     private ImageView displayRating;
     private TextView numbRev;
     private String userId;
@@ -302,6 +302,26 @@ public class ProfileFragment extends Fragment {
             return;
         }
 
+        try {
+            long fileSize = getFileSize(imageUri);
+            long maxSize = 2 * 1024 * 1024; // 2MB
+
+            if (fileSize > maxSize) {
+                imageTooLargeDialog = new AlertDialog.Builder(getActivity())
+                        .setTitle("Image is Too Large")
+                        .setMessage("Please compress your image to less than 2MB and try again. Thanks for your understanding")
+                        .setCancelable(false)
+                        .setNegativeButton("OK", (dialog, which) -> dialog.dismiss())
+                        .create();
+
+                imageTooLargeDialog.show();
+                return;
+            }
+        } catch (Exception e) {
+            toast("Error checking file size");
+            return;
+        }
+
         ProgressDialog pd = new ProgressDialog(getActivity());
         pd.setMessage("Uploading...");
         pd.show();
@@ -345,6 +365,20 @@ public class ProfileFragment extends Fragment {
             pd.dismiss();
             toast("Error: " + e.getMessage());
         }
+    }
+
+    private long getFileSize(Uri uri) throws Exception {
+        if (getContext() == null) throw new Exception("Context is null");
+
+        ContentResolver contentResolver = getContext().getContentResolver();
+        android.os.ParcelFileDescriptor fileDescriptor =
+                contentResolver.openFileDescriptor(uri, "r");
+
+        if (fileDescriptor == null) throw new Exception("Could not open file");
+
+        long size = fileDescriptor.getStatSize();
+        fileDescriptor.close();
+        return size;
     }
 
     private void fetchAndDisplayRating() {

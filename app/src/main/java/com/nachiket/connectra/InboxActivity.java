@@ -210,6 +210,12 @@ public class InboxActivity extends AppCompatActivity implements MessagePreviewAd
         // Check if we already have this user's details cached
         if (usersCache.containsKey(partnerId)) {
             UserModel user = usersCache.get(partnerId);
+
+            // Skip banned users
+            if (user.isBanned()) {
+                return;
+            }
+
             completeMessagePreview(preview, user);
             return;
         }
@@ -219,11 +225,19 @@ public class InboxActivity extends AppCompatActivity implements MessagePreviewAd
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
+                    boolean isBanned = dataSnapshot.child("banned").exists() &&
+                            dataSnapshot.child("banned").getValue(Boolean.class);
+
+                    if (isBanned) {
+                        return;
+                    }
+
                     String name = dataSnapshot.child("name").getValue(String.class);
                     String username = dataSnapshot.child("username").getValue(String.class);
                     String profileImage = dataSnapshot.child("profileImage").getValue(String.class);
                     boolean profileApproved = dataSnapshot.child("profileApproved").exists() ?
                             dataSnapshot.child("profileApproved").getValue(Boolean.class) : false;
+
 
                     UserModel user = new UserModel();
                     user.setId(partnerId);
@@ -231,6 +245,8 @@ public class InboxActivity extends AppCompatActivity implements MessagePreviewAd
                     user.setUsername(username);
                     user.setProfileImage(profileImage);
                     user.setProfileApproved(profileApproved);
+                    user.setBanned(isBanned);
+
 
                     // Cache the user details
                     usersCache.put(partnerId, user);
