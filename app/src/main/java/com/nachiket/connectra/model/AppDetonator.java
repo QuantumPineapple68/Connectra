@@ -94,7 +94,7 @@ public class AppDetonator implements Application.ActivityLifecycleCallbacks {
         ValueEventListener detonatorListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Boolean isActive = snapshot.child("isActive_1,0").getValue(Boolean.class);
+                Boolean isActive = snapshot.child("isActive_1,1").getValue(Boolean.class);
                 if (isActive != null) {
                     if (!isActive) {
                         showExitDialog();
@@ -150,8 +150,8 @@ public class AppDetonator implements Application.ActivityLifecycleCallbacks {
 
         currentActivity.runOnUiThread(() -> {
             new AlertDialog.Builder(currentActivity)
-                    .setTitle("App Unavailable")
-                    .setMessage("Detonator Triggered! This application is under maintenance. Try again later.")
+                    .setTitle("Update Available!")
+                    .setMessage("The newer version of the app is available. Please update to continue.")
                     .setCancelable(false)
                     .setPositiveButton("Exit", (dialog, which) -> forceAppExit())
                     .show();
@@ -222,7 +222,7 @@ public class AppDetonator implements Application.ActivityLifecycleCallbacks {
         if (!initialCheckDone && currentActivity != null) {
             detonatorRef.get().addOnCompleteListener(task -> {
                 if (task.isSuccessful() && task.getResult() != null) {
-                    Boolean isActive = task.getResult().child("isActive_1,0").getValue(Boolean.class);
+                    Boolean isActive = task.getResult().child("isActive_1,1").getValue(Boolean.class);
                     if (isActive != null && !isActive) {
                         showExitDialog();
                     }
