@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.List;
 
@@ -17,12 +18,10 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        instance = this;
-
-        registerActivityLifecycleCallbacks(new AppDetonator());
-
-        // Initialize the primary Firebase app (default project)
-        FirebaseApp.initializeApp(this);
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
+        AppDetonator detonator = new AppDetonator(userId);
+        registerActivityLifecycleCallbacks(detonator);
     }
 
     public static synchronized FirebaseApp initializeSecondaryApp() {

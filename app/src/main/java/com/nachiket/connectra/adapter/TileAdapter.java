@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Vibrator;
 import android.os.VibrationEffect;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,11 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.nachiket.connectra.model.NewUser;
 import com.nachiket.connectra.R;
 import com.nachiket.connectra.RecyclerProfileMainActivity;
@@ -81,6 +87,25 @@ public class TileAdapter extends RecyclerView.Adapter<TileAdapter.TileViewHolder
             holder.profileImage.setImageResource(R.drawable.no_profile_pic);
         }
 
+        DatabaseReference onlineRef = FirebaseDatabase.getInstance()
+                .getReference("OnlineUsers")
+                .child(user.getId());
+
+        onlineRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Boolean isOnline = snapshot.child("online").getValue(Boolean.class);
+                holder.activeIndicator.setVisibility(
+                        isOnline != null && isOnline ? View.VISIBLE : View.GONE
+                );
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("TileAdapter", "Failed to get online status: " + error.getMessage());
+            }
+        });
+
         // Set item click listener
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, RecyclerProfileMainActivity.class);
@@ -112,6 +137,7 @@ public class TileAdapter extends RecyclerView.Adapter<TileAdapter.TileViewHolder
         TextView profileName, profileAge, offeredSkill, wishSkill;
         ImageView genderIcon;
         CircleImageView profileImage;
+        View activeIndicator;
 
         public TileViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -122,6 +148,8 @@ public class TileAdapter extends RecyclerView.Adapter<TileAdapter.TileViewHolder
             wishSkill = itemView.findViewById(R.id.wish_skill);
             genderIcon = itemView.findViewById(R.id.gender_icon);
             profileImage = itemView.findViewById(R.id.profile_image);
+            activeIndicator = itemView.findViewById(R.id.active_indicator);
+
         }
     }
 }

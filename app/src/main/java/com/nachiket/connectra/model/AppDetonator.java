@@ -19,9 +19,16 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 public class AppDetonator implements Application.ActivityLifecycleCallbacks {
+    private final DatabaseReference onlineRef;
+    private String currentUserId;
     private Activity currentActivity;
     private final DatabaseReference detonatorRef;
     private boolean initialCheckDone = false;
@@ -33,9 +40,23 @@ public class AppDetonator implements Application.ActivityLifecycleCallbacks {
     private AlertDialog noInternetDialog;
     private boolean isInternetAvailable = false;
 
-    public AppDetonator() {
+    public AppDetonator(String userId) {
+        this.currentUserId = userId;
         detonatorRef = FirebaseDatabase.getInstance().getReference("Detonator");
+        onlineRef = FirebaseDatabase.getInstance().getReference("OnlineUsers");
         setupDetonatorListener();
+    }
+
+    private void updateOnlineStatus(boolean isOnline) {
+        if (currentUserId == null) return;
+
+        DatabaseReference userOnlineRef = onlineRef.child(currentUserId);
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("online", isOnline);
+        updates.put("lastSeen", ServerValue.TIMESTAMP);
+
+        userOnlineRef.onDisconnect().updateChildren(Collections.singletonMap("online", false));
+        userOnlineRef.updateChildren(updates);
     }
 
     private void setupNetworkCallback() {
@@ -170,6 +191,7 @@ public class AppDetonator implements Application.ActivityLifecycleCallbacks {
             isAppInForeground = true;
             setupNetworkCallback();
             performDelayedChecks();
+            updateOnlineStatus(true);
         }
     }
 
@@ -194,6 +216,7 @@ public class AppDetonator implements Application.ActivityLifecycleCallbacks {
         if (isAppInForeground && activityReferences == 0) {
             isAppInForeground = false;
             unregisterNetworkCallback();
+            updateOnlineStatus(false);
         }
     }
 

@@ -26,6 +26,17 @@
             android:elevation="5dp"
             android:layout_margin="4dp"/>
 
+        <View
+            android:id="@+id/active_indicator"
+            android:layout_width="15dp"
+            android:layout_height="15dp"
+            android:layout_alignBottom="@+id/profile_image"
+            android:layout_alignEnd="@+id/profile_image"
+            android:background="@drawable/active_indicator"
+            android:elevation="5dp"
+            android:layout_margin="6dp"
+            android:visibility="gone" />
+
         <ImageView
             android:id="@+id/gender_icon"
             android:layout_width="24dp"

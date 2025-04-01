@@ -1,5 +1,6 @@
 package com.nachiket.connectra;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
@@ -62,11 +63,15 @@ public class ChatActivity extends AppCompatActivity {
     private String currentUserId;
     private String chatPartnerId;
     private String chatPartnerName;
+    private View activeIndicator;
+    private DatabaseReference onlineRef;
+    private ValueEventListener onlineListener;
     private DatabaseReference blockedUsersRef;
     private DatabaseReference reportedUsersRef;
     private boolean isUserBlocked = false;
     private boolean isUserReported = false;
     private MenuItem blockMenuItem, reportMenuItem;
+    private TextView fullName;
 
     private DatabaseReference messagesRef;
 
@@ -119,7 +124,10 @@ public class ChatActivity extends AppCompatActivity {
         restrictionHandler = new Handler(Looper.getMainLooper());
         messageInput = findViewById(R.id.message_input);
         sendButton = findViewById(R.id.send_button);
+        fullName = findViewById(R.id.full_name);
+        activeIndicator = findViewById(R.id.active_indicator);
 
+        onlineRef = FirebaseDatabase.getInstance().getReference("OnlineUsers");
         messagesRef = FirebaseDatabase.getInstance().getReference("Messages").child(conversationId);
         blockedUsersRef = FirebaseDatabase.getInstance().getReference("BlockedUsers");
         reportedUsersRef = FirebaseDatabase.getInstance().getReference("ReportedUsers");
@@ -131,7 +139,7 @@ public class ChatActivity extends AppCompatActivity {
         }
 
         markMessagesAsRead();
-
+        setupOnlineStatusListener();
         initializeFields();
         setupToolbar();
 
@@ -149,6 +157,17 @@ public class ChatActivity extends AppCompatActivity {
         } else {
             profileImageView.setImageResource(R.drawable.no_profile_pic); // Default image if no profile image URL
         }
+
+        profileImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ChatActivity.this, ShowImage.class);
+                intent.putExtra("image", profileImage);
+                intent.putExtra("imageApproved", profileApproved);
+                intent.putExtra("isProfilePic", true);
+                startActivity(intent);
+            }
+        });
 
         ImageView sendButton = findViewById(R.id.send_button);
         EditText messageInput = findViewById(R.id.message_input);
@@ -185,6 +204,8 @@ public class ChatActivity extends AppCompatActivity {
         });
 
         backButton.setOnClickListener(v -> finish());
+        fullName.setOnClickListener(v -> finish());
+
     }
 
     private void initializeFields() {
@@ -233,6 +254,22 @@ public class ChatActivity extends AppCompatActivity {
                         Toast.makeText(this, "Reaction added", Toast.LENGTH_SHORT).show())
                 .addOnFailureListener(e ->
                         Toast.makeText(this, "Failed to add reaction", Toast.LENGTH_SHORT).show());
+    }
+
+    private void setupOnlineStatusListener() {
+        onlineListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Boolean isOnline = snapshot.child("online").getValue(Boolean.class);
+                activeIndicator.setVisibility(isOnline != null && isOnline ? View.VISIBLE : View.GONE);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("ChatActivity", "Failed to get online status: " + error.getMessage());
+            }
+        };
+        onlineRef.child(chatPartnerId).addValueEventListener(onlineListener);
     }
 
     private void showReactionDialog(ChatTexts message, View anchorView) {
@@ -583,6 +620,9 @@ public class ChatActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         restrictionHandler.removeCallbacks(updateCountdownRunnable);
+        if (onlineListener != null) {
+            onlineRef.child(chatPartnerId).removeEventListener(onlineListener);
+        }
     }
 
 }

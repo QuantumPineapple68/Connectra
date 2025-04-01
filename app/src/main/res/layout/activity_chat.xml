@@ -36,11 +36,27 @@
                 android:layout_marginTop="7dp"
                 android:src="@drawable/no_profile_pic"/>
 
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="90dp"
+                android:layout_marginTop="40dp">
+
+                <View
+                    android:id="@+id/active_indicator"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:background="@drawable/active_indicator"
+                    android:visibility="gone" />
+            </RelativeLayout>
+
             <TextView
                 android:id="@+id/full_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="Loading .. "
+                android:maxLines="1"
+                android:maxWidth="240dp"
                 android:layout_toEndOf="@+id/profile_image"
                 android:layout_alignParentTop="true"
                 android:layout_marginStart="15dp"
