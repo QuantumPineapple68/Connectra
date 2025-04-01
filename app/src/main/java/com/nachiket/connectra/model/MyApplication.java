@@ -18,6 +18,8 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        instance = this;
+        FirebaseApp.initializeApp(this);
         FirebaseAuth auth = FirebaseAuth.getInstance();
         String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
         AppDetonator detonator = new AppDetonator(userId);
