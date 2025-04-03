@@ -33,7 +33,7 @@ import java.util.Map;
 
 public class ChangeSkillActivity extends AppCompatActivity {
 
-    private EditText mySkillEditText, goalSkillEditText, bioEditText;
+    private EditText mySkillEditText, goalSkillEditText, bioEditText, nameEditText, ageEditText;
     private Button saveButton, uploadBtn;
     private ImageView certificate;
 
@@ -50,6 +50,8 @@ public class ChangeSkillActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_change_skill);
 
+        nameEditText = findViewById(R.id.new_name);
+        ageEditText = findViewById(R.id.new_age);
         mySkillEditText = findViewById(R.id.new_myskill);
         goalSkillEditText = findViewById(R.id.new_goalskill);
         saveButton = findViewById(R.id.save);
@@ -93,45 +95,69 @@ public class ChangeSkillActivity extends AppCompatActivity {
                 toast("Failed to load certificate.");
             }
         });
+        loadUserData();
+    }
+
+    private void loadUserData() {
+        if (auth.getCurrentUser() != null) {
+            userRef.get().addOnSuccessListener(dataSnapshot -> {
+                if (dataSnapshot.exists()) {
+                    nameEditText.setText(dataSnapshot.child("name").getValue(String.class));
+                    String age = dataSnapshot.child("age").getValue(String.class);
+                    ageEditText.setText(age != null ? age : "");
+                    String bio = dataSnapshot.child("bio").getValue(String.class);
+                    bioEditText.setText(bio != null ? bio : "");
+                    String mySkill = dataSnapshot.child("myskill").getValue(String.class);
+                    mySkillEditText.setText(mySkill != null ? mySkill : "");
+                    String goalSkill = dataSnapshot.child("goalskill").getValue(String.class);
+                    goalSkillEditText.setText(goalSkill != null ? goalSkill : "");
+                }
+            }).addOnFailureListener(e -> toast("Failed to load user data"));
+        }
     }
 
     private void saveSkills() {
+        String name = nameEditText.getText().toString().trim();
+        String age = ageEditText.getText().toString().trim();
         String mySkill = mySkillEditText.getText().toString().trim();
         String goalSkill = goalSkillEditText.getText().toString().trim();
         String bio = bioEditText.getText().toString().trim();
 
-        if (MessageFilter.containsInappropriateContent(mySkill + goalSkill + bio)) {
+        if (MessageFilter.containsInappropriateContent(mySkill + goalSkill + bio + name)) {
             toast("Can't use inappropriate words");
             return;
         }
 
         Map<String, Object> updates = new HashMap<>();
 
-        if (!mySkill.isEmpty()) {
-            if (MessageFilter.containsInappropriateContent(mySkill)) {
-                Toast.makeText(ChangeSkillActivity.this,
-                        "Can't use inappropriate words",
-                        Toast.LENGTH_SHORT).show();
+        // Add name update
+        if (!name.isEmpty()) {
+            updates.put("name", name);
+        }
+
+        // Add age update with validation
+        if (!age.isEmpty()) {
+            try {
+                int ageValue = Integer.parseInt(age);
+                if (ageValue < 13 || ageValue > 100) {
+                    toast("Age must be between 13 and 100");
+                    return;
+                }
+                updates.put("age", age);
+            } catch (NumberFormatException e) {
+                toast("Please enter a valid age");
                 return;
             }
+        }
+
+        // Your existing skill updates
+        if (!mySkill.isEmpty()) {
             updates.put("myskill", mySkill);
         }
         if (!goalSkill.isEmpty()) {
-            if (MessageFilter.containsInappropriateContent(goalSkill)) {
-                Toast.makeText(ChangeSkillActivity.this,
-                        "Can't use inappropriate words",
-                        Toast.LENGTH_SHORT).show();
-                return;
-            }
             updates.put("goalskill", goalSkill);
         }
         if (!bio.isEmpty()) {
-            if (MessageFilter.containsInappropriateContent(bio)) {
-                Toast.makeText(ChangeSkillActivity.this,
-                        "Can't use inappropriate words",
-                        Toast.LENGTH_SHORT).show();
-                return;
-            }
             if (bio.length() > 150) {
                 Toast.makeText(ChangeSkillActivity.this,
                         "Bio can't be more than 150 characters",
@@ -141,7 +167,6 @@ public class ChangeSkillActivity extends AppCompatActivity {
             updates.put("bio", bio);
         }
 
-
         if (updates.isEmpty()) {
             snackbar("No changes to update");
             return;
@@ -150,18 +175,15 @@ public class ChangeSkillActivity extends AppCompatActivity {
         userRef.updateChildren(updates).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 toast("Information has been updated!");
+                Intent intent = new Intent(ChangeSkillActivity.this, MainActivity.class);
+                intent.putExtra("refreshProfile", true);
+                startActivity(intent);
+                finish();
             } else {
-                String message = "Error updating skills.";
-                if (task.getException() != null) {
-                    message = task.getException().getMessage();
-                }
+                String message = task.getException() != null ?
+                        task.getException().getMessage() : "Error updating information.";
                 toast(message);
             }
-            // Navigate back to MainActivity
-            Intent intent = new Intent(ChangeSkillActivity.this, MainActivity.class);
-            intent.putExtra("refreshProfile", true);
-            startActivity(intent);
-            finish();
         });
     }
 

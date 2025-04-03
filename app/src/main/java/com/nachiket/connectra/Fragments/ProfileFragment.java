@@ -59,7 +59,7 @@ public class ProfileFragment extends Fragment {
     private Button changeSkill, childReport, logoutButton;
     private TextView mySkillTextView, goalSkillTextView, credit;
     private AlertDialog verificationDialog, imageTooLargeDialog;
-    private ImageView displayRating;
+    private ImageView displayRating, removeProfile;
     private TextView numbRev;
     private String userId;
 
@@ -98,6 +98,7 @@ public class ProfileFragment extends Fragment {
         childReport = view.findViewById(R.id.report);
         displayRating = view.findViewById(R.id.display_rating);
         numbRev = view.findViewById(R.id.numb_revs);
+        removeProfile = view.findViewById(R.id.removeProfile);
 
         // Firebase initialization
         auth = FirebaseAuth.getInstance();
@@ -112,6 +113,7 @@ public class ProfileFragment extends Fragment {
             toast("User is not authenticated");
         }
 
+
         // Logout functionality
         logoutButton.setOnClickListener(v -> logout());
 
@@ -119,6 +121,8 @@ public class ProfileFragment extends Fragment {
 
         // Change Skill functionality
         changeSkill.setOnClickListener(v -> navigateToChangeSkill());
+
+        removeProfile.setOnClickListener(v -> remove_Profile());
 
         childReport.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -167,6 +171,22 @@ public class ProfileFragment extends Fragment {
         });
 
         return view;
+    }
+
+    private void remove_Profile() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle("Remove Profile Picture")
+                .setMessage("Are you sure you want to remove your profile picture?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    userRef.child("profileImage").removeValue();
+                    userRef.child("profileApproved").setValue(false);
+                    profileImageView.setImageResource(R.drawable.prof);
+                    removeProfile.setVisibility(View.GONE);
+                    snackbar("Profile picture removed successfully");
+                })
+                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                .create()
+                .show();
     }
 
     private void startCrop(Uri sourceUri) {
@@ -235,13 +255,14 @@ public class ProfileFragment extends Fragment {
                             if (bio != null) bioTextView.setText(bio);
 
                             if (profileImage != null && !profileImage.isEmpty() && profileApproved) {
+                                removeProfile.setVisibility(View.VISIBLE);
                                 Glide.with(requireContext())
                                         .load(profileImage)
-                                        .placeholder(R.drawable.no_profile_pic)
-                                        .error(R.drawable.no_profile_pic)
+                                        .placeholder(R.drawable.prof)
+                                        .error(R.drawable.prof)
                                         .into(profileImageView);
                             } else {
-                                profileImageView.setImageResource(R.drawable.no_profile_pic);
+                                profileImageView.setImageResource(R.drawable.prof);
                             }
                         });
                     }

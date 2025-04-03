@@ -11,30 +11,82 @@
         android:id="@+id/welcome_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="@dimen/medium_margin"
         android:fontFamily="@font/roboto_bold"
-        android:text="Learn New Exciting Skills and teach some ..."
+        android:text="Edit Your Profile"
         android:textAppearance="@style/TextAppearance.AppCompat.Headline"
         android:textColor="@color/black"
-        android:textSize="25dp"
+        android:textSize="25sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_margin="@dimen/medium_margin"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/nameInputLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="10dp"
+        android:hint="Change your Name"
+        android:padding="10dp"
+        app:layout_constraintTop_toBottomOf="@+id/welcome_name">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/new_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/ageInputLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:hint="Change your Age"
+        android:padding="10dp"
+        app:layout_constraintTop_toBottomOf="@+id/nameInputLayout">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/new_age"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:maxLength="3"
+            android:padding="12dp" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/bioInputLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:hint="Add your Bio (up to 3 lines)"
+        android:padding="10dp"
+        app:layout_constraintTop_toBottomOf="@+id/ageInputLayout">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/new_bio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="3"
+            android:padding="12dp" />
+    </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/mySkillInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Add your Bio (upto 3 lines) "
-        android:layout_marginTop="100dp"
         android:layout_marginStart="10dp"
         android:layout_marginEnd="10dp"
+        android:hint="Skills you are good at"
         android:padding="10dp"
-        app:layout_constraintBottom_toTopOf="@+id/goalSkillInputLayout"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@+id/bioInputLayout">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/new_bio"
+            android:id="@+id/new_myskill"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="12dp" />
@@ -44,11 +96,11 @@
         android:id="@+id/goalSkillInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="New Skill you want to learn"
-        app:layout_constraintTop_toBottomOf="@+id/mySkillInputLayout"
         android:layout_marginStart="10dp"
         android:layout_marginEnd="10dp"
-        android:padding="10dp">
+        android:hint="Skills you want to learn"
+        android:padding="10dp"
+        app:layout_constraintTop_toBottomOf="@+id/mySkillInputLayout">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/new_goalskill"
@@ -57,53 +109,30 @@
             android:padding="12dp" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/bioInputLayout"
+    <LinearLayout
+        android:id="@+id/certificateLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="New Skill you good at"
-        app:layout_constraintTop_toBottomOf="@+id/goalSkillInputLayout"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp"
-        android:padding="10dp">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/new_myskill"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="12dp" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="310dp"
         android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@+id/bioInputLayout"
-        app:strokeColor="#E0E0E0">
+        app:layout_constraintTop_toBottomOf="@+id/goalSkillInputLayout">
 
         <Button
             android:id="@+id/cerf_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="top"
             android:layout_marginStart="22dp"
             android:layout_marginTop="16dp"
             android:backgroundTint="@color/theme_light"
             android:padding="12dp"
             android:text="Upload a new Certificate" />
 
-
         <ImageView
             android:id="@+id/reg_cerf"
             android:layout_width="match_parent"
             android:layout_height="200dp"
-            android:layout_gravity="start"
             android:padding="10dp"
             android:src="@drawable/default_certificate" />
-
-
     </LinearLayout>
-
 
     <Button
         android:id="@+id/save"
@@ -115,7 +144,5 @@
         android:text="Save"
         android:textColor="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent" />
-
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

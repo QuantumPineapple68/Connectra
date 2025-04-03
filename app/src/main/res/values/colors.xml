@@ -11,6 +11,7 @@
     <color name="green">#10c106</color>
     <color name="text">#f873a0</color>
     <color name="inverted_top">#eaeaea</color>
+    <color name="ChatActivity">#ede1ff</color>
     <color name="login_bar">#c28dd5</color>
     <color name="reply_background_sent">#20FFFFFF</color>
     <color name="reply_background_received">#10000000</color>
