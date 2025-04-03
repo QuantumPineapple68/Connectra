@@ -9,20 +9,53 @@ public class ChatTexts {
     private boolean read;
     private String reaction;
     private String reactionBy;
+    private String replyToId;       // ID of the message being replied to
+    private String replyToText;     // Content of the message being replied to
+    private String replyToSenderId; // Sender ID of the message being replied to
 
-    // Default constructor for Firebase
+    // Default constructor required for Firebase
     public ChatTexts() {
-        this.read = false;  // Default to unread
     }
 
-    public ChatTexts(String senderId, String receiverId, String message, long timestamp, String reaction, String reactionBy) {
+    // Constructor with basic fields
+    public ChatTexts(String messageId, String message, String senderId, String receiverId, long timestamp, boolean read) {
+        this.messageId = messageId;
+        this.message = message;
         this.senderId = senderId;
         this.receiverId = receiverId;
-        this.message = message;
         this.timestamp = timestamp;
-        this.read = false;
-        this.reaction = reaction;
-        this.reactionBy = reactionBy;
+        this.read = read;
+    }
+
+    // Constructor with reply functionality
+    public ChatTexts(String messageId, String message, String senderId, String receiverId, long timestamp, boolean read,
+                     String replyToId, String replyToText, String replyToSenderId) {
+        this.messageId = messageId;
+        this.message = message;
+        this.senderId = senderId;
+        this.receiverId = receiverId;
+        this.timestamp = timestamp;
+        this.read = read;
+        this.replyToId = replyToId;
+        this.replyToText = replyToText;
+        this.replyToSenderId = replyToSenderId;
+    }
+
+    // Getters and setters for all fields
+    public String getMessageId() {
+        return messageId;
+    }
+
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     public String getSenderId() {
@@ -37,24 +70,8 @@ public class ChatTexts {
         return receiverId;
     }
 
-    public String getMessageId() {
-        return messageId;
-    }
-
-    public void setMessageId(String messageId) {
-        this.messageId = messageId;
-    }
-
     public void setReceiverId(String receiverId) {
         this.receiverId = receiverId;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
     }
 
     public long getTimestamp() {
@@ -87,5 +104,30 @@ public class ChatTexts {
 
     public void setReactionBy(String reactionBy) {
         this.reactionBy = reactionBy;
+    }
+
+    // Getters and setters for reply functionality
+    public String getReplyToId() {
+        return replyToId;
+    }
+
+    public void setReplyToId(String replyToId) {
+        this.replyToId = replyToId;
+    }
+
+    public String getReplyToText() {
+        return replyToText;
+    }
+
+    public void setReplyToText(String replyToText) {
+        this.replyToText = replyToText;
+    }
+
+    public String getReplyToSenderId() {
+        return replyToSenderId;
+    }
+
+    public void setReplyToSenderId(String replyToSenderId) {
+        this.replyToSenderId = replyToSenderId;
     }
 }

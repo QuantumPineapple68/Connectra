@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,19 +47,28 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.nachiket.connectra.utility.MessageViolationTracker;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
-public class ChatActivity extends AppCompatActivity {
+public class ChatActivity extends AppCompatActivity implements ChatTextsAdapter.OnMessageActionListener {
 
     private RecyclerView messageRecyclerView;
     private ChatTextsAdapter messageAdapter;
     private List<ChatTexts> messageList;
     private ImageView backButton;
     MediaPlayer sentSound;
+    private TextView lastSeenTextView;
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault());
+    private ChatTexts replyingTo = null;
+    private LinearLayout replyLayout;
+    private TextView replyText, replySender;
+    private ImageView closeReply;
 
     private String currentUserId;
     private String chatPartnerId;
@@ -98,6 +108,7 @@ public class ChatActivity extends AppCompatActivity {
             }
         }
     };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -126,6 +137,20 @@ public class ChatActivity extends AppCompatActivity {
         sendButton = findViewById(R.id.send_button);
         fullName = findViewById(R.id.full_name);
         activeIndicator = findViewById(R.id.active_indicator);
+        lastSeenTextView = findViewById(R.id.last_seen);
+
+        // Initialize reply layout elements
+        replyLayout = findViewById(R.id.action_reply);
+        replyText = findViewById(R.id.reply_text);
+        closeReply = findViewById(R.id.close_reply);
+
+        if (replyLayout != null) {
+            replyLayout.setVisibility(View.GONE);
+
+            if (closeReply != null) {
+                closeReply.setOnClickListener(v -> cancelReply());
+            }
+        }
 
         onlineRef = FirebaseDatabase.getInstance().getReference("OnlineUsers");
         messagesRef = FirebaseDatabase.getInstance().getReference("Messages").child(conversationId);
@@ -142,9 +167,10 @@ public class ChatActivity extends AppCompatActivity {
         setupOnlineStatusListener();
         initializeFields();
         setupToolbar();
-
+        setupLastSeenListener();
         setupRecyclerView();
         loadMessages();
+        setupReplyUI();
 
         // Set profile image using Glide
         profileImageView = findViewById(R.id.profile_image);
@@ -168,9 +194,6 @@ public class ChatActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
-        ImageView sendButton = findViewById(R.id.send_button);
-        EditText messageInput = findViewById(R.id.message_input);
 
         sendButton.setOnClickListener(v -> {
             String messageText = messageInput.getText().toString().trim();
@@ -200,12 +223,14 @@ public class ChatActivity extends AppCompatActivity {
                 sentSound.start();
                 sendMessage(messageText);
                 messageInput.setText("");
+
+                // Clear reply if active
+                cancelReply();
             }
         });
 
         backButton.setOnClickListener(v -> finish());
         fullName.setOnClickListener(v -> finish());
-
     }
 
     private void initializeFields() {
@@ -221,16 +246,75 @@ public class ChatActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowTitleEnabled(false);
     }
 
+    private void setupReplyUI() {
+        // Initialize reply layout
+        replyLayout = findViewById(R.id.reply_layout);
+        replySender = findViewById(R.id.reply_sender);
+        replyText = findViewById(R.id.reply_text);
+        closeReply = findViewById(R.id.close_reply);
+
+        if (replyLayout != null) {
+            replyLayout.setVisibility(View.GONE);
+
+            if (closeReply != null) {
+                closeReply.setOnClickListener(v -> cancelReply());
+            }
+        }
+    }
+
     private void setupRecyclerView() {
         messageRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         String profileImageUrl = getIntent().getStringExtra("profileImage"); // Get the profile image URL
         boolean profileApproved = getIntent().getBooleanExtra("profileApproved", false);
-        messageAdapter = new ChatTextsAdapter(messageList, currentUserId, profileImageUrl, profileApproved);
+        messageAdapter = new ChatTextsAdapter(messageList, currentUserId, profileImageUrl, profileApproved, chatPartnerName, messageRecyclerView);
         messageAdapter.setOnMessageLongClickListener((message, view) -> {
-            showReactionDialog(message, view);
+            showMessageActionDialog(message, view);
         });
+        messageAdapter.setOnMessageActionListener(this);
 
         messageRecyclerView.setAdapter(messageAdapter);
+    }
+
+    private void showMessageActionDialog(ChatTexts message, View anchorView) {
+        View actionView = getLayoutInflater().inflate(R.layout.message_actions_layout, null);
+        PopupWindow popupWindow = new PopupWindow(
+                actionView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true
+        );
+
+        // Set up action click listeners
+        LinearLayout replyAction = actionView.findViewById(R.id.action_reply);
+        LinearLayout deleteAction = actionView.findViewById(R.id.action_delete);
+        LinearLayout reactAction = actionView.findViewById(R.id.action_react);
+
+        // Show delete option only for sender's messages
+        deleteAction.setVisibility(message.getSenderId().equals(currentUserId) ? View.VISIBLE : View.GONE);
+
+        replyAction.setOnClickListener(v -> {
+            onReplyMessage(message);
+            popupWindow.dismiss();
+        });
+
+        deleteAction.setOnClickListener(v -> {
+            onDeleteMessage(message);
+            popupWindow.dismiss();
+        });
+
+        reactAction.setOnClickListener(v -> {
+            popupWindow.dismiss();
+            showReactionDialog(message, anchorView);
+        });
+
+        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        popupWindow.setElevation(10);
+
+        int[] location = new int[2];
+        anchorView.getLocationOnScreen(location);
+        boolean isSender = message.getSenderId().equals(currentUserId);
+        int y = isSender ? location[1] - anchorView.getHeight() : location[1] + anchorView.getHeight();
+        popupWindow.showAtLocation(anchorView, Gravity.NO_GRAVITY, location[0], y);
     }
 
     private void updateMessageReaction(ChatTexts message, String reaction) {
@@ -289,7 +373,7 @@ public class ChatActivity extends AppCompatActivity {
 
         View.OnClickListener reactionClickListener = v -> {
             String reaction = ((TextView) v).getText().toString();
-            updateMessageReaction(message, reaction);
+            onReactToMessage(message, reaction);
             popupWindow.dismiss();
         };
 
@@ -323,6 +407,10 @@ public class ChatActivity extends AppCompatActivity {
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     ChatTexts message = dataSnapshot.getValue(ChatTexts.class);
                     if (message != null) {
+                        // Log for debugging
+                        if (message.getReplyToId() != null) {
+                            Log.d("ChatActivity", "Loaded message with reply: " + message.getReplyToId());
+                        }
                         messageList.add(message);
                     }
                 }
@@ -332,11 +420,62 @@ public class ChatActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("ChatActivity", "Error loading messages: " + error.getMessage());
             }
         });
     }
 
+    private void setupLastSeenListener() {
+        onlineRef.child(chatPartnerId).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Boolean isOnline = snapshot.child("online").getValue(Boolean.class);
+                activeIndicator.setVisibility(isOnline != null && isOnline ? View.VISIBLE : View.GONE);
+
+                // Update last seen text
+                if (isOnline != null && !isOnline && snapshot.hasChild("lastSeen")) {
+                    Long lastSeenTimestamp = snapshot.child("lastSeen").getValue(Long.class);
+                    if (lastSeenTimestamp != null) {
+                        String lastSeenStr = "Last seen " + getTimeAgo(lastSeenTimestamp);
+                        lastSeenTextView.setText(lastSeenStr);
+                        lastSeenTextView.setVisibility(View.VISIBLE);
+                    } else {
+                        lastSeenTextView.setVisibility(View.GONE);
+                    }
+                } else {
+                    lastSeenTextView.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("ChatActivity", "Failed to get online status: " + error.getMessage());
+            }
+        });
+    }
+
+    private String getTimeAgo(long timestamp) {
+        long currentTime = System.currentTimeMillis();
+        long diffInMillis = currentTime - timestamp;
+        long diffInMinutes = TimeUnit.MILLISECONDS.toMinutes(diffInMillis);
+
+        if (diffInMinutes < 1) {
+            return "just now";
+        } else if (diffInMinutes < 60) {
+            return diffInMinutes + " minutes ago";
+        } else if (diffInMinutes < 24 * 60) {
+            long hours = TimeUnit.MILLISECONDS.toHours(diffInMillis);
+            return hours + (hours == 1 ? " hour ago" : " hours ago");
+        } else if (diffInMinutes < 7 * 24 * 60) {
+            long days = TimeUnit.MILLISECONDS.toDays(diffInMillis);
+            return days + (days == 1 ? " day ago" : " days ago");
+        } else {
+            return dateFormat.format(new Date(timestamp));
+        }
+    }
+
     private void sendMessage(String messageText) {
+        if (messageText.trim().isEmpty()) return;
 
         if (MessageFilter.containsInappropriateContent(messageText)) {
             Toast.makeText(ChatActivity.this,
@@ -345,49 +484,38 @@ public class ChatActivity extends AppCompatActivity {
             messageText = MessageFilter.filterMessage(messageText);
         }
 
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUserId);
-        Log.e("namaiwa", currentUserId);
+        String messageId = messagesRef.push().getKey();
+        if (messageId == null) return;
 
-        String finalMessageText = messageText;
-        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    String myName = snapshot.child("name").getValue(String.class); // Fetch "name" from the database
-                    Log.e("namaiwa", myName);
-                    Log.e("namaiwa", chatPartnerId);
-                    if (myName != null) {
-                        String messageId = messagesRef.push().getKey();
-                        long timestamp = System.currentTimeMillis(); // added for future use in updates
+        HashMap<String, Object> messageMap = new HashMap<>();
+        messageMap.put("messageId", messageId);
+        messageMap.put("message", messageText);
+        messageMap.put("senderId", currentUserId);
+        messageMap.put("receiverId", chatPartnerId);
+        messageMap.put("timestamp", System.currentTimeMillis());
+        messageMap.put("read", false);
 
-                        HashMap<String, Object> messageMap = new HashMap<>();
-                        messageMap.put("messageId", messageId);
-                        messageMap.put("message", finalMessageText);
-                        messageMap.put("senderId", currentUserId);
-                        messageMap.put("receiverId", chatPartnerId);
-                        messageMap.put("timestamp", timestamp);
-                        messageMap.put("read", false);
+        // Add reply information if replying to a message
+        if (replyingTo != null) {
+            Log.d("ChatActivity", "Adding reply data for message: " + messageId);
+            Log.d("ChatActivity", "Reply to message: " + replyingTo.getMessageId());
+            messageMap.put("replyToId", replyingTo.getMessageId());
+            messageMap.put("replyToText", replyingTo.getMessage());
+            messageMap.put("replyToSenderId", replyingTo.getSenderId());
+        }
 
-                        if (messageId != null) {
-                            messagesRef.child(messageId).setValue(messageMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    if (task.isSuccessful()) {
-                                        Log.e("namaiwa", "Message sent successfully");
-                                    } else {
-                                        Log.e("namaiwa", "Failed to send message");
-                                    }
-                                }
-                            });
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-            }
-        });
+        messagesRef.child(messageId).setValue(messageMap)
+                .addOnSuccessListener(aVoid -> {
+                    messageInput.setText("");
+                    cancelReply(); // Clear reply after successful send
+                    sentSound.start();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(ChatActivity.this,
+                            "Failed to send message",
+                            Toast.LENGTH_SHORT).show();
+                    Log.e("ChatActivity", "Failed to send message: " + e.getMessage());
+                });
     }
 
     private String getConversationId(String user1, String user2) {
@@ -421,6 +549,63 @@ public class ChatActivity extends AppCompatActivity {
                 Toast.makeText(ChatActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    public void onReplyMessage(ChatTexts message) {
+        if (message == null) {
+            Log.e("ChatActivity", "Cannot reply to null message");
+            return;
+        }
+
+        replyingTo = message;
+        Log.d("ChatActivity", "Setting up reply to message: " + message.getMessageId());
+
+        View replyLayout = findViewById(R.id.action_reply);
+        TextView replySender = findViewById(R.id.reply_sender);
+        TextView replyText = findViewById(R.id.reply_text);
+
+        if (replyLayout != null) {
+            replyLayout.setVisibility(View.VISIBLE);
+            String senderName = message.getSenderId().equals(currentUserId) ? "You" : chatPartnerName;
+            replySender.setText(senderName);
+            replyText.setText(message.getMessage());
+            messageInput.requestFocus();
+        }
+    }
+
+    private void cancelReply() {
+        replyingTo = null;
+        View replyLayout = findViewById(R.id.action_reply);
+        if (replyLayout != null) {
+            replyLayout.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public void onDeleteMessage(ChatTexts message) {
+        // Only allow users to delete their own messages
+        if (!message.getSenderId().equals(currentUserId)) {
+            Toast.makeText(this, "You can only delete your own messages", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String conversationId = getConversationId(currentUserId, chatPartnerId);
+        DatabaseReference messageRef = FirebaseDatabase.getInstance()
+                .getReference("Messages")
+                .child(conversationId)
+                .child(message.getMessageId());
+
+        messageRef.removeValue()
+                .addOnSuccessListener(aVoid ->
+                        Toast.makeText(this, "Message deleted", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to delete message", Toast.LENGTH_SHORT).show());
+    }
+
+    @Override
+    public void onReactToMessage(ChatTexts message, String reaction) {
+        updateMessageReaction(message, reaction);
     }
 
     @Override

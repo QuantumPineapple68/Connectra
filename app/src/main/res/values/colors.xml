@@ -12,5 +12,13 @@
     <color name="text">#f873a0</color>
     <color name="inverted_top">#eaeaea</color>
     <color name="login_bar">#c28dd5</color>
+    <color name="reply_background_sent">#20FFFFFF</color>
+    <color name="reply_background_received">#10000000</color>
+    <color name="reply_sender_text_sent">#80FFFFFF</color>
+    <color name="reply_sender_text_received">#80000000</color>
+    <color name="reply_text_sent">#B3FFFFFF</color>
+    <color name="reply_text_received">#B3000000</color>
+    <color name="reply_divider_sent">#50FFFFFF</color>
+    <color name="reply_divider_received">#50000000</color>
 
 </resources>

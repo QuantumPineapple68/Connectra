@@ -71,6 +71,8 @@ public class MessagePreviewAdapter extends RecyclerView.Adapter<MessagePreviewAd
                 listener.onMessageClick(message);
             }
         });
+        holder.userActiveIndicator.setVisibility(message.isOnline() ? View.VISIBLE : View.GONE);
+
     }
 
     @Override
@@ -139,6 +141,7 @@ public class MessagePreviewAdapter extends RecyclerView.Adapter<MessagePreviewAd
         TextView messageTime;
         View unreadIndicator;
         View userActiveIndicator;
+
 
         MessageViewHolder(@NonNull View itemView) {
             super(itemView);

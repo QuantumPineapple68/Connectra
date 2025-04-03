@@ -3,6 +3,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.EditText;
@@ -48,10 +49,13 @@ public class InboxActivity extends AppCompatActivity implements MessagePreviewAd
     private ImageButton backBtn;
     private ImageButton newMessageBtn;
 
+
     private FirebaseAuth auth;
     private DatabaseReference messagesRef;
     private DatabaseReference usersRef;
     private ValueEventListener messagesListener;
+    private DatabaseReference onlineUsersRef;
+    private Map<String, Boolean> onlineStatusCache = new HashMap<>();
 
     private String currentUserId;
     private Map<String, UserModel> usersCache = new HashMap<>();
@@ -82,9 +86,13 @@ public class InboxActivity extends AppCompatActivity implements MessagePreviewAd
 
         messagesRef = FirebaseDatabase.getInstance().getReference().child("Messages");
         usersRef = FirebaseDatabase.getInstance().getReference().child("Users");
+        onlineUsersRef = FirebaseDatabase.getInstance().getReference().child("OnlineUsers");
+
+        initViews();
+        adapter = new MessagePreviewAdapter(this, this);
+        messagesRecyclerView.setAdapter(adapter);
 
         // Initialize views
-        initViews();
         setupListeners();
 
         // Load messages
@@ -261,6 +269,47 @@ public class InboxActivity extends AppCompatActivity implements MessagePreviewAd
                 // Still add the message to the list, but without user details
                 allMessages.add(preview);
                 sortAndDisplayMessages();
+            }
+        });
+
+        setupOnlineStatusListener(preview);
+
+    }
+
+    private void setupOnlineStatusListener(MessagePreview preview) {
+        String partnerId = preview.getPartnerId();
+
+        onlineUsersRef.child(partnerId).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Boolean isOnline = snapshot.child("online").getValue(Boolean.class);
+                Long lastSeen = snapshot.child("lastSeen").getValue(Long.class);
+
+                // Cache the online status
+                onlineStatusCache.put(partnerId, isOnline != null && isOnline);
+
+                // Update the message preview with online status and last seen
+                preview.setOnline(isOnline != null && isOnline);
+                preview.setLastSeen(lastSeen != null ? lastSeen : 0);
+
+                // Update the UI
+                boolean updated = false;
+                for (int i = 0; i < allMessages.size(); i++) {
+                    if (allMessages.get(i).getPartnerId().equals(partnerId)) {
+                        allMessages.set(i, preview);
+                        updated = true;
+                        break;
+                    }
+                }
+
+                if (updated) {
+                    sortAndDisplayMessages();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("InboxActivity", "Failed to get online status: " + error.getMessage());
             }
         });
     }

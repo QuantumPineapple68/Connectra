@@ -11,6 +11,8 @@ public class MessagePreview {
     private long timestamp;
     private boolean read;
     private boolean profileApproved;
+    private boolean isOnline;
+    private long lastSeen;
 
     public MessagePreview() {
         // Required for Firebase
@@ -109,5 +111,21 @@ public class MessagePreview {
 
     public void setProfileApproved(boolean profileApproved) {
         this.profileApproved = profileApproved;
+    }
+
+    public boolean isOnline() {
+        return isOnline;
+    }
+
+    public void setOnline(boolean online) {
+        isOnline = online;
+    }
+
+    public long getLastSeen() {
+        return lastSeen;
+    }
+
+    public void setLastSeen(long lastSeen) {
+        this.lastSeen = lastSeen;
     }
 }
