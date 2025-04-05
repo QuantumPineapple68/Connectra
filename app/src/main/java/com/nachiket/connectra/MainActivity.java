@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.VibrationEffect;
-import android.os.Vibrator;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -134,27 +133,14 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                         int itemId = item.getItemId();
-                        Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
                         if (itemId == R.id.nav_home) {
-                            if (vibrator != null && vibrator.hasVibrator()) {
-                                vibrator.vibrate(VibrationEffect.createOneShot(20, 110));
-                            }
                             selectorFragment = new HomeFragment();
                         } else if (itemId == R.id.nav_search) {
-                            if (vibrator != null && vibrator.hasVibrator()) {
-                                vibrator.vibrate(VibrationEffect.createOneShot(20, 110));
-                            }
                             selectorFragment = new SearchFragment();
                         } else if (itemId == R.id.nav_person) {
-                            if (vibrator != null && vibrator.hasVibrator()) {
-                                vibrator.vibrate(VibrationEffect.createOneShot(20, 110));
-                            }
                             selectorFragment = new ProfileFragment();
                         } else if (itemId == R.id.nav_calender) {
-                            if (vibrator != null && vibrator.hasVibrator()) {
-                                vibrator.vibrate(VibrationEffect.createOneShot(20, 110));
-                            }
                             selectorFragment = new ScheduleFragment();
                         }
 

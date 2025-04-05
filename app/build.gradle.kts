@@ -9,10 +9,11 @@ android {
 
     defaultConfig {
         applicationId = "com.nachiket.connectra"
-        minSdk = 29
+        minSdk = 23
         targetSdk = 34
         versionCode = 11
         versionName = "1.2"
+        vectorDrawables.useSupportLibrary = true
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -44,8 +45,6 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
-    implementation(libs.navigation.fragment)
-    implementation(libs.navigation.ui)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.database)
     implementation(libs.firebase.storage)
@@ -54,6 +53,7 @@ dependencies {
     implementation (libs.photoview)
     implementation (libs.ucrop)
     implementation(libs.swiperefreshlayout)
+    implementation(libs.androidx.navigation.fragment)
     annotationProcessor(libs.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

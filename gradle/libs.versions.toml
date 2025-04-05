@@ -28,6 +28,7 @@ photoview = "2.3.0"
 playServicesAuth = "21.3.0"
 ucrop = "2.2.8"
 swiperefreshlayout = "1.1.0"
+navigationFragmentVersion = "2.8.9"
 
 [libraries]
 android-image-cropper = { module = "com.github.ArthurHub:Android-Image-Cropper", version.ref = "androidImageCropper" }
@@ -58,6 +59,7 @@ play-services-auth = { module = "com.google.android.gms:play-services-auth", ver
 ucrop = { module = "com.github.yalantis:ucrop", version.ref = "ucrop" }
 vanniktech-android-image-cropper = { module = "com.vanniktech:android-image-cropper", version.ref = "androidImageCropperVersion" }
 swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
+androidx-navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "navigationFragmentVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
