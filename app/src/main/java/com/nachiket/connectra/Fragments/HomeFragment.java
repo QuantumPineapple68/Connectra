@@ -132,7 +132,7 @@ public class HomeFragment extends Fragment {
         detonatorRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Boolean isActive = snapshot.child("isActive_1,0").getValue(Boolean.class);
+                Boolean isActive = snapshot.child("isActive_1,2").getValue(Boolean.class);
                 if (isActive != null) {
                     if (!isActive) {
                         showExitDialog();

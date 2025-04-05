@@ -11,7 +11,7 @@ android {
         applicationId = "com.nachiket.connectra"
         minSdk = 29
         targetSdk = 34
-        versionCode = 8
+        versionCode = 11
         versionName = "1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
