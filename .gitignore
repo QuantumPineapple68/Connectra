@@ -1,5 +1,6 @@
 *.iml
 *.json
+**/model/MyApplication.class
 .gradle
 /local.properties
 /.idea/caches
