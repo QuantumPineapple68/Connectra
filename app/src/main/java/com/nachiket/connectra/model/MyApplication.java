@@ -40,10 +40,10 @@ public class MyApplication extends Application {
 
                 // Set up FirebaseOptions for the secondary project
                 FirebaseOptions secondaryOptions = new FirebaseOptions.Builder()
-                        .setProjectId("lean-58efd")
-                        .setApplicationId("1:372911637561:android:7129c56090bd6f0b0cf9e8")
-                        .setApiKey("AIzaSyB__SU0eSAYtHObFVw7jIpMNpjyNtRzkHA")
-                        .setStorageBucket("lean-58efd.appspot.com")
+                        .setProjectId("Project ID")
+                        .setApplicationId("Application ID")
+                        .setApiKey("My API Key")
+                        .setStorageBucket("Storage Bucket")
                         .build();
 
                 // Initialize secondary Firebase app
