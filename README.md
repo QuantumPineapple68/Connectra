@@ -81,12 +81,6 @@ System to Block and Report accounts for NSFW behaviour. (Admin can band/ Suspend
 ## 📋 Implementation Guidelines
 
 ### Database Schema
-
-
-
-
-
-
 ```
 connectra-db/
 ├── users/
@@ -103,8 +97,6 @@ connectra-db/
 └── tasks/
     └── [task_id]/
 ```
-
-
 ## 🌱 Future Roadmap
 
 - **Advanced Matching Algorithm**: Machine learning-based skill compatibility analysis
