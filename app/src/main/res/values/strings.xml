@@ -1,10 +1,5 @@
 <resources>
     <string name="app_name">Connectra</string>
-    <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">First Fragment</string>
-    <string name="second_fragment_label">Second Fragment</string>
-    <string name="next">Next</string>
-    <string name="previous">Previous</string>
     <string name="client_id">404492716071-h47f0h8m4kmqni2a2jst09kupcisolm0.apps.googleusercontent.com</string>
 
     <!-- TODO: Remove or change this placeholder text -->
