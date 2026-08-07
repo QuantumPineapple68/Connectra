@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.EditText;
@@ -15,15 +14,13 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.text.HtmlCompat;
 import com.bumptech.glide.Glide;
-import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.nachiket.connectra.Authentication.RegisterActivity;
-import com.nachiket.connectra.model.MyApplication;
+import com.nachiket.connectra.utility.ConnectraApi;
+import com.nachiket.connectra.utility.ImageUtil;
 import com.nachiket.connectra.utility.MessageFilter;
 
 import java.io.File;
@@ -41,7 +38,6 @@ public class ExtraDetailsActivity extends AppCompatActivity {
     DatabaseReference databaseRef;
     ProgressDialog pd;
 
-    FirebaseStorage storage;
     Uri certificateUri;
     File localCertificateFile;
     ActivityResultLauncher<Intent> certificatePickerLauncher;
@@ -51,8 +47,6 @@ public class ExtraDetailsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_extra_details);
-
-        initializeStorage();
 
         // Initialize views
         name = findViewById(R.id.fulltxtname);
@@ -124,43 +118,6 @@ public class ExtraDetailsActivity extends AppCompatActivity {
         );
     }
 
-    private void initializeStorage() {
-        ProgressDialog initDialog = new ProgressDialog(this);
-        initDialog.setMessage("Initializing...");
-        initDialog.setCancelable(false);
-        initDialog.show();
-
-        new Handler().post(new Runnable() {
-            private int attempts = 0;
-
-            @Override
-            public void run() {
-                try {
-                    // First ensure we clean up any existing instances
-                    MyApplication.cleanupFirebaseInstances();
-                    // Then initialize a fresh instance
-                    FirebaseApp secondaryApp = MyApplication.initializeSecondaryApp();
-                    storage = FirebaseStorage.getInstance(secondaryApp);
-                    initDialog.dismiss();
-                } catch (Exception e) {
-                    attempts++;
-                    if (attempts < 3) {
-                        // Retry after 1 second
-                        new Handler().postDelayed(this, 1000);
-                    } else {
-                        initDialog.dismiss();
-                        new AlertDialog.Builder(ExtraDetailsActivity.this)
-                                .setTitle("Initialization Error")
-                                .setMessage("Failed to initialize storage. Please restart the app.")
-                                .setPositiveButton("OK", (dialog, which) -> finish())
-                                .setCancelable(false)
-                                .show();
-                    }
-                }
-            }
-        });
-    }
-
     private void registerUser(String name, String username, String myskill, String goalskill, String age, String gender) {
         pd.setMessage("Please Wait ...");
         pd.show();
@@ -178,11 +135,12 @@ public class ExtraDetailsActivity extends AppCompatActivity {
         map.put("gender", gender);
         map.put("profileApproved", false);
         map.put("cerfApproved", false);
+        map.put("aiVerified", false);
         map.put("banned", false);
 
         databaseRef.child(userId).setValue(map).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                uploadCertificate(userId);
+                uploadCertificate(userId, myskill);
             } else {
                 pd.dismiss();
                 Toast.makeText(ExtraDetailsActivity.this, "Registration Failed", Toast.LENGTH_SHORT).show();
@@ -229,7 +187,7 @@ public class ExtraDetailsActivity extends AppCompatActivity {
         }
     }
 
-    private void uploadCertificate(String userId) {
+    private void uploadCertificate(String userId, String claimedSkill) {
         if (localCertificateFile == null) {
             pd.dismiss();
             // Registration successful even without certificate
@@ -237,38 +195,116 @@ public class ExtraDetailsActivity extends AppCompatActivity {
             return;
         }
 
-        StorageReference certRef = storage.getReference().child("connectra_certificates")
-                .child(System.currentTimeMillis() + "_" + localCertificateFile.getName());
+        pd.setMessage("Checking certificate with AI ...");
 
-        certRef.putFile(Uri.fromFile(localCertificateFile)).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                certRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                    String url = uri.toString();
-                    databaseRef.child(userId).child("certificateUrl").setValue(url)
-                            .addOnCompleteListener(task1 -> {
-                                pd.dismiss();
-                                if (task1.isSuccessful()) {
-                                    verificationDialog = new AlertDialog.Builder(this)
-                                            .setTitle("Image sent for Verification")
-                                            .setMessage("Your certificate has been sent to the admin for NSFW verification to check for mature content. It will appear to everyone once verified.")
-                                            .setCancelable(true)
-                                            .setPositiveButton("OK", (dialog, which) -> {
-                                                dialog.dismiss();
-                                                proceedToMainActivity();
-                                            })
-                                            .create();
-
-                                    verificationDialog.show();
-                                } else {
-                                    Toast.makeText(ExtraDetailsActivity.this,
-                                            "Error saving certificate URL.", Toast.LENGTH_SHORT).show();
-                                }
-                            });
+        // Compress + encode off the main thread, then run the AI checks
+        new Thread(() -> {
+            final String dataUri;
+            try {
+                dataUri = ImageUtil.uriToDataUri(this, Uri.fromFile(localCertificateFile));
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    pd.dismiss();
+                    Toast.makeText(ExtraDetailsActivity.this, "Could not process certificate",
+                            Toast.LENGTH_SHORT).show();
+                    proceedToMainActivity();
                 });
+                return;
+            }
+
+            runOnUiThread(() -> ConnectraApi.moderateImage(dataUri, new ConnectraApi.ModerationCallback() {
+                @Override
+                public void onResult(boolean nsfw, String reason) {
+                    if (isFinishing() || isDestroyed()) return;
+                    if (nsfw) {
+                        pd.dismiss();
+                        // Account is created, only the certificate is rejected
+                        new AlertDialog.Builder(ExtraDetailsActivity.this)
+                                .setTitle("Certificate Rejected")
+                                .setMessage("Our AI safety check flagged this image"
+                                        + (reason != null && !reason.isEmpty() ? " (" + reason + ")" : "")
+                                        + ". You can upload a different certificate later from Edit Profile.")
+                                .setCancelable(false)
+                                .setPositiveButton("OK", (dialog, which) -> {
+                                    dialog.dismiss();
+                                    proceedToMainActivity();
+                                })
+                                .show();
+                        return;
+                    }
+                    verifyAndSaveCertificate(userId, claimedSkill, dataUri);
+                }
+
+                @Override
+                public void onError(String message) {
+                    if (isFinishing() || isDestroyed()) return;
+                    // Moderation unavailable — fall back to manual admin review
+                    saveCertificate(userId, dataUri, false, false, "");
+                }
+            }));
+        }).start();
+    }
+
+    private void verifyAndSaveCertificate(String userId, String claimedSkill, String dataUri) {
+        pd.setMessage("Verifying certificate with AI ...");
+
+        ConnectraApi.verifyCertificate(dataUri, claimedSkill, new ConnectraApi.CertificateCallback() {
+            @Override
+            public void onResult(boolean isCertificate, boolean matchesSkill, String detectedSkill,
+                                 String title, String issuer, double confidence) {
+                if (isFinishing() || isDestroyed()) return;
+                saveCertificate(userId, dataUri, true, isCertificate && matchesSkill, detectedSkill);
+            }
+
+            @Override
+            public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
+                // Verification unavailable — keep the certificate but without the AI badge
+                saveCertificate(userId, dataUri, true, false, "");
+            }
+        });
+    }
+
+    private void saveCertificate(String userId, String dataUri, boolean aiApproved,
+                                 boolean aiVerified, String detectedSkill) {
+        HashMap<String, Object> updates = new HashMap<>();
+        updates.put("certificateUrl", dataUri);
+        updates.put("cerfApproved", aiApproved);
+        updates.put("aiVerified", aiVerified);
+
+        databaseRef.child(userId).updateChildren(updates).addOnCompleteListener(task1 -> {
+            pd.dismiss();
+            if (task1.isSuccessful()) {
+                String title;
+                CharSequence message;
+                if (aiVerified) {
+                    title = "AI-Verified ✓";
+                    message = "Your certificate passed the AI checks"
+                            + (detectedSkill != null && !detectedSkill.isEmpty()
+                            ? " and matches your skill \"" + detectedSkill + "\"" : "")
+                            + ". It is now visible on your profile with the AI-Verified badge!";
+                } else if (aiApproved) {
+                    title = "Certificate Uploaded";
+                    message = HtmlCompat.fromHtml(
+                            "Your certificate passed the safety check and is visible to everyone, but the <b>AI could not verify it against your claimed skill.</b>",
+                            HtmlCompat.FROM_HTML_MODE_LEGACY);
+                } else {
+                    title = "Image sent for Verification";
+                    message = "Our AI check is temporarily unavailable, so your certificate has been sent to the admin for NSFW verification. It will appear to everyone once verified.";
+                }
+                verificationDialog = new AlertDialog.Builder(this)
+                        .setTitle(title)
+                        .setMessage(message)
+                        .setCancelable(false)
+                        .setPositiveButton("OK", (dialog, which) -> {
+                            dialog.dismiss();
+                            proceedToMainActivity();
+                        })
+                        .create();
+                verificationDialog.show();
             } else {
-                pd.dismiss();
-                Toast.makeText(ExtraDetailsActivity.this, "Certificate upload failed",
-                        Toast.LENGTH_SHORT).show();
+                Toast.makeText(ExtraDetailsActivity.this,
+                        "Error saving certificate.", Toast.LENGTH_SHORT).show();
                 proceedToMainActivity();
             }
         });

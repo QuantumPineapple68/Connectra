@@ -3,6 +3,7 @@ package com.nachiket.connectra.Fragments;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Rect;
@@ -23,9 +24,11 @@ import androidx.annotation.NonNull;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.android.material.color.MaterialColors;
 import com.nachiket.connectra.Authentication.LoginActivity;
 import com.nachiket.connectra.ChangeSkillActivity;
@@ -34,8 +37,10 @@ import com.nachiket.connectra.InboxActivity;
 import com.nachiket.connectra.MainActivity;
 import com.nachiket.connectra.model.ChatTexts;
 import com.nachiket.connectra.R;
+import com.nachiket.connectra.adapter.MatchAdapter;
 import com.nachiket.connectra.adapter.TileAdapter;
 import com.nachiket.connectra.model.NewUser;
+import com.nachiket.connectra.utility.ConnectraApi;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -43,12 +48,17 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
 public class HomeFragment extends Fragment {
+
+    private static final String MATCH_PREFS = "connectra_matches";
 
     private RecyclerView recyclerView;
     private TileAdapter tileAdapter;
@@ -59,6 +69,13 @@ public class HomeFragment extends Fragment {
     private FirebaseAuth auth;
     private ImageView inbox;
     private SwipeRefreshLayout swipeRefreshLayout;
+
+    // "✨ Matches for you" carousel (AI Skill-Match Engine)
+    private View matchesContainer;
+    private RecyclerView matchesRecycler;
+    private ShimmerFrameLayout matchesShimmer;
+    private MatchAdapter matchAdapter;
+    private List<ConnectraApi.SkillMatch> matchList;
 
 
     @Override
@@ -85,8 +102,20 @@ public class HomeFragment extends Fragment {
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayoutHome);
         swipeRefreshLayout.setColorSchemeColors(getResources().getColor(R.color.theme));
         swipeRefreshLayout.setOnRefreshListener(() -> {
+            fetchUserData();
             fetchUsersFromDatabase();
         });
+
+        // Matches carousel setup
+        matchesContainer = view.findViewById(R.id.matches_container);
+        matchesRecycler = view.findViewById(R.id.matches_recycler);
+        matchesShimmer = view.findViewById(R.id.matches_shimmer);
+        matchList = new ArrayList<>();
+        matchAdapter = new MatchAdapter(getContext(), matchList);
+        matchesRecycler.setLayoutManager(new LinearLayoutManager(getContext(),
+                LinearLayoutManager.HORIZONTAL, false));
+        matchesRecycler.setAdapter(matchAdapter);
+        loadCachedMatches();
 
         // Initialize user list and adapter
         userList = new ArrayList<>();
@@ -100,6 +129,9 @@ public class HomeFragment extends Fragment {
         recyclerView.addItemDecoration(new GridSpacingItemDecoration(8)); // 16dp spacing
 
         loadingProgressBar.setVisibility(View.VISIBLE);
+        if (matchList.isEmpty()) {
+            showMatchesLoading();
+        }
         fetchUserData();
         fetchUsersFromDatabase();
 
@@ -185,6 +217,10 @@ public class HomeFragment extends Fragment {
                             String firstName = nameParts[0];
                             hi.setText("Hi, " + firstName);
                         }
+
+                        String myskill = snapshot.child("myskill").getValue(String.class);
+                        String goalskill = snapshot.child("goalskill").getValue(String.class);
+                        fetchMatches(userId, myskill, goalskill, fullName);
                     }
 
                 } else {
@@ -198,10 +234,124 @@ public class HomeFragment extends Fragment {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Context context = getContext(); // Get context safely
-
+                if (isAdded()) {
+                    hideMatchesLoading();
+                    renderMatches();
+                }
             }
         });
+    }
+
+    private void fetchMatches(String uid, String myskill, String goalskill, String name) {
+        if (myskill == null || myskill.trim().isEmpty()
+                || goalskill == null || goalskill.trim().isEmpty()) {
+            hideMatchesLoading();
+            matchesContainer.setVisibility(View.GONE);
+            return;
+        }
+
+        showMatchesLoading();
+
+        ConnectraApi.fetchMatches(uid, myskill, goalskill, name, new ConnectraApi.MatchCallback() {
+            @Override
+            public void onResult(List<ConnectraApi.SkillMatch> matches) {
+                if (!isAdded()) return;
+                hideMatchesLoading();
+                // An empty answer (e.g. the engine is temporarily degraded) must not wipe
+                // out the matches we already have on screen
+                if (matches.isEmpty()) {
+                    renderMatches();
+                    return;
+                }
+                matchList.clear();
+                matchList.addAll(matches);
+                renderMatches();
+                cacheMatches(uid, matches);
+            }
+
+            @Override
+            public void onError(String message) {
+                // The carousel is a bonus feature — fail silently and keep the last known matches
+                Log.e("HomeFragment", "Match fetch failed: " + message);
+                if (!isAdded()) return;
+                hideMatchesLoading();
+                renderMatches();
+            }
+        });
+    }
+
+    /** Shows the shimmer skeleton in place of the matches carousel while it loads. */
+    private void showMatchesLoading() {
+        // On swipe-refresh, keep the existing carousel visible instead of flashing the skeleton
+        if (!matchList.isEmpty()) return;
+        matchesContainer.setVisibility(View.VISIBLE);
+        matchesRecycler.setVisibility(View.GONE);
+        matchesShimmer.setVisibility(View.VISIBLE);
+        matchesShimmer.startShimmer();
+    }
+
+    private void hideMatchesLoading() {
+        matchesShimmer.stopShimmer();
+        matchesShimmer.setVisibility(View.GONE);
+    }
+
+    /** Reflects {@link #matchList} on screen; the whole section hides only when it is empty. */
+    private void renderMatches() {
+        matchAdapter.notifyDataSetChanged();
+        int visibility = matchList.isEmpty() ? View.GONE : View.VISIBLE;
+        matchesRecycler.setVisibility(visibility);
+        matchesContainer.setVisibility(visibility);
+    }
+
+    /**
+     * Restores the matches of the last successful fetch so the carousel is on screen
+     * instantly, and stays there when the edge API is unreachable or rate limited.
+     */
+    private void loadCachedMatches() {
+        if (getContext() == null || auth.getCurrentUser() == null) return;
+        String cached = getContext()
+                .getSharedPreferences(MATCH_PREFS, Context.MODE_PRIVATE)
+                .getString(auth.getCurrentUser().getUid(), null);
+        if (cached == null) return;
+        try {
+            JSONArray arr = new JSONArray(cached);
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject m = arr.optJSONObject(i);
+                if (m == null) continue;
+                matchList.add(new ConnectraApi.SkillMatch(
+                        m.optString("uid"),
+                        m.optString("name"),
+                        m.optString("myskill"),
+                        m.optString("goalskill"),
+                        m.optInt("score"),
+                        m.optBoolean("mutual")));
+            }
+        } catch (Exception e) {
+            Log.e("HomeFragment", "Cached matches unreadable: " + e.getMessage());
+            matchList.clear();
+        }
+        renderMatches();
+    }
+
+    private void cacheMatches(String uid, List<ConnectraApi.SkillMatch> matches) {
+        if (getContext() == null) return;
+        try {
+            JSONArray arr = new JSONArray();
+            for (ConnectraApi.SkillMatch match : matches) {
+                JSONObject m = new JSONObject();
+                m.put("uid", match.uid);
+                m.put("name", match.name);
+                m.put("myskill", match.myskill);
+                m.put("goalskill", match.goalskill);
+                m.put("score", match.score);
+                m.put("mutual", match.mutual);
+                arr.put(m);
+            }
+            SharedPreferences prefs = getContext().getSharedPreferences(MATCH_PREFS, Context.MODE_PRIVATE);
+            prefs.edit().putString(uid, arr.toString()).apply();
+        } catch (Exception e) {
+            Log.e("HomeFragment", "Caching matches failed: " + e.getMessage());
+        }
     }
 
     private void fetchUsersFromDatabase() {

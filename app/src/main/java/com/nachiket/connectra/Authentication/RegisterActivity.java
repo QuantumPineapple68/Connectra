@@ -22,6 +22,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
+import androidx.core.text.HtmlCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -29,15 +30,13 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import com.bumptech.glide.Glide;
 import com.google.android.material.color.MaterialColors;
 import com.nachiket.connectra.MainActivity;
-import com.nachiket.connectra.model.MyApplication;
 import com.nachiket.connectra.R;
+import com.nachiket.connectra.utility.ConnectraApi;
+import com.nachiket.connectra.utility.ImageUtil;
 import com.nachiket.connectra.utility.MessageFilter;
-import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -57,7 +56,6 @@ public class RegisterActivity extends AppCompatActivity {
     AlertDialog termsDialog, verificationDialog;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
-    FirebaseStorage storage;
     Uri certificateUri;
     File localCertificateFile;
     ActivityResultLauncher<Intent> certificatePickerLauncher;
@@ -198,11 +196,12 @@ public class RegisterActivity extends AppCompatActivity {
             map.put("gender", gender);
             map.put("profileApproved", false);
             map.put("cerfApproved", false);
+            map.put("aiVerified", false);
             map.put("banned", false);
 
             databaseRef.child(userId).setValue(map).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
-                    uploadCertificate(userId);
+                    uploadCertificate(userId, myskill);
                 } else {
                     pd.dismiss();
                     toast("Registration Failed");
@@ -252,70 +251,133 @@ public class RegisterActivity extends AppCompatActivity {
         }
     }
 
-    private void uploadCertificate(String userId) {
+    private void uploadCertificate(String userId, String claimedSkill) {
         // If no certificate is selected, proceed directly to completion
         if (localCertificateFile == null) {
-            completeRegistration(userId, null);
+            pd.dismiss();
+            proceedToMainActivity();
             return;
         }
 
-        // If certificate is selected, upload it
-        StorageReference certRef = storage.getReference().child("connectra_certificates")
-                .child(System.currentTimeMillis() + "_" + localCertificateFile.getName());
+        pd.setMessage("Checking certificate with AI ...");
 
-        certRef.putFile(Uri.fromFile(localCertificateFile)).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                certRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                    String url = uri.toString();
-                    completeRegistration(userId, url);
-                }).addOnFailureListener(e -> {
+        // Compress + encode off the main thread, then run the AI checks
+        new Thread(() -> {
+            final String dataUri;
+            try {
+                dataUri = ImageUtil.uriToDataUri(this, Uri.fromFile(localCertificateFile));
+            } catch (Exception e) {
+                runOnUiThread(() -> {
                     pd.dismiss();
-                    toast("Failed to get certificate URL");
+                    toast("Could not process certificate");
+                    proceedToMainActivity();
                 });
-            } else {
-                pd.dismiss();
-                toast("Certificate upload failed");
+                return;
+            }
+
+            runOnUiThread(() -> ConnectraApi.moderateImage(dataUri, new ConnectraApi.ModerationCallback() {
+                @Override
+                public void onResult(boolean nsfw, String reason) {
+                    if (isFinishing() || isDestroyed()) return;
+                    if (nsfw) {
+                        pd.dismiss();
+                        // Account is created, only the certificate is rejected
+                        new AlertDialog.Builder(RegisterActivity.this)
+                                .setTitle("Certificate Rejected")
+                                .setMessage("Our AI safety check flagged this image"
+                                        + (reason != null && !reason.isEmpty() ? " (" + reason + ")" : "")
+                                        + ". You can upload a different certificate later from Edit Profile.")
+                                .setCancelable(false)
+                                .setPositiveButton("OK", (dialog, which) -> {
+                                    dialog.dismiss();
+                                    proceedToMainActivity();
+                                })
+                                .show();
+                        return;
+                    }
+                    verifyAndSaveCertificate(userId, claimedSkill, dataUri);
+                }
+
+                @Override
+                public void onError(String message) {
+                    if (isFinishing() || isDestroyed()) return;
+                    // Moderation unavailable — fall back to manual admin review
+                    saveCertificate(userId, dataUri, false, false, "");
+                }
+            }));
+        }).start();
+    }
+
+    private void verifyAndSaveCertificate(String userId, String claimedSkill, String dataUri) {
+        pd.setMessage("Verifying certificate with AI ...");
+
+        ConnectraApi.verifyCertificate(dataUri, claimedSkill, new ConnectraApi.CertificateCallback() {
+            @Override
+            public void onResult(boolean isCertificate, boolean matchesSkill, String detectedSkill,
+                                 String title, String issuer, double confidence) {
+                if (isFinishing() || isDestroyed()) return;
+                saveCertificate(userId, dataUri, true, isCertificate && matchesSkill, detectedSkill);
+            }
+
+            @Override
+            public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
+                // Verification unavailable — keep the certificate but without the AI badge
+                saveCertificate(userId, dataUri, true, false, "");
             }
         });
     }
 
-    private void completeRegistration(String userId, String certificateUrl) {
-        DatabaseReference userRef = databaseRef.child(userId);
+    private void saveCertificate(String userId, String dataUri, boolean aiApproved,
+                                 boolean aiVerified, String detectedSkill) {
+        HashMap<String, Object> updates = new HashMap<>();
+        updates.put("certificateUrl", dataUri);
+        updates.put("cerfApproved", aiApproved);
+        updates.put("aiVerified", aiVerified);
 
-        if (certificateUrl != null) {
-            // If certificate was uploaded, save its URL
-            userRef.child("certificateUrl").setValue(certificateUrl)
-                    .addOnCompleteListener(task -> {
-                        pd.dismiss();
-                        handleRegistrationCompletion(task.isSuccessful());
-                    });
-        } else {
-            // If no certificate, just complete registration
+        databaseRef.child(userId).updateChildren(updates).addOnCompleteListener(task -> {
             pd.dismiss();
-            handleRegistrationCompletion(true);
-        }
+            if (task.isSuccessful()) {
+                toast("Registration Successful!");
+                String title;
+                CharSequence message;
+                if (aiVerified) {
+                    title = "AI-Verified ✓";
+                    message = "Your certificate passed the AI checks"
+                            + (detectedSkill != null && !detectedSkill.isEmpty()
+                            ? " and matches your skill \"" + detectedSkill + "\"" : "")
+                            + ". It is now visible on your profile with the AI-Verified badge!";
+                } else if (aiApproved) {
+                    title = "Certificate Uploaded";
+                    message = HtmlCompat.fromHtml(
+                            "Your certificate passed the safety check and is visible to everyone, but the <b>AI could not verify it against your claimed skill.</b>",
+                            HtmlCompat.FROM_HTML_MODE_LEGACY);
+                } else {
+                    title = "Image sent for Verification";
+                    message = "Our AI check is temporarily unavailable, so your certificate has been sent to the admin for NSFW verification. It will appear to everyone once verified.";
+                }
+                verificationDialog = new AlertDialog.Builder(this)
+                        .setTitle(title)
+                        .setMessage(message)
+                        .setCancelable(false)
+                        .setPositiveButton("OK", (dialog, which) -> {
+                            dialog.dismiss();
+                            proceedToMainActivity();
+                        })
+                        .create();
+                verificationDialog.show();
+            } else {
+                toast("Error saving certificate.");
+                proceedToMainActivity();
+            }
+        });
     }
 
-    private void handleRegistrationCompletion(boolean isSuccessful) {
-        if (isSuccessful) {
-            toast("Registration Successful!");
-            verificationDialog = new AlertDialog.Builder(this)
-                    .setTitle("Image sent for Verification")
-                    .setMessage("Your certificatee has been sent to the admin for NSFW verification to check for mature content. It will appear to everyone once verified.")
-                    .setCancelable(false)
-                    .setPositiveButton("OK", (dialog, which) -> {
-                        dialog.dismiss();
-                        Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        startActivity(intent);
-                        finish();
-                    })
-                    .create();
-
-            verificationDialog.show();
-        } else {
-            toast("Error completing registration.");
-        }
+    private void proceedToMainActivity() {
+        Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+        finish();
     }
 
     @SuppressLint("PrivateResource")
@@ -333,46 +395,6 @@ public class RegisterActivity extends AppCompatActivity {
     private void initializeFirebaseInstances() {
         auth = FirebaseAuth.getInstance();
         databaseRef = FirebaseDatabase.getInstance().getReference("Users");
-
-        // Try to initialize storage with retry mechanism
-        initializeStorage();
-    }
-
-    private void initializeStorage() {
-        ProgressDialog initDialog = new ProgressDialog(this);
-        initDialog.setMessage("Initializing...");
-        initDialog.setCancelable(false);
-        initDialog.show();
-
-        new Handler().post(new Runnable() {
-            private int attempts = 0;
-
-            @Override
-            public void run() {
-                try {
-                    // First ensure we clean up any existing instances
-                    MyApplication.cleanupFirebaseInstances();
-                    // Then initialize a fresh instance
-                    FirebaseApp secondaryApp = MyApplication.initializeSecondaryApp();
-                    storage = FirebaseStorage.getInstance(secondaryApp);
-                    initDialog.dismiss();
-                } catch (Exception e) {
-                    attempts++;
-                    if (attempts < 3) {
-                        // Retry after 1 second
-                        new Handler().postDelayed(this, 1000);
-                    } else {
-                        initDialog.dismiss();
-                        new AlertDialog.Builder(RegisterActivity.this)
-                                .setTitle("Initialization Error")
-                                .setMessage("Failed to initialize storage. Please restart the app.")
-                                .setPositiveButton("OK", (dialog, which) -> finish())
-                                .setCancelable(false)
-                                .show();
-                    }
-                }
-            }
-        });
     }
 
     private void forceAppExit() {

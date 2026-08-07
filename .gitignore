@@ -15,3 +15,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Cloudflare workers (kept local, not pushed)
+/worker/
+/worker-notify/

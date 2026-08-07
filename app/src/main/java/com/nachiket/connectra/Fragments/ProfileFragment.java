@@ -3,8 +3,10 @@ package com.nachiket.connectra.Fragments;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.ContentResolver;
+import android.content.ClipData;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,7 +14,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -22,33 +23,35 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
+import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.android.material.color.MaterialColors;
 import com.nachiket.connectra.ChangeSkillActivity;
 import com.nachiket.connectra.Authentication.LoginActivity;
 import com.nachiket.connectra.ReportActivity;
 import com.nachiket.connectra.model.MyApplication;
 import com.nachiket.connectra.R;
+import com.nachiket.connectra.utility.ConnectraApi;
+import com.nachiket.connectra.utility.ImageUtil;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 import com.yalantis.ucrop.UCrop;
 import com.yalantis.ucrop.UCropActivity;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.util.UUID;
 
 public class ProfileFragment extends Fragment {
@@ -58,14 +61,27 @@ public class ProfileFragment extends Fragment {
     private TextView welcome;
     private Button changeSkill, childReport, logoutButton;
     private TextView mySkillTextView, goalSkillTextView, credit;
-    private AlertDialog verificationDialog, imageTooLargeDialog;
+    private AlertDialog verificationDialog;
     private ImageView displayRating, removeProfile;
     private TextView numbRev;
     private String userId;
 
+    // Skill DNA preview card (tap to share)
+    private View shareDnaCard;
+    private ImageView dnaPreviewImage;
+    private ShimmerFrameLayout dnaPreviewShimmer;
+    private TextView dnaShareLabel;
+    private byte[] dnaCardBytes;
+    private boolean dnaProfileLoaded, dnaRatingLoaded, dnaPreviewRequested;
+
+    // Raw values kept for the Skill DNA card
+    private String dnaName = "", dnaUsername = "", dnaMySkill = "", dnaGoalSkill = "";
+    private boolean dnaAiVerified = false;
+    private float dnaRating = 0f;
+    private long dnaReviews = 0;
+
     private FirebaseAuth auth;
     private DatabaseReference userRef;
-    private FirebaseStorage storage;
     private Uri imageUri;
     private ActivityResultLauncher<Intent> imagePickerLauncher;
     private ActivityResultLauncher<Intent> cropImageLauncher;
@@ -99,10 +115,13 @@ public class ProfileFragment extends Fragment {
         displayRating = view.findViewById(R.id.display_rating);
         numbRev = view.findViewById(R.id.numb_revs);
         removeProfile = view.findViewById(R.id.removeProfile);
+        shareDnaCard = view.findViewById(R.id.share_dna_card);
+        dnaPreviewImage = view.findViewById(R.id.dna_preview_image);
+        dnaPreviewShimmer = view.findViewById(R.id.dna_preview_shimmer);
+        dnaShareLabel = view.findViewById(R.id.dna_share_label);
 
         // Firebase initialization
         auth = FirebaseAuth.getInstance();
-        initializeStorage();
 
         if (auth.getCurrentUser() != null) {
             String userId = auth.getCurrentUser().getUid();
@@ -123,6 +142,8 @@ public class ProfileFragment extends Fragment {
         changeSkill.setOnClickListener(v -> navigateToChangeSkill());
 
         removeProfile.setOnClickListener(v -> remove_Profile());
+
+        shareDnaCard.setOnClickListener(v -> shareSkillDna());
 
         childReport.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -214,19 +235,6 @@ public class ProfileFragment extends Fragment {
         cropImageLauncher.launch(uCrop.getIntent(requireContext()));
     }
 
-    private void initializeStorage() {
-        try {
-            // Clean up existing instances first
-            MyApplication.cleanupFirebaseInstances();
-            // Initialize a fresh secondary instance
-            FirebaseApp secondaryApp = MyApplication.initializeSecondaryApp();
-            storage = FirebaseStorage.getInstance(secondaryApp);
-        } catch (Exception e) {
-            Log.e("ProfileFragment", "Error initializing storage: " + e.getMessage());
-            toast("Error initializing storage. Please try again.");
-        }
-    }
-
     private void setupUserValueEventListener() {
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -243,6 +251,18 @@ public class ProfileFragment extends Fragment {
                     boolean profileApproved = dataSnapshot.child("profileApproved").getValue(Boolean.class) != null
                             ? dataSnapshot.child("profileApproved").getValue(Boolean.class)
                             : false;
+
+                    // Keep raw values around for the Skill DNA card
+                    dnaName = fullName != null ? fullName : "";
+                    dnaUsername = userName != null ? userName : "";
+                    dnaMySkill = mySkill != null ? mySkill : "";
+                    dnaGoalSkill = goalSkill != null ? goalSkill : "";
+                    dnaAiVerified = dataSnapshot.child("aiVerified").getValue(Boolean.class) != null
+                            ? dataSnapshot.child("aiVerified").getValue(Boolean.class)
+                            : false;
+
+                    dnaProfileLoaded = true;
+                    maybeLoadDnaPreview();
 
                     if (getActivity() != null) {
                         getActivity().runOnUiThread(() -> {
@@ -318,88 +338,198 @@ public class ProfileFragment extends Fragment {
     private void uploadImage() {
         if (imageUri == null) return;
 
-        if (storage == null) {
-            toast("Storage not initialized. Please try again.");
-            return;
-        }
+        ProgressDialog pd = new ProgressDialog(getActivity());
+        pd.setMessage("Checking image with AI ...");
+        pd.setCancelable(false);
+        pd.show();
 
-        try {
-            long fileSize = getFileSize(imageUri);
-            long maxSize = 2 * 1024 * 1024; // 2MB
-
-            if (fileSize > maxSize) {
-                imageTooLargeDialog = new AlertDialog.Builder(getActivity())
-                        .setTitle("Image is Too Large")
-                        .setMessage("Please compress your image to less than 2MB and try again. Thanks for your understanding")
-                        .setCancelable(false)
-                        .setNegativeButton("OK", (dialog, which) -> dialog.dismiss())
-                        .create();
-
-                imageTooLargeDialog.show();
+        // Compress + encode off the main thread, then let the AI moderate it
+        new Thread(() -> {
+            final String dataUri;
+            try {
+                dataUri = ImageUtil.uriToDataUri(requireContext(), imageUri);
+            } catch (Exception e) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        pd.dismiss();
+                        toast("Could not process image: " + e.getMessage());
+                    });
+                }
                 return;
             }
-        } catch (Exception e) {
-            toast("Error checking file size");
+
+            if (getActivity() == null) return;
+            getActivity().runOnUiThread(() -> ConnectraApi.moderateImage(dataUri, new ConnectraApi.ModerationCallback() {
+                @Override
+                public void onResult(boolean nsfw, String reason) {
+                    if (!isAdded()) return;
+                    if (nsfw) {
+                        pd.dismiss();
+                        new AlertDialog.Builder(getContext())
+                                .setTitle("Image Rejected")
+                                .setMessage("Our AI safety check flagged this picture"
+                                        + (reason != null && !reason.isEmpty() ? " (" + reason + ")" : "")
+                                        + ". Please choose a different image.")
+                                .setCancelable(true)
+                                .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                                .show();
+                        return;
+                    }
+                    saveProfileImage(pd, dataUri, true);
+                }
+
+                @Override
+                public void onError(String message) {
+                    if (!isAdded()) return;
+                    // Moderation unavailable — fall back to manual admin review
+                    Log.e("ProfileFragment", "Moderation failed: " + message);
+                    saveProfileImage(pd, dataUri, false);
+                }
+            }));
+        }).start();
+    }
+
+    private void saveProfileImage(ProgressDialog pd, String dataUri, boolean aiApproved) {
+        userRef.child("profileImage").setValue(dataUri)
+                .addOnSuccessListener(aVoid -> {
+                    userRef.child("profileApproved").setValue(aiApproved);
+                    pd.dismiss();
+                    if (!isAdded()) return;
+                    if (aiApproved) {
+                        removeProfile.setVisibility(View.VISIBLE);
+                        Glide.with(requireContext())
+                                .load(dataUri)
+                                .placeholder(R.drawable.prof)
+                                .error(R.drawable.prof)
+                                .into(profileImageView);
+                        snackbar("Image Upload Successful! AI-approved ✓");
+                    } else {
+                        verificationDialog = new AlertDialog.Builder(getContext())
+                                .setTitle("Image sent for Verification")
+                                .setMessage("Our AI check is temporarily unavailable, so your Profile picture has been sent to the admin for NSFW verification. It will appear to everyone once verified.")
+                                .setCancelable(true)
+                                .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                                .create();
+                        verificationDialog.show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    pd.dismiss();
+                    toast("Failed to update profile: " + e.getMessage());
+                });
+    }
+
+    /** Generates the card preview once the profile and rating data have both arrived. */
+    private void maybeLoadDnaPreview() {
+        if (!dnaProfileLoaded || !dnaRatingLoaded || dnaPreviewRequested) return;
+        dnaPreviewRequested = true;
+        loadDnaPreview();
+    }
+
+    private void loadDnaPreview() {
+        dnaPreviewShimmer.setVisibility(View.VISIBLE);
+        dnaPreviewShimmer.startShimmer();
+        dnaShareLabel.setText("Generating your Skill DNA ...");
+
+        ConnectraApi.fetchSkillDna(dnaName, dnaUsername, dnaMySkill, dnaGoalSkill,
+                dnaRating, dnaReviews, dnaAiVerified, new ConnectraApi.BytesCallback() {
+                    @Override
+                    public void onResult(byte[] bytes) {
+                        if (!isAdded()) return;
+                        dnaCardBytes = bytes;
+                        showDnaPreview(bytes);
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        Log.e("ProfileFragment", "DNA preview failed: " + message);
+                        if (!isAdded()) return;
+                        dnaPreviewShimmer.stopShimmer();
+                        dnaPreviewShimmer.setVisibility(View.GONE);
+                        dnaShareLabel.setText("Preview unavailable — tap to share your Skill DNA ✨");
+                    }
+                });
+    }
+
+    private void showDnaPreview(byte[] bytes) {
+        new Thread(() -> {
+            final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            if (getActivity() == null) return;
+            getActivity().runOnUiThread(() -> {
+                if (!isAdded()) return;
+                dnaPreviewShimmer.stopShimmer();
+                dnaPreviewShimmer.setVisibility(View.GONE);
+                if (bitmap != null) dnaPreviewImage.setImageBitmap(bitmap);
+                dnaShareLabel.setText("Tap to share your Skill DNA ✨");
+            });
+        }).start();
+    }
+
+    private void shareSkillDna() {
+        // The preview already holds the rendered card — share it right away
+        if (dnaCardBytes != null) {
+            shareCardBytes(dnaCardBytes, null);
             return;
         }
 
         ProgressDialog pd = new ProgressDialog(getActivity());
-        pd.setMessage("Uploading...");
+        pd.setMessage("Generating your Skill DNA card ...");
+        pd.setCancelable(false);
         pd.show();
 
-        try {
-            StorageReference fireRef = storage.getReference().child("connectra")
-                    .child(System.currentTimeMillis() + "." + getFileExtension(imageUri));
+        ConnectraApi.fetchSkillDna(dnaName, dnaUsername, dnaMySkill, dnaGoalSkill,
+                dnaRating, dnaReviews, dnaAiVerified, new ConnectraApi.BytesCallback() {
+                    @Override
+                    public void onResult(byte[] bytes) {
+                        if (!isAdded()) {
+                            pd.dismiss();
+                            return;
+                        }
+                        dnaCardBytes = bytes;
+                        showDnaPreview(bytes);
+                        shareCardBytes(bytes, pd);
+                    }
 
-            fireRef.putFile(imageUri)
-                    .addOnSuccessListener(taskSnapshot -> {
-                        userRef.child("profileApproved").setValue(false);
-                        fireRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                            String url = uri.toString();
-                            userRef.child("profileImage").setValue(url)
-                                    .addOnSuccessListener(aVoid -> {
-                                        pd.dismiss();
-                                        snackbar("Image Upload Successful!");
-                                        verificationDialog = new AlertDialog.Builder(getContext())
-                                                .setTitle("Image sent for Verification")
-                                                .setMessage("Your Profile picture has been sent to the admin for NSFW verification to check for mature content. It will appear to everyone once verified.")
-                                                .setCancelable(true)
-                                                .setPositiveButton("OK", (dialog, which) -> {
-                                                    dialog.dismiss();
-                                                })
-                                                .create();
-
-                                        verificationDialog.show();
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        pd.dismiss();
-                                        toast("Failed to update profile: " + e.getMessage());
-                                    });
-                        });
-                    })
-                    .addOnFailureListener(e -> {
+                    @Override
+                    public void onError(String message) {
                         pd.dismiss();
-                        toast("Upload failed: " + e.getMessage());
-                        Log.e("ProfileFragment", "Upload failed: " + e.getMessage());
-                    });
-        } catch (Exception e) {
-            pd.dismiss();
-            toast("Error: " + e.getMessage());
-        }
+                        toast("Card generation failed: " + message);
+                    }
+                });
     }
 
-    private long getFileSize(Uri uri) throws Exception {
-        if (getContext() == null) throw new Exception("Context is null");
+    private void shareCardBytes(byte[] bytes, @Nullable ProgressDialog pd) {
+        new Thread(() -> {
+            try {
+                File shareDir = new File(requireContext().getCacheDir(), "share");
+                if (!shareDir.exists()) shareDir.mkdirs();
+                File cardFile = new File(shareDir, "skill_dna.png");
+                FileOutputStream out = new FileOutputStream(cardFile);
+                out.write(bytes);
+                out.close();
 
-        ContentResolver contentResolver = getContext().getContentResolver();
-        android.os.ParcelFileDescriptor fileDescriptor =
-                contentResolver.openFileDescriptor(uri, "r");
-
-        if (fileDescriptor == null) throw new Exception("Could not open file");
-
-        long size = fileDescriptor.getStatSize();
-        fileDescriptor.close();
-        return size;
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> {
+                    if (pd != null) pd.dismiss();
+                    Uri contentUri = FileProvider.getUriForFile(requireContext(),
+                            "com.nachiket.connectra.fileprovider", cardFile);
+                    Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                    shareIntent.setType("image/png");
+                    shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
+                    // ClipData is what the share sheet uses to render the image preview
+                    shareIntent.setClipData(ClipData.newRawUri("Skill DNA", contentUri));
+                    shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    startActivity(Intent.createChooser(shareIntent, "Share your Skill DNA"));
+                });
+            } catch (Exception e) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        if (pd != null) pd.dismiss();
+                        toast("Could not share card: " + e.getMessage());
+                    });
+                }
+            }
+        }).start();
     }
 
     private void fetchAndDisplayRating() {
@@ -413,9 +543,12 @@ public class ProfileFragment extends Fragment {
 
                 long totalReviews = snapshot.getChildrenCount();
                 numbRev.setText("(" + totalReviews + ")");
+                dnaReviews = totalReviews;
 
                 if (totalReviews == 0) {
                     displayRating.setImageResource(R.drawable.r0);
+                    dnaRatingLoaded = true;
+                    maybeLoadDnaPreview();
                     return;
                 }
 
@@ -426,15 +559,21 @@ public class ProfileFragment extends Fragment {
 
                         float totalRev = snapshot.exists() ? snapshot.getValue(Float.class) : 0f;
                         float average = totalRev / totalReviews;
+                        dnaRating = average;
 
                         int imageResId = getRatingImageResource(average);
                         displayRating.setImageResource(imageResId);
+
+                        dnaRatingLoaded = true;
+                        maybeLoadDnaPreview();
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         if (isAdded()) {
                             toast("Error fetching rating: " + error.getMessage());
+                            dnaRatingLoaded = true;
+                            maybeLoadDnaPreview();
                         }
                     }
                 });
@@ -444,6 +583,8 @@ public class ProfileFragment extends Fragment {
             public void onCancelled(@NonNull DatabaseError error) {
                 if (isAdded()) {
                     toast("Error: " + error.getMessage());
+                    dnaRatingLoaded = true;
+                    maybeLoadDnaPreview();
                 }
             }
         });
@@ -461,12 +602,6 @@ public class ProfileFragment extends Fragment {
         else if (average <= 4) return R.drawable.r4;
         else if (average <= 4.5) return R.drawable.r4_5;
         else return R.drawable.r5;
-    }
-
-    private String getFileExtension(Uri uri) {
-        ContentResolver contentResolver = requireContext().getContentResolver();
-        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
-        return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri));
     }
 
     @Override

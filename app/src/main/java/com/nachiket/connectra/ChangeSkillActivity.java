@@ -2,11 +2,9 @@ package com.nachiket.connectra;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -16,17 +14,17 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.text.HtmlCompat;
 
 import com.bumptech.glide.Glide;
+import com.nachiket.connectra.utility.ConnectraApi;
+import com.nachiket.connectra.utility.ImageUtil;
 import com.nachiket.connectra.utility.MessageFilter;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +37,6 @@ public class ChangeSkillActivity extends AppCompatActivity {
 
     private FirebaseAuth auth;
     private DatabaseReference userRef;
-    private FirebaseStorage storage;
     private Uri certificateUri;
     private AlertDialog verificationDialog;
 
@@ -60,7 +57,6 @@ public class ChangeSkillActivity extends AppCompatActivity {
         certificate = findViewById(R.id.reg_cerf);
 
         auth = FirebaseAuth.getInstance();
-        storage = FirebaseStorage.getInstance(FirebaseApp.getInstance("secondary"));
 
         if (auth.getCurrentUser() != null) {
             String userId = auth.getCurrentUser().getUid();
@@ -201,71 +197,120 @@ public class ChangeSkillActivity extends AppCompatActivity {
         }
 
         ProgressDialog pd = new ProgressDialog(this);
-        pd.setMessage("Uploading...");
+        pd.setMessage("Checking certificate with AI ...");
+        pd.setCancelable(false);
         pd.show();
 
-        // Extract a valid file name using timestamp and file extension
-        String fileName = System.currentTimeMillis() + "." + getFileExtension(certificateUri);
-
-        // Create a reference to the storage path
-        StorageReference certRef = storage.getReference().child("connectra_certificates").child(fileName);
-
-        certRef.putFile(certificateUri).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                // Retrieve the download URL of the uploaded certificate
-                certRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                    String url = uri.toString();
-
-                    // Update or create the 'certificateUrl' field in the database
-                    userRef.child("certificateUrl").setValue(url).addOnCompleteListener(task1 -> {
-                        pd.dismiss();
-                        if (task1.isSuccessful()) {
-                            userRef.child("cerfApproved").setValue(false);
-                            // Display the uploaded certificate using Glide
-                            Glide.with(this)
-                                    .load(url)
-                                    .placeholder(R.drawable.default_certificate)
-                                    .error(R.drawable.default_certificate)
-                                    .into(certificate);
-
-                            snackbar("Certificate uploaded and updated successfully!");
-                            verificationDialog = new AlertDialog.Builder(this)
-                                    .setTitle("Image sent for Verification")
-                                    .setMessage("Your certificate has been sent to the admin for NSFW verification to check for mature content. It will appear to everyone once verified.")
-                                    .setCancelable(true)
-                                    .setPositiveButton("OK", (dialog, which) -> {
-                                        dialog.dismiss();
-                                    })
-                                    .create();
-
-                            verificationDialog.show();
-                        } else {
-                            // Handle failure to update database
-                            showError(task1);
-                        }
-                    });
-                }).addOnFailureListener(e -> {
+        // Compress + encode off the main thread, then run the AI checks
+        new Thread(() -> {
+            final String dataUri;
+            try {
+                dataUri = ImageUtil.uriToDataUri(this, certificateUri);
+            } catch (Exception e) {
+                runOnUiThread(() -> {
                     pd.dismiss();
-                    // Handle failure to get the download URL
-                    toast("Failed to retrieve certificate URL: " + e.getMessage());
+                    toast("Could not process image: " + e.getMessage());
                 });
-            } else {
-                pd.dismiss();
-                // Handle failure to upload file
-                if (task.getException() != null) {
-                    toast("Certificate upload failed: " + task.getException().getMessage());
-                } else {
-                    toast("Certificate upload failed.");
+                return;
+            }
+
+            runOnUiThread(() -> ConnectraApi.moderateImage(dataUri, new ConnectraApi.ModerationCallback() {
+                @Override
+                public void onResult(boolean nsfw, String reason) {
+                    if (isFinishing() || isDestroyed()) return;
+                    if (nsfw) {
+                        pd.dismiss();
+                        new AlertDialog.Builder(ChangeSkillActivity.this)
+                                .setTitle("Image Rejected")
+                                .setMessage("Our AI safety check flagged this image"
+                                        + (reason != null && !reason.isEmpty() ? " (" + reason + ")" : "")
+                                        + ". Please choose a different certificate.")
+                                .setCancelable(true)
+                                .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                                .show();
+                        return;
+                    }
+                    verifyAndSaveCertificate(pd, dataUri);
                 }
+
+                @Override
+                public void onError(String message) {
+                    if (isFinishing() || isDestroyed()) return;
+                    // Moderation unavailable — fall back to manual admin review
+                    saveCertificate(pd, dataUri, false, false, "");
+                }
+            }));
+        }).start();
+    }
+
+    private void verifyAndSaveCertificate(ProgressDialog pd, String dataUri) {
+        pd.setMessage("Verifying certificate with AI ...");
+        String claimedSkill = mySkillEditText.getText().toString().trim();
+
+        ConnectraApi.verifyCertificate(dataUri, claimedSkill, new ConnectraApi.CertificateCallback() {
+            @Override
+            public void onResult(boolean isCertificate, boolean matchesSkill, String detectedSkill,
+                                 String title, String issuer, double confidence) {
+                if (isFinishing() || isDestroyed()) return;
+                saveCertificate(pd, dataUri, true, isCertificate && matchesSkill, detectedSkill);
+            }
+
+            @Override
+            public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
+                // Verification unavailable — keep the certificate but without the AI badge
+                saveCertificate(pd, dataUri, true, false, "");
             }
         });
     }
 
-    // Helper method to get file extension
-    private String getFileExtension(Uri uri) {
-        ContentResolver contentResolver = getContentResolver();
-        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
-        return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri));
+    private void saveCertificate(ProgressDialog pd, String dataUri, boolean aiApproved,
+                                 boolean aiVerified, String detectedSkill) {
+        userRef.child("certificateUrl").setValue(dataUri).addOnCompleteListener(task1 -> {
+            pd.dismiss();
+            if (task1.isSuccessful()) {
+                userRef.child("cerfApproved").setValue(aiApproved);
+                userRef.child("aiVerified").setValue(aiVerified);
+
+                // Display the uploaded certificate using Glide
+                Glide.with(this)
+                        .load(dataUri)
+                        .placeholder(R.drawable.default_certificate)
+                        .error(R.drawable.default_certificate)
+                        .into(certificate);
+
+                if (aiVerified) {
+                    verificationDialog = new AlertDialog.Builder(this)
+                            .setTitle("AI-Verified ✓")
+                            .setMessage("Your certificate passed the AI checks"
+                                    + (detectedSkill != null && !detectedSkill.isEmpty()
+                                    ? " and matches your skill \"" + detectedSkill + "\"" : "")
+                                    + ". It is now visible on your profile with the AI-Verified badge!")
+                            .setCancelable(true)
+                            .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                            .create();
+                } else if (aiApproved) {
+                    verificationDialog = new AlertDialog.Builder(this)
+                            .setTitle("Certificate Uploaded")
+                            .setMessage(HtmlCompat.fromHtml(
+                                    "Your certificate passed the safety check and is visible to everyone, but the <b>AI could not verify it against your claimed skill.</b>",
+                                    HtmlCompat.FROM_HTML_MODE_LEGACY))
+                            .setCancelable(true)
+                            .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                            .create();
+                } else {
+                    verificationDialog = new AlertDialog.Builder(this)
+                            .setTitle("Image sent for Verification")
+                            .setMessage("Our AI check is temporarily unavailable, so your certificate has been sent to the admin for NSFW verification. It will appear to everyone once verified.")
+                            .setCancelable(true)
+                            .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                            .create();
+                }
+                verificationDialog.show();
+            } else {
+                showError(task1);
+            }
+        });
     }
 
     private void showError(@NonNull Task<Void> task) {

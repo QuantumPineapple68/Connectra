@@ -1,7 +1,10 @@
 package com.nachiket.connectra;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.VibrationEffect;
 import android.util.Log;
@@ -10,6 +13,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.nachiket.connectra.Authentication.LoginActivity;
@@ -27,6 +32,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.nachiket.connectra.utility.UpdateChecker;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private DatabaseReference detonatorRef;
     private ValueEventListener stateListener;
+    private static final int NOTIFICATION_PERMISSION_REQUEST = 101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +54,12 @@ public class MainActivity extends AppCompatActivity {
 
         // Initialize UI
         initializeUI();
+
+        // Force-update gate (Remote Config, min_version_code vs installed versionCode)
+        UpdateChecker.check(this);
+
+        // Needed on Android 13+ so FCM pushes from the "all" topic are visible
+        requestNotificationPermission();
 
         // Set default fragment
         getSupportFragmentManager().beginTransaction()
@@ -123,6 +136,16 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
             Log.e(TAG, "Error initializing Firebase: " + e.getMessage());
+        }
+    }
+
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                    NOTIFICATION_PERMISSION_REQUEST);
         }
     }
 

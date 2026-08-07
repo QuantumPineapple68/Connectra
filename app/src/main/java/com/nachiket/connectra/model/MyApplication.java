@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 public class MyApplication extends Application {
 
@@ -21,6 +22,15 @@ public class MyApplication extends Application {
 
         // Make sure the default Firebase instance is ready as soon as the app starts
         FirebaseApp.initializeApp(this);
+
+        // Every install listens to the "all" topic so the scheduled Worker cron
+        // can broadcast notifications to the whole user base
+        FirebaseMessaging.getInstance().subscribeToTopic("all")
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.w(TAG, "Failed to subscribe to 'all' topic", task.getException());
+                    }
+                });
     }
 
     public static Context getAppContext() {
