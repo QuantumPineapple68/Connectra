@@ -16,6 +16,7 @@
 .cxx
 local.properties
 
-# Cloudflare workers (kept local, not pushed)
+# Cloudflare workers (tracked in the separate connectra-workers repo)
 /worker/
 /worker-notify/
+/.git-workers/
