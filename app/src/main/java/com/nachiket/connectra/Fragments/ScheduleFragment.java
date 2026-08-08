@@ -21,7 +21,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.color.MaterialColors;
+import com.nachiket.connectra.utility.SystemBarsUtil;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.nachiket.connectra.ChatActivity;
 import com.nachiket.connectra.ConnectionActivity;
@@ -69,12 +69,8 @@ public class ScheduleFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_schedule, container, false);
 
-        Window window = requireActivity().getWindow();
-        int statusBarColor = getResources().getColor(R.color.white, requireContext().getTheme());
-        window.setStatusBarColor(statusBarColor);
-        WindowInsetsControllerCompat windowInsetsController = new WindowInsetsControllerCompat(window, window.getDecorView());
-        boolean isLightBackground = MaterialColors.isColorLight(statusBarColor);
-        windowInsetsController.setAppearanceLightStatusBars(isLightBackground);
+        SystemBarsUtil.apply(requireActivity(),
+                getResources().getColor(R.color.white, requireContext().getTheme()));
 
         btnManageConnections = view.findViewById(R.id.btn_manage_connections);
         btnManageConnections.setOnClickListener(v ->

@@ -13,7 +13,7 @@ import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.bumptech.glide.Glide;
 import com.github.chrisbanes.photoview.PhotoView;
-import com.google.android.material.color.MaterialColors;
+import com.nachiket.connectra.utility.SystemBarsUtil;
 
 public class ShowImage extends AppCompatActivity {
 
@@ -25,18 +25,7 @@ public class ShowImage extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_image);
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
-        Window window = getWindow();
-        int statusBarColor = getResources().getColor(R.color.black, getTheme());
-        window.setStatusBarColor(statusBarColor);
-        WindowInsetsControllerCompat windowInsetsController = new WindowInsetsControllerCompat(window, window.getDecorView());
-        boolean isLightBackground = MaterialColors.isColorLight(statusBarColor);
-        windowInsetsController.setAppearanceLightStatusBars(isLightBackground);
+        SystemBarsUtil.apply(this, getResources().getColor(R.color.black, getTheme()));
 
         photoView = findViewById(R.id.image);
         back = findViewById(R.id.backBtnpfp);

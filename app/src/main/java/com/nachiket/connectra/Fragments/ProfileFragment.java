@@ -29,7 +29,7 @@ import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
 import com.facebook.shimmer.ShimmerFrameLayout;
-import com.google.android.material.color.MaterialColors;
+import com.nachiket.connectra.utility.SystemBarsUtil;
 import com.nachiket.connectra.ChangeSkillActivity;
 import com.nachiket.connectra.Authentication.LoginActivity;
 import com.nachiket.connectra.ReportActivity;
@@ -92,12 +92,8 @@ public class ProfileFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
-        Window window = requireActivity().getWindow();
-        int statusBarColor = getResources().getColor(R.color.white, requireContext().getTheme());
-        window.setStatusBarColor(statusBarColor);
-        WindowInsetsControllerCompat windowInsetsController = new WindowInsetsControllerCompat(window, window.getDecorView());
-        boolean isLightBackground = MaterialColors.isColorLight(statusBarColor);
-        windowInsetsController.setAppearanceLightStatusBars(isLightBackground);
+        SystemBarsUtil.apply(requireActivity(),
+                getResources().getColor(R.color.white, requireContext().getTheme()));
 
         // Initialize Views
         fullNameTextView = view.findViewById(R.id.full_name);

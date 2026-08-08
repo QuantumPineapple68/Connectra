@@ -15,7 +15,7 @@ import android.os.Vibrator;
 import android.text.TextUtils;
 import android.text.method.PasswordTransformationMethod;
 
-import com.google.android.material.color.MaterialColors;
+import com.nachiket.connectra.utility.SystemBarsUtil;
 import com.nachiket.connectra.ExtraDetailsActivity;
 import com.nachiket.connectra.MainActivity;
 import android.view.View;
@@ -82,20 +82,9 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
-        Window window = getWindow();
-        int statusBarColor = getResources().getColor(R.color.login_bar, getTheme());
-        window.setStatusBarColor(statusBarColor);
-        WindowInsetsControllerCompat windowInsetsController = new WindowInsetsControllerCompat(window, window.getDecorView());
-        boolean isLightBackground = MaterialColors.isColorLight(statusBarColor);
-        windowInsetsController.setAppearanceLightStatusBars(isLightBackground);
+        SystemBarsUtil.apply(this, getResources().getColor(R.color.login_bar, getTheme()));
 
         banned = getIntent().getBooleanExtra("banned", false);
         suspended = getIntent().getBooleanExtra("suspended", false);

@@ -14,6 +14,8 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.nachiket.connectra.utility.SystemBarsUtil;
 import androidx.core.text.HtmlCompat;
 
 import com.bumptech.glide.Glide;
@@ -46,6 +48,8 @@ public class ChangeSkillActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_change_skill);
+
+        SystemBarsUtil.apply(this, getResources().getColor(R.color.white, getTheme()));
 
         nameEditText = findViewById(R.id.new_name);
         ageEditText = findViewById(R.id.new_age);

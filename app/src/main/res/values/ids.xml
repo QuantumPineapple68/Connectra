@@ -2,4 +2,5 @@
 <resources>
     <item name="register" type="id" />
     <item name="login" type="id" />
+    <item name="status_bar_scrim" type="id" />
 </resources>

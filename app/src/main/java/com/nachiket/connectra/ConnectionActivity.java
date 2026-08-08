@@ -18,7 +18,7 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.color.MaterialColors;
+import com.nachiket.connectra.utility.SystemBarsUtil;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -54,12 +54,7 @@ public class ConnectionActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connection);
 
-        Window window = getWindow();
-        int statusBarColor = getResources().getColor(R.color.white, getTheme());
-        window.setStatusBarColor(statusBarColor);
-        WindowInsetsControllerCompat windowInsetsController = new WindowInsetsControllerCompat(window, window.getDecorView());
-        boolean isLightBackground = MaterialColors.isColorLight(statusBarColor);
-        windowInsetsController.setAppearanceLightStatusBars(isLightBackground);
+        SystemBarsUtil.apply(this, getResources().getColor(R.color.white, getTheme()));
 
         etSearch = findViewById(R.id.et_search);
         rvUsers = findViewById(R.id.rv_users);

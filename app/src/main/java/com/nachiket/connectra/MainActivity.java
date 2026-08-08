@@ -32,6 +32,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.nachiket.connectra.utility.SystemBarsUtil;
 import com.nachiket.connectra.utility.UpdateChecker;
 
 public class MainActivity extends AppCompatActivity {
@@ -48,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+
+        SystemBarsUtil.apply(this, getResources().getColor(R.color.white, getTheme()));
 
         // Initialize Firebase Apps
         initializeFirebaseApps();

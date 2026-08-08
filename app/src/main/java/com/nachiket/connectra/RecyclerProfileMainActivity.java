@@ -12,6 +12,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.nachiket.connectra.utility.SystemBarsUtil;
+
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -33,6 +35,8 @@ public class RecyclerProfileMainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recycler_profile_main);
+
+        SystemBarsUtil.apply(this, getResources().getColor(R.color.white, getTheme()));
 
         databaseRef = FirebaseDatabase.getInstance().getReference("Users");
         FirebaseAuth auth = FirebaseAuth.getInstance();

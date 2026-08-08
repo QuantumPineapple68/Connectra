@@ -28,7 +28,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.bumptech.glide.Glide;
-import com.google.android.material.color.MaterialColors;
+import com.nachiket.connectra.utility.SystemBarsUtil;
 import com.nachiket.connectra.MainActivity;
 import com.nachiket.connectra.R;
 import com.nachiket.connectra.utility.ConnectraApi;
@@ -65,18 +65,7 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register2);
 
-        Window window = getWindow();
-        int statusBarColor = getResources().getColor(R.color.login_bar, getTheme());
-        window.setStatusBarColor(statusBarColor);
-        WindowInsetsControllerCompat windowInsetsController = new WindowInsetsControllerCompat(window, window.getDecorView());
-        boolean isLightBackground = MaterialColors.isColorLight(statusBarColor);
-        windowInsetsController.setAppearanceLightStatusBars(isLightBackground);
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        SystemBarsUtil.apply(this, getResources().getColor(R.color.login_bar, getTheme()));
 
         email = findViewById(R.id.txtEmailAddress);
         password = findViewById(R.id.txtPassword);

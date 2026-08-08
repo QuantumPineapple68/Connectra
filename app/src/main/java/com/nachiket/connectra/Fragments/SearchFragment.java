@@ -20,7 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.google.android.material.color.MaterialColors;
+import com.nachiket.connectra.utility.SystemBarsUtil;
 import com.nachiket.connectra.R;
 import com.nachiket.connectra.adapter.NewUserAdapter;
 import com.nachiket.connectra.model.NewUser;
@@ -49,12 +49,8 @@ public class SearchFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_search, container, false);
 
-        Window window = requireActivity().getWindow();
-        int statusBarColor = getResources().getColor(R.color.inverted_top, requireContext().getTheme());
-        window.setStatusBarColor(statusBarColor);
-        WindowInsetsControllerCompat windowInsetsController = new WindowInsetsControllerCompat(window, window.getDecorView());
-        boolean isLightBackground = MaterialColors.isColorLight(statusBarColor);
-        windowInsetsController.setAppearanceLightStatusBars(isLightBackground);
+        SystemBarsUtil.apply(requireActivity(),
+                getResources().getColor(R.color.inverted_top, requireContext().getTheme()));
 
         // Initialize components
         recyclerView = view.findViewById(R.id.recycler_view);

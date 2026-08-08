@@ -33,7 +33,7 @@ import android.view.Menu;
 import androidx.appcompat.widget.Toolbar;
 
 import com.bumptech.glide.Glide;
-import com.google.android.material.color.MaterialColors;
+import com.nachiket.connectra.utility.SystemBarsUtil;
 import com.nachiket.connectra.model.BlockedUser;
 import com.nachiket.connectra.model.ChatTexts;
 import com.nachiket.connectra.adapter.ChatTextsAdapter;
@@ -114,12 +114,7 @@ public class ChatActivity extends AppCompatActivity implements ChatTextsAdapter.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        Window window = getWindow();
-        int statusBarColor = getResources().getColor(R.color.ChatActivity, getTheme());
-        window.setStatusBarColor(statusBarColor);
-        WindowInsetsControllerCompat windowInsetsController = new WindowInsetsControllerCompat(window, window.getDecorView());
-        boolean isLightBackground = MaterialColors.isColorLight(statusBarColor);
-        windowInsetsController.setAppearanceLightStatusBars(isLightBackground);
+        SystemBarsUtil.apply(this, getResources().getColor(R.color.ChatActivity, getTheme()));
 
         backButton=findViewById(R.id.backBtn);
         chatPartnerId = getIntent().getStringExtra("chatPartnerId");

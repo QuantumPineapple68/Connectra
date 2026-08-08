@@ -12,6 +12,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.nachiket.connectra.utility.SystemBarsUtil;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.text.HtmlCompat;
@@ -47,6 +49,8 @@ public class ExtraDetailsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_extra_details);
+
+        SystemBarsUtil.apply(this, getResources().getColor(R.color.white, getTheme()));
 
         // Initialize views
         name = findViewById(R.id.fulltxtname);
