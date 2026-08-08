@@ -85,7 +85,7 @@ Connectra is a **three-tier system with no traditional server**:
    │              │                 │        │
    │              │                 │   ┌──────────────────────────────────┐
    │              └─────────────────┼───│  WORKER 2: connectra-notify      │
-   │                                │   │  cron "30 13 */3 * *" (19:00 IST)│
+   │                                │   │  cron "30 13 * * *"  (19:00 IST) │
    └────────────────────────────────┘   │  KV NOTIFY_STATE → cursor        │
                                         │  360 messages → FCM topic "all"  │
                                         └──────────────────────────────────┘
@@ -174,11 +174,14 @@ com.nachiket.connectra
 │   ├── User, UserModel, NewUser, Task, ChatTexts,
 │   ├── MessagePreview, ConnectionRequest, BlockedUser
 │   ├── AppDetonator.java           ← remote kill-switch + presence
-│   └── MyApplication.java          ← Application class, FCM topic subscribe
+│   └── MyApplication.java          ← Application class, FCM topic subscribe,
+│                                     arms the onboarding nudge
 ├── service/
-│   └── ConnectraMessagingService.java  ← FirebaseMessagingService
+│   ├── ConnectraMessagingService.java  ← FirebaseMessagingService
+│   └── WelcomeNotificationWorker.java ← 3-min onboarding nudge (WorkManager)
 ├── utility/
 │   ├── ConnectraApi.java           ← THE ONLY HTTP CLIENT IN THE APP
+│   ├── WelcomeNotificationScheduler.java ← arms the nudge once per install
 │   ├── ImageUtil.java              ← compression + base64 encoding
 │   ├── MessageFilter.java          ← profanity filter
 │   ├── MessageViolationTracker.java← rate-limits repeat offenders
@@ -222,6 +225,7 @@ where you rate them), `ChangeSkillActivity` (update `myskill`/`goalskill` + cert
 | Push | `firebase-messaging` | 24.1.0 |
 | Remote Config | `firebase-config` | 22.0.1 |
 | Networking | `okhttp` | 4.12.0 |
+| Background work | `androidx.work:work-runtime` | 2.9.1 |
 | Images | `glide` 4.15.1, `ucrop` 2.2.8, `circleimageview` 3.1.0, `photoview` 2.3.0 | |
 | UI | `material` 1.12.0, `appcompat` 1.7.0, `constraintlayout` 2.1.4, `swiperefreshlayout` 1.1.0, `shimmer` 0.5.0 | |
 
@@ -267,6 +271,52 @@ OkHttpClient:                                                  // :40-44
 | `fetchSkillDna(name, username, myskill, goalskill, rating, reviews, aiVerified, BytesCallback)` | `POST /skill-dna` | `onResult(byte[] pngBytes)` — handled separately (lines 201-225) because the response is binary PNG, not JSON |
 
 `SkillMatch` (lines 71-85) carries `uid, name, myskill, goalskill, int score, boolean mutual`.
+
+### 4.5 The onboarding nudge — a local notification 3 minutes after the first launch
+
+A brand-new install gets **one** notification, three minutes after the app is opened for
+the very first time. It is deliberately **not** a push: FCM has no "send later" primitive
+and no device token is stored anywhere (see [§17](#17-known-gaps-and-future-work)), so the
+delay is timed on the device itself with `WorkManager`.
+
+```
+MyApplication.onCreate                                             :37
+  └─ WelcomeNotificationScheduler.scheduleOnFirstLaunch(context)
+        ├─ SharedPreferences "connectra_onboarding" / "welcome_push_scheduled"
+        │     already true?  →  return (never re-armed)
+        ├─ OneTimeWorkRequest(WelcomeNotificationWorker)
+        │     .setInitialDelay(3, MINUTES)
+        ├─ enqueueUniqueWork("connectra_welcome_push", KEEP, request)
+        └─ flag := true
+
+… 3 minutes later, in WorkManager's own process/thread …
+
+WelcomeNotificationWorker.doWork
+  ├─ NotificationManagerCompat.areNotificationsEnabled()?  no → success, silently skip
+  ├─ FirebaseRemoteConfig.fetchAndActivate()  (Tasks.await, 15 s cap)
+  │     welcome_push_title  /  welcome_push_body
+  │     on timeout or offline → the compiled-in defaults are used
+  └─ NotificationCompat on channel "connectra_updates"
+        tag "connectra_welcome", id 1002
+```
+
+| Property | Value |
+|---|---|
+| Delay | 3 minutes (`DELAY_MINUTES`, `WelcomeNotificationScheduler:28`) |
+| Frequency | Exactly once per install — guarded by both the prefs flag and `ExistingWorkPolicy.KEEP` |
+| Copy source | Firebase Remote Config keys `welcome_push_title` / `welcome_push_body` |
+| Fallback copy | `"Welcome to Connectra 👋"` / `"Find someone who teaches what you want to learn — your matches are ready."` |
+| Channel | `connectra_updates` — the same channel the FCM broadcasts use |
+| Tag / id | `connectra_welcome` / `1002` — **deliberately different** from the broadcast's `connectra_engagement` / `1001`, so the two can never replace each other in the tray |
+
+Why it survives: `WorkManager` persists the request in its own database, so the nudge still
+fires if the user closes the app or reboots the phone within the three minutes. It does
+**not** fire if the user force-stops the app or the install is uninstalled — an accepted
+limitation of any device-side timer.
+
+Editing the copy needs no app release: change the two Remote Config parameters in the
+Firebase Console. The worker fetches with a 1-hour minimum interval (the same setting
+`UpdateChecker` uses), so a value published shortly before an install still reaches it.
 
 ---
 
@@ -381,7 +431,8 @@ Lifecycle:
 | `ownerId` | String — used to sync/attribute a task between two connected partners |
 
 `ScheduleFragment` also reads `Connections/{uid}` so tasks can be shared with skill
-partners. **There are no alarms or reminders** — no `AlarmManager`, no `WorkManager`.
+partners. **There are no alarms or reminders for tasks** — no `AlarmManager`, and the
+`WorkManager` dependency is used only by the onboarding nudge ([§4.5](#45-the-onboarding-nudge--a-local-notification-3-minutes-after-the-first-launch)).
 
 ### 5.6 `OnlineUsers/{uid}`
 
@@ -632,7 +683,7 @@ compatibility_date = "2025-08-01"
 compatibility_flags = ["nodejs_compat"]
 
 [triggers]
-crons = ["30 13 */3 * *"]     # 13:30 UTC = 19:00 IST, every 3rd day
+crons = ["30 13 * * *"]       # 13:30 UTC = 19:00 IST, every day
 
 [vars]
 FCM_TOPIC = "all"
@@ -664,14 +715,15 @@ index = (cursor * coprimeStep(360)) % 360                        (line 49)
 ```
 
 Because the step is coprime with the catalogue size, repeatedly incrementing the cursor
-walks through **every one of the 360 messages before any repeats** — roughly three years
-of sends. The cursor is stored in KV under the key `rotation-cursor` and is **advanced
+walks through **every one of the 360 messages before any repeats** — roughly one year
+of daily sends. The cursor is stored in KV under the key `rotation-cursor` and is **advanced
 only after FCM accepts the push** (lines 188-199), so a failed send retries the same copy.
 If KV is unreachable, the Worker falls back to a time-derived cursor
-`floor(Date.now() / 3 days)` (line 67).
+`floor(Date.now() / 1 day)` (line 67).
 
-> Why a stored counter rather than a date-derived index? The cron pattern `*/3` restarts
-> on the 1st of every month, so a purely time-derived index would repeat itself.
+> Why a stored counter rather than a date-derived index? A stored counter is independent
+> of the schedule — the cron cadence can change (it used to be `*/3`, which additionally
+> restarted on the 1st of every month) without disturbing the rotation.
 
 ### 7.3 Sending a push (no Firebase SDK involved)
 
@@ -734,6 +786,10 @@ success/failure — a failed cron never throws.
     `FLAG_ACTIVITY_CLEAR_TOP | FLAG_ACTIVITY_NEW_TASK` (lines 69-72);
   - `onNewToken` only logs the token — **device tokens are never stored**, which is why
     there are no per-message chat notifications (see [§17](#17-known-gaps-and-future-work)).
+- The one notification that does **not** come from this Worker is the onboarding nudge
+  ([§4.5](#45-the-onboarding-nudge--a-local-notification-3-minutes-after-the-first-launch)):
+  it is posted locally by `WelcomeNotificationWorker` on the same channel but with its own
+  tag and id, so the two never collapse into one another.
 
 ---
 
@@ -958,7 +1014,18 @@ app versions the flag applies to, so old builds can be shut down selectively.
 The same class also shows a non-cancellable **"No Internet Connection"** dialog driven by a
 `ConnectivityManager.NetworkCallback`, and maintains the `OnlineUsers` presence records.
 
-### 11.5 Forced update — `UpdateChecker`
+### 11.5 Remote Config parameters
+
+| Key | Type | Read by | Purpose |
+|---|---|---|---|
+| `min_version_code` | long | `UpdateChecker:43` | Forced-update floor |
+| `update_url` | String | `UpdateChecker:44` | Play Store target for the forced-update dialog |
+| `welcome_push_title` | String | `WelcomeNotificationWorker:83` | Title of the 3-minute onboarding nudge |
+| `welcome_push_body` | String | `WelcomeNotificationWorker:84` | Body of the same |
+
+Every key has a compiled-in default, so an unreachable Remote Config never breaks a flow.
+
+### 11.6 Forced update — `UpdateChecker`
 
 Uses **Firebase Remote Config** (not the DB): reads `min_version_code` (long) and
 `update_url` (String), compares against the installed `PackageInfo.versionCode`
@@ -981,7 +1048,7 @@ whose button opens the Play Store and calls `finishAffinity()` (lines 68-75).
 | `POST /admin/reindex` | `worker/scripts/reindex-users.mjs` | — | Manual, one-off (batches of 20) |
 | `POST /admin/gen-avatar` | `worker/scripts/generate-avatars.mjs` | — | Manual, one-off |
 | `POST /send` (notify) | operator via `curl` | — | Manual test broadcast |
-| cron → FCM topic `all` | `connectra-notify.scheduled` | `worker-notify/src/index.js:238` | Every 3rd day, 19:00 IST |
+| cron → FCM topic `all` | `connectra-notify.scheduled` | `worker-notify/src/index.js:238` | Daily, 19:00 IST |
 
 **The app calls exactly four endpoints.** The two `/admin/*` endpoints are reachable only
 with the `ADMIN_KEY` and exist purely for the maintenance scripts.
@@ -1029,7 +1096,7 @@ npx wrangler kv namespace create NOTIFY_STATE
 #    → paste the returned id into wrangler.toml under [[kv_namespaces]]
 
 # 2. cron trigger + vars in wrangler.toml
-#    crons = ["30 13 */3 * *"]  ;  FCM_TOPIC = "all"
+#    crons = ["30 13 * * *"]  ;  FCM_TOPIC = "all"
 #    compatibility_flags = ["nodejs_compat"]
 
 # 3. secrets
@@ -1133,6 +1200,14 @@ in the Realtime Database. Restore with `true`.
 
 **Force an update instead** → bump `min_version_code` in Firebase Remote Config.
 
+**Reword the onboarding nudge** → edit `welcome_push_title` / `welcome_push_body` in
+Firebase Remote Config and publish. No app release needed; new installs pick it up on
+their first fetch.
+
+**Change the broadcast cadence** → edit `crons` in `worker-notify/wrangler.toml` and
+`npx wrangler deploy`. The `[triggers]` block is replaced wholesale on deploy, and the KV
+rotation cursor is a counter (not a clock), so it needs no adjustment.
+
 **Ban a user** → `Users/{uid}/banned = true`.
 
 **Deploy a Worker change**
@@ -1154,7 +1229,7 @@ than fail:
 | Vectorize | Query + storage | Only 2 vectors per user; `topK: 12` per query, 2 queries per match request. |
 | Vision models | Slow + neuron-hungry | Only invoked on an actual image upload, never on a browse. Primary model with an automatic LLaVA fallback; unparseable output returns 502 so the client falls back to manual review. |
 | `/skill-dna` | CPU (satori/resvg) | Fonts cached in module scope so only the first invocation of an isolate fetches them. |
-| FCM | Free | One topic broadcast every 3 days, collapsed by key/tag. |
+| FCM | Free | One topic broadcast per day, collapsed by key/tag. The onboarding nudge costs nothing at all — it is a local `WorkManager` notification, not a push. |
 | RTDB | Bandwidth (base64 images are heavy) | Images capped at 400 KB and 720 px client-side. |
 | Client | Network | Matches cached in `SharedPreferences` and rendered immediately; shimmer only on a cold, empty list. |
 
@@ -1177,6 +1252,9 @@ than fail:
 4. **Rating writes are not transactional.** `rev` is read-then-written (`RecyclerProfileMainActivity:222-231`),
    so simultaneous ratings can lose an increment. `runTransaction` would fix it.
 5. **No task reminders.** `ScheduleFragment` has no `AlarmManager` / `WorkManager` integration.
+   (`WorkManager` is now a dependency — used by the onboarding nudge in
+   [§4.5](#45-the-onboarding-nudge--a-local-notification-3-minutes-after-the-first-launch) —
+   so the plumbing for task reminders already exists.)
 6. **`firebase-firestore` is a declared dependency but is never used** — it can be removed.
 7. **`connectra-key.jks` is tracked in the public Android repo.** If it's the real upload
    key it should be removed from version control and rotated.

@@ -7,6 +7,7 @@ import android.util.Log;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.nachiket.connectra.utility.WelcomeNotificationScheduler;
 
 public class MyApplication extends Application {
 
@@ -31,6 +32,9 @@ public class MyApplication extends Application {
                         Log.w(TAG, "Failed to subscribe to 'all' topic", task.getException());
                     }
                 });
+
+        // One-shot onboarding nudge, 3 minutes after the very first launch
+        WelcomeNotificationScheduler.scheduleOnFirstLaunch(this);
     }
 
     public static Context getAppContext() {

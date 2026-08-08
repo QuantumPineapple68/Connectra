@@ -5,13 +5,13 @@
 
 android {
     namespace = "com.nachiket.connectra"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.nachiket.connectra"
         minSdk = 23
-        targetSdk = 34
-        versionCode = 12
+        targetSdk = 36
+        versionCode = 20
         versionName = "2.0.0"
         vectorDrawables.useSupportLibrary = true
 
@@ -58,6 +58,10 @@ dependencies {
     implementation(libs.swiperefreshlayout)
     implementation(libs.shimmer)
     implementation(libs.androidx.navigation.fragment)
+    implementation(libs.work.runtime)
+    // WorkManager compiles against ListenableFuture; guava only reaches the runtime
+    // classpath through Firebase, so it has to be declared explicitly here.
+    implementation(libs.guava)
     annotationProcessor(libs.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
